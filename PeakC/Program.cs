@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Peak
+namespace Peak.PeakC
 {
     class Program
     {
