@@ -4,9 +4,18 @@ namespace Peak.PeakC
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main (string[] args)
         {
-            //Console.WriteLine("Hello World!");
+            //Test:
+            Lexer l = new Lexer(args[0]);
+            while (!l.EndOfFile())
+            {
+                var t = l.GetToken();
+                Console.WriteLine(t.Content+"   :"+t.Type.ToString());
+            }
+                
+
         }
     }
 }
+
