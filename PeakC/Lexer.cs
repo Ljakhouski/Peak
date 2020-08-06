@@ -46,9 +46,16 @@ namespace Peak.PeakC
         public Lexer(string path)
         {
             FilePath = path;
-            using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
-                Content = sr.ReadToEnd().ToCharArray();
-
+            try
+            {
+                using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
+                    Content = sr.ReadToEnd().ToCharArray();
+            }
+            catch (FileLoadException) 
+            { 
+                Error.FileNotFoundErrMessage(path);
+            }
+            
             FixIncorrectFileEnd();
         }
 
