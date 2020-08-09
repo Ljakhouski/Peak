@@ -36,7 +36,7 @@ namespace Peak.PeakC
         private char[] Content;
         private char   ch;
 
-        private string Buffer;
+        private string Buffer="";
         /*********************/
 
         private bool   spaceMode = false;
