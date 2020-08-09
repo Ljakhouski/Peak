@@ -158,7 +158,7 @@ namespace Peak.PeakC
                                 return MakeToken(type.StrConst, Buffer);
                             }
 
-                        else if (ch == '\n')
+                        /*else if (ch == '\n')
                         {
                             PositionInLine = -1;
                             LineNumber++;
@@ -166,8 +166,8 @@ namespace Peak.PeakC
                             if (quotesMode || alternativeQuotesMode) // saving '\n' only in "title" or 'title'
                                 Buffer += ch;
                             /*else if (Buffer.Length > 0)
-                                return newToken(Buffer);*/
-                        }
+                                return newToken(Buffer);
+                        } */
                         else if (ch == '\r')
                         {
 

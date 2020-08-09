@@ -30,19 +30,29 @@ namespace Peak.PeakC.Parser
             }
             return false;
         }
-        private bool checkCommentAndFileEnd()
+        private bool deleteCommentAndCheckFileEnd()
         {
             if (t.Content == "//")
+            {
                 while (next___() && t.Type != type.NextLine)
                     ;
+                return next(); // set token after delete comment, if not end of file
+            }
             else if (t.Content == "/*")
+            {
                 while (next___() && t.Content != "*/")
                     ;
-
-            if (!lexer.EndOfFile())
                 return next();
+            }
+            else
+                // {
+                //      if (!lexer.EndOfFile())
+                //  }
+                return true;
+            //set next token after comment
+            
 
-            return false;
+            
         }
         private bool next()
         {
@@ -50,7 +60,7 @@ namespace Peak.PeakC.Parser
             {
                 t = lexer.GetToken();
 
-                return checkCommentAndFileEnd(); 
+                return deleteCommentAndCheckFileEnd(); 
             }
             return false;
         }
