@@ -83,14 +83,11 @@ namespace Peak.PeakC.Parser
 
             while (next())
 
-                if (t.Type == type.NextLine)
+                if (t.Type == type.NextLine      ||
+                    t.Type == type.NextExpression)
                 {
-                    SaveBufferAsExpression(buffer, n);
+                    SaveBufferAsExpression(ref buffer, n);
                     modifiers = new List<Token>();
-                }
-                else if (t.Type == type.NextExpression)
-                {
-                    SaveBufferAsExpression(buffer, n);
                 }
                 else if (t.Type == type.Modifier)
                 {
@@ -100,13 +97,18 @@ namespace Peak.PeakC.Parser
                 else
                     buffer.Add(t);
 
+            SaveBufferAsExpression(ref buffer, n);
             return n;
         }
 
-        private void SaveBufferAsExpression(List<Token> buffer, CodeNode n)
+        private void SaveBufferAsExpression(ref List<Token> buffer, CodeNode n)
         {
             if (buffer.Count > 0)
+            {
                 n.Node.Add(ExprParser.GetAst(buffer));
+                buffer = new List<Token>();
+            }
+                
         }
     }
 }

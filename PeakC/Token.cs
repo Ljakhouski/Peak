@@ -50,9 +50,9 @@ namespace Peak.PeakC
             bool isIntConst()
             {
                 string numbers = "0123456789";
-                foreach (char ch in numbers)
+                foreach (char ch in Content)
                 {
-                    if (!Content.Contains(ch))
+                    if (!numbers.Contains(ch))
                         return false;
                 }
                 return true;
