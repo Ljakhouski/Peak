@@ -28,6 +28,14 @@ namespace Peak.PeakC
             this.PositionInLine = position;
         }
 
+        public Token(type type, string content, Token forMetaInf)
+        {
+            this.Type = type;
+            this.Content = content;
+            this.LinePosition = forMetaInf.LinePosition;
+            this.PositionInLine = forMetaInf.PositionInLine;
+            this.FilePosition = forMetaInf.FilePosition;
+        }
         public Token(string content, string filePosition, int linePosition, int position)
         {
             this.Content = content;

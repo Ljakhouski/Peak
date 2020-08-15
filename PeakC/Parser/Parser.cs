@@ -81,11 +81,32 @@ namespace Peak.PeakC.Parser
             var buffer = new List<Token>();
             var modifiers = new List<Token>();
 
-            Node n_ = new Node();
-            n_.MetaInf = nextToken();
-            n.Node.Add(n_);
+            while (next())
+
+                if (t.Type == type.NextLine)
+                {
+                    SaveBufferAsExpression(buffer, n);
+                    modifiers = new List<Token>();
+                }
+                else if (t.Type == type.NextExpression)
+                {
+                    SaveBufferAsExpression(buffer, n);
+                }
+                else if (t.Type == type.Modifier)
+                {
+                    modifiers.Add(t);
+                    buffer.Add(t);
+                }
+                else
+                    buffer.Add(t);
 
             return n;
+        }
+
+        private void SaveBufferAsExpression(List<Token> buffer, CodeNode n)
+        {
+            if (buffer.Count > 0)
+                n.Node.Add(ExprParser.GetAst(buffer));
         }
     }
 }
