@@ -92,6 +92,15 @@ namespace Peak.PeakC
         }
     }
 
+    class LoadNode : Node
+    {
+        public Token LoadFileName { get; set; }
+
+        public LoadNode (Token loadFileName)
+        {
+            this.LoadFileName = loadFileName;
+        }
+    }
     class NameNode : Node
     {
         public Token Name { get; set; }

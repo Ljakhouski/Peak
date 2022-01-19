@@ -28,15 +28,15 @@ namespace Peak.PeakC
             // "alpha+=1"  <=>  alpha, +=, 1
         };
         
-        private string FilePath;
-        private int    LineNumber     = 1;
-        private int    PositionInLine = -1;
-        private int    Position       = -1;  // - first char for "while( getChar() )"
+        private string filePath;
+        private int    lineNumber     =  1;
+        private int    positionInLine = -1;
+        private int    position       = -1;  // - first char for "while( getChar() )"
 
-        private char[] Content;
+        private char[] content;
         private char   ch;
 
-        private string Buffer="";
+        private string buffer="";
         /*********************/
 
         private bool   spaceMode = false;
@@ -45,11 +45,11 @@ namespace Peak.PeakC
 
         public Lexer(string path)
         {
-            FilePath = path;
+            filePath = path;
             try
             {
                 using (StreamReader sr = new StreamReader(path, System.Text.Encoding.Default))
-                    Content = sr.ReadToEnd().ToCharArray();
+                    content = sr.ReadToEnd().ToCharArray();
             }
             catch (FileLoadException) 
             { 
@@ -61,112 +61,112 @@ namespace Peak.PeakC
 
         private void FixIncorrectFileEnd()
         {
-            while (Content.Last() == ' '
-                || Content.Last() == '\r'
-                || Content.Last() == '\n'
-                || Content.Last() == '\t')
-                Array.Resize(ref Content, Content.Length - 2);
+            while (content.Last() == ' '
+                || content.Last() == '\r'
+                || content.Last() == '\n'
+                || content.Last() == '\t')
+                Array.Resize(ref content, content.Length - 2);
         }
         public bool EndOfFile()
         {
-            if (!(Position < Content.Length - 1))
+            if (!(position < content.Length - 1))
                 return true;
             return false;
         }
-        private bool NextChar()
+        
+        Token MakeToken(string content)
+        {
+            var t = new Token(content, filePath, lineNumber, positionInLine);
+            buffer = "";
+            positionInLine = -1;
+            return t;
+        }
+
+        Token MakeToken(type type, string content)
+        {
+            var t = new Token(type, content, filePath, lineNumber, positionInLine);
+            buffer = "";
+            positionInLine = -1;
+            return t;
+        }
+        private bool nextChar()
         {
             if (!EndOfFile())
             {
-                PositionInLine++;
-                Position++;
-                ch = Content[Position];
+                positionInLine++;
+                position++;
+                ch = content[position];
                 return true;
             }
             return false;
         }
 
-        Token MakeToken(string Content)
-        {
-            var t = new Token(Content, FilePath, LineNumber, PositionInLine);
-            Buffer = "";
-            PositionInLine = -1;
-            return t;
-        }
-
-        Token MakeToken(type type, string Content)
-        {
-            var t = new Token(type, Content, FilePath, LineNumber, PositionInLine);
-            Buffer = "";
-            PositionInLine = -1;
-            return t;
-        }
-
         public Token GetToken()
         {
-            while (NextChar())
+            while (nextChar())
 
                 if ((quotesMode && ch != '"') || (alternativeQuotesMode && ch != "'"[0]))
 
-                    Buffer += ch;
+                    buffer += ch;
 
 
                 else
                 {
                     if (ch == ' ')
                     {
-                        if (!spaceMode && Buffer.Length > 0)  // если пробел встречается первый раз, то упаковываем все то что было до него
-                            return MakeToken(Buffer);
-                        // иначе игнорируем и парсим дальше
+                        if (!spaceMode && buffer.Length > 0)  // if it's the first space-char, then we pack everything that was before it
+                            return MakeToken(buffer);
+                        // else ignore and parse further
                     }
                     else
                     {
-                        spaceMode = false; // при встрече с чем угодно кроме пробела
+                        spaceMode = false; // when meeting anything except space-char
 
                         if (ch == '"')
-                            if (!quotesMode) // если встретилось впервые
+                            if (!quotesMode) // if is the first "
                             {
-                                if (Buffer.Length > 0) // если токен (до выражения в кавычках) уже начат
+                                if (buffer.Length > 0) // if the token (before quotes-expression) begun
                                 {
-                                    Position--; // for saving state lexer
-                                    return MakeToken(Buffer);
+                                    position--; // for saving state lexer
+                                    return MakeToken(buffer);
                                 }
 
 
                                 quotesMode = true;
                             }
-                            else // конец выражения в кавычках
+                            else // end of quotes-expression
                             {
                                 quotesMode = false;
-                                return MakeToken(type.StrConst, Buffer);
+                                return MakeToken(type.StrConst, buffer);
                             }
 
                         else if (ch == '\'')
-                            if (!alternativeQuotesMode) // если встретилось впервые
+                            if (!alternativeQuotesMode) // if is the first '
                             {
-                                if (Buffer.Length > 0) // если токен (до выражения в кавычках) уже начат
+                                if (buffer.Length > 0) // if the token (before quotes-expression) begun
                                 {
-                                    Position--; // for saving state lexer
-                                    return MakeToken(Buffer);
+                                    position--; // for saving state lexer
+                                    return MakeToken(buffer);
                                 }
 
                                 alternativeQuotesMode = true;
                             }
-                            else // конец выражения в кавычках
+                            else // end of quotes-expression
                             {
                                 alternativeQuotesMode = false;
 
-                                return MakeToken(type.StrConst, Buffer);
+                                return MakeToken(type.StrConst, buffer);
                             }
 
                         /*else if (ch == '\n')
                         {
-                            PositionInLine = -1;
-                            LineNumber++;
+                            positionInLine = -1;
+                            lineNumber++;
 
                             if (quotesMode || alternativeQuotesMode) // saving '\n' only in "title" or 'title'
-                                Buffer += ch;
-                            /*else if (Buffer.Length > 0)
-                                return newToken(Buffer);
+                                buffer += ch;
+                            /*else if (buffer.Length > 0)
+                                return newToken(buffer);
                         } */
                         else if (ch == '\r')
                         {
@@ -178,61 +178,54 @@ namespace Peak.PeakC
 
                             try
                             {
-                                string r = String.Concat<char>(Content).Substring(Position, 2);
+                                string r = String.Concat<char>(content).Substring(position, 2);
                                 foreach (string s in sequence)
-                                    if (s == String.Concat<char>(Content).Substring(Position, s.Length))
-                                    // if "Content " includes "sequence":
+                                    if (s == String.Concat<char>(content).Substring(position, s.Length))
+                                    // if "content " includes "sequence":
                                     {
-                                        // separate the Buffer from a special sequence:
-                                        if (Buffer.Length > 0)
+                                        // separate the buffer from a special sequence:
+                                        if (buffer.Length > 0)
                                         {
-                                            Position--; // for repeat iteration
-                                            return MakeToken(Buffer);
+                                            position--; // for repeat iteration
+                                            return MakeToken(buffer);
                                         }
 
                                         // in next ineration:
                                         var t = MakeToken(s);
-                                        Position += s.Length;
-                                        Position--; // because posion is increased, before "ch = Content[Position]"
+                                        position += s.Length;
+                                        position--; // because positon is increased, before "ch = content[position]"
                                         return t;
                                     }
                             }
                             catch (ArgumentOutOfRangeException e)
                             {
-
+                                // too long sequence
                             }
-
-
 
                             // for single charting:
                             //     "1+2=7"    <=>    1, +, 2, =, 7
 
-                            
-
                             if (singleCharsSequence.Contains(ch))
                             {
-                                if (Buffer.Length > 0)
+                                if (buffer.Length > 0)
                                 {
-                                    Position--; // for repeat iteration
-                                    return MakeToken(Buffer);
+                                    position--; // for repeat iteration
+                                    return MakeToken(buffer);
                                 }
-
 
                                 return MakeToken(ch.ToString());
                             }
 
+                            // default:
 
-
-                            // DEFAULT:
-
-                            Buffer += ch;
+                            buffer += ch;
                         }
                     }
                 }
 
 
-            if (Buffer.Length > 0)
-                return MakeToken(Buffer);
+            if (buffer.Length > 0)
+                return MakeToken(buffer);
 
             /////////////
             return null;

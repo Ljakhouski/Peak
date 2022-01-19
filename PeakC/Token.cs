@@ -10,9 +10,9 @@ namespace Peak.PeakC
         public bool    IsEmpty       { get; set; }
         public type    Type          { get; set; }
         public string  Content       { get; set; }
-        public string  FilePosition  { get; set; }
-        public int     LinePosition  { get; set; }
-        public int     PositionInLine{ get; set; }
+        public string  File          { get; set; }
+        public int     Line          { get; set; }
+        public int     Position      { get; set; }
 
         public Token(type type)
         {
@@ -23,26 +23,42 @@ namespace Peak.PeakC
         {
             this.Type = type;
             this.Content = content;
-            this.FilePosition = filePosition;
-            this.LinePosition = linePosition;
-            this.PositionInLine = position;
+            this.File = filePosition;
+            this.Line = linePosition;
+            this.Position = position;
         }
 
         public Token(type type, string content, Token forMetaInf)
         {
             this.Type = type;
             this.Content = content;
-            this.LinePosition = forMetaInf.LinePosition;
-            this.PositionInLine = forMetaInf.PositionInLine;
-            this.FilePosition = forMetaInf.FilePosition;
+            this.Line = forMetaInf.Line;
+            this.Position = forMetaInf.Position;
+            this.File = forMetaInf.File;
         }
         public Token(string content, string filePosition, int linePosition, int position)
         {
             this.Content = content;
-            this.FilePosition = filePosition;
-            this.LinePosition = linePosition;
-            this.PositionInLine = position;
+            this.File = filePosition;
+            this.Line = linePosition;
+            this.Position = position;
             DefineType();
+        }
+        public static bool operator ==(Token t1, string value)
+        {
+            if (value == null && (object)t1 == null)
+                return true;
+            if (t1.Content == value)
+                return true;
+            return false;
+        }
+        public static bool operator !=(Token t1, string value)
+        {
+            if (value == null && (object)t1 == null)
+                return false;
+            if (t1 == value)
+                return false;
+            return true;
         }
 
         private void DefineType()
@@ -58,15 +74,10 @@ namespace Peak.PeakC
                 return true;
             }
 
-            bool isBoolConst()
-            {
-                if (this.Content == "true" ||
-                    this.Content == "false")
-                    return true;
-                return false;
-            }
+         
 
-            string[] keyWords =
+         
+            string[] terms =
             {
                 "if"     ,
                 "else"   ,
@@ -76,10 +87,6 @@ namespace Peak.PeakC
                 "struct" ,
                 "load"   ,
                 "define" ,
-            };
-
-            string[] operators =
-            {
                  "#"        ,
                  "$"        ,
                  "?"        ,
@@ -101,117 +108,78 @@ namespace Peak.PeakC
                  ":"        ,
                  "."        ,
                  ","        ,
+                 ";"        ,
                  "<<"       ,
                  "break"    ,
                  "continue" ,
-            };
-
-            string[] serviceLexems =
-            {
-                "(", ")", "[", "]", "{", "}",
-                "/*"       ,
-                "*/"       ,
-                "//"       ,
-                "int"      ,
-                "str"      ,
-                "double"   ,
-                "bool"     ,
-                "array"    ,
-                "dict"     ,
-                "stack"    ,
-            };
-
-            string[] modifiers =
-            {
-                "native"   ,
-                "@export"  ,
+                 "(", ")", "[", "]", "{", "}",
+                 "/*"       ,
+                 "*/"       ,
+                 "//"       ,
+                 "int"      ,
+                 "str"      ,
+                 "double"   ,
+                 "bool"     ,
+                 "array"    ,
+                 "dict"     ,
+                 "stack"    ,
+                 "native"   ,
+                 "export"   ,
+                 "true"     ,
+                 "false"    ,
             };
 
 
 
-            if (isIntConst())
-                this.Type = type.IntConst;
-            else if (isBoolConst())
-                this.Type = type.BoolConst;
-            else if (keyWords.Contains(this.Content))
-                this.Type = type.KeyWord;
-            else if (operators.Contains(this.Content))
-                this.Type = type.Operator;
-            else if (modifiers.Contains(this.Content))
-                this.Type = type.Modifier;
-            else if (serviceLexems.Contains(this.Content))
-                this.Type = type.ServiceLexem;
-            else if (Content == "\n")
-                this.Type = type.NextLine;
-            else if (Content == ";")
-                this.Type = type.NextExpression;
-            else
-                if (Content.Length!=0)
+
+
+            // if (isIntConst())
+            //     this.Type = type.IntConst; 
+            // else if (isBoolConst())
+            //     this.Type = type.BoolConst;
+            // else if (terms.Contains(this.Content))
+            //     this.Type = type.Terminal;
+            // else if (operators.Contains(this.Content))
+            //     this.Type = type.Operator;
+            // else if (modifiers.Contains(this.Content))
+            //     this.Type = type.Modifier;
+            // else if (serviceLexems.Contains(this.Content))
+            //     this.Type = type.ServiceLexem;
+            // else if (Content == "\n")
+            //     this.Type = type.NextLine;
+            // else if (Content == ";")
+            //     this.Type = type.NextExpression;
+
+            if (terms.Contains(this.Content))
+                this.Type = type.Term;
+            else if (Content.Length != 0)
                 this.Type = type.Identifier;
-        }
-    }
-
-    class RoundBracketExpressionToken : Token
-    {
-        public List<Token> Expression { get; set; }
-        public RoundBracketExpressionToken(List<Token> expression)
-        {
-            this.Type = type.GroupToken;
-            this.Content = "()";
-
-            if (expression.Count == 0)
-                this.IsEmpty = true;
             else
-            {
-                this.LinePosition = expression[0].LinePosition;
-                this.FilePosition = expression[0].FilePosition;
-              this.PositionInLine = expression[0].    PositionInLine;
-            }
-
-            this.Expression = expression;
+                Error.ErrMessage(this, "unknow type");
         }
     }
 
-    class SquareBracketExpressionToken : Token
-    {
-        public List<Token> Expression { get; set; }
-        public SquareBracketExpressionToken(List<Token> expression)
-        {
-            this.Type = type.GroupToken;
-            this.Content = "[]";
-
-            if (expression.Count == 0)
-                this.IsEmpty = true;
-            else
-            {
-                this.LinePosition = expression[0].LinePosition;
-                this.FilePosition = expression[0].FilePosition;
-              this.PositionInLine = expression[0].    PositionInLine;
-            }
-
-            this.Expression = expression;
-        }
-    }
     enum type
     {
+        Term,
         Identifier,
-        NextLine,
-        NextExpression,
-
-        KeyWord,    // func proc while if 
-        Operator,   // +-*/ : += -= ++ -- , 
-
-        BoolConst,
-        IntConst,
-        DoubleConst,
+        //NextLine,
+        //NextExpression,
+        //
+        //KeyWord,    // func proc while if 
+        //Operator,   // +-*/ : += -= ++ -- , 
+        //
+        //BoolConst,
+        //IntConst,
+        //DoubleConst,
         StrConst,
-        Modifier,
-
-        ServiceLexem,
-
-        /* For other Token-classes that Token extends */
-
-        GroupToken
+        //Modifier,
+        //
+        //ServiceLexem,
+        //
+        ///* For other Token-classes that Token extends */
+        //
+        //GroupToken
     }
 
   /*  enum constType

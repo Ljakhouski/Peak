@@ -12,60 +12,30 @@ namespace Peak.PeakC.Parser
     class Parser
     {
         private Lexer lexer;
+        private Preprocessor preproc;
         private Token t;
         private List<string> loadetFileNames = new List<string>();
 
         public CodeNode GetNode(string path)
         {
             this.lexer = new Lexer(path);
-            return Parse(Scope.Global);
+            this.preproc = new Preprocessor(lexer);
+            return parse(Scope.Global);
         }
-        private bool next___()
-        {
-            if (!lexer.EndOfFile())
-            {
-                t = lexer.GetToken();
-
-                return true;
-            }
-            return false;
-        }
-        private bool deleteCommentAndCheckFileEnd()
-        {
-            if (t.Content == "//")
-            {
-                while (next___() && t.Type != type.NextLine)
-                    ;
-                return next(); // set token after delete comment, if not end of file
-            }
-            else if (t.Content == "/*")
-            {
-                while (next___() && t.Content != "*/")
-                    ;
-                return next();
-            }
-            else
-                // {
-                //      if (!lexer.EndOfFile())
-                //  }
-                return true;
-            //set next token after comment
-            
-
-            
-        }
+       
+       
         private bool next()
         {
-            if (!lexer.EndOfFile())
+            if (preproc.NextTokenExist())
             {
-                t = lexer.GetToken();
+                t = preproc.GetNextToken();
 
-                return deleteCommentAndCheckFileEnd(); 
+                return true; 
             }
             return false;
         }
 
-        private Token nextToken()
+        private Token getNext()
         {
             if (next())
                 return t;
@@ -74,41 +44,53 @@ namespace Peak.PeakC.Parser
             return null;
         }
 
-        private CodeNode Parse(Scope scope)
+        private void setNext()
+        {
+            if (!next())
+                Error.ErrMessage(t, "unfinished expression");
+        }
+        private void expect(string token)
+        {
+            if ((next() && t == token) == false)
+                Error.ErrMessage(t, "expected \"" + token + '"');
+        }
+
+        private void expect(type type)
+        {
+            if ((next() && t.Type == type) == false)
+                Error.ErrMessage(t, "expected " + type.ToString());
+        }
+        private CodeNode parse(Scope scope)
         {
             var n = new CodeNode(scope);
 
-            var buffer = new List<Token>();
-            var modifiers = new List<Token>();
-
             while (next())
-
-                if (t.Type == type.NextLine      ||
-                    t.Type == type.NextExpression)
+            {
+                if (t == "load")
                 {
-                    SaveBufferAsExpression(ref buffer, n);
-                    modifiers = new List<Token>();
+                    n.Node.Add(parseLoad());
                 }
-                else if (t.Type == type.Modifier)
-                {
-                    modifiers.Add(t);
-                    buffer.Add(t);
-                }
-                else
-                    buffer.Add(t);
+                //else if (t == "if")
+                // ...
 
-            SaveBufferAsExpression(ref buffer, n);
+
+            }
+
             return n;
         }
 
-        private void SaveBufferAsExpression(ref List<Token> buffer, CodeNode n)
+          
+        private LoadNode parseLoad()
         {
-            if (buffer.Count > 0)
+            if (t == "load")
             {
-                n.Node.Add(ExprParser.GetAst(buffer));
-                buffer = new List<Token>();
+                expect(type.StrConst);
+                var s = t; 
+                expect(";"); 
+                return new LoadNode(s);
             }
-                
+            else
+                throw new Exception();
         }
     }
 }
