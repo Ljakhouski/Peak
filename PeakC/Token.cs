@@ -129,8 +129,11 @@ namespace Peak.PeakC
                  "false"    ,
             };
 
-
-
+            string[] modifiers =
+            {
+                "native"   ,
+                "export"   ,
+            };
 
 
             // if (isIntConst())
@@ -152,7 +155,9 @@ namespace Peak.PeakC
 
             if (terms.Contains(this.Content))
                 this.Type = type.Term;
-            else if (Content.Length != 0)
+            if (modifiers.Contains(this.Content))
+                this.Type = type.Modifier;
+            if (Content.Length != 0)
                 this.Type = type.Identifier;
             else
                 Error.ErrMessage(this, "unknow type");
@@ -173,13 +178,14 @@ namespace Peak.PeakC
         //IntConst,
         //DoubleConst,
         StrConst,
-        //Modifier,
+        Modifier,
         //
         //ServiceLexem,
         //
         ///* For other Token-classes that Token extends */
         //
         //GroupToken
+        FileEnd, // for comparison if the next token is requested
     }
 
   /*  enum constType

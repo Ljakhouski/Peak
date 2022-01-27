@@ -7,6 +7,7 @@ namespace Peak.PeakC
     {
         static void Main (string[] args)
         {
+            NonterminalPreority.MakePriorityList();
             //Test:
 
             Lexer l = new Lexer(args[0]);
