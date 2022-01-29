@@ -78,7 +78,7 @@ namespace Peak.PeakC
         {
             var t = new Token(content, filePath, lineNumber, positionInLine);
             buffer = "";
-            positionInLine = -1;
+            //positionInLine = -1;
             return t;
         }
 
@@ -86,7 +86,7 @@ namespace Peak.PeakC
         {
             var t = new Token(type, content, filePath, lineNumber, positionInLine);
             buffer = "";
-            positionInLine = -1;
+            //positionInLine = -1;
             return t;
         }
         private bool nextChar()
@@ -137,7 +137,7 @@ namespace Peak.PeakC
                             else // end of quotes-expression
                             {
                                 quotesMode = false;
-                                return MakeToken(type.StrConst, buffer);
+                                return MakeToken(type.StrValue, buffer);
                             }
 
                         else if (ch == '\'')
@@ -155,7 +155,7 @@ namespace Peak.PeakC
                             {
                                 alternativeQuotesMode = false;
 
-                                return MakeToken(type.StrConst, buffer);
+                                return MakeToken(type.StrValue, buffer);
                             }
 
                         /*else if (ch == '\n')
@@ -171,6 +171,16 @@ namespace Peak.PeakC
                         else if (ch == '\r')
                         {
 
+                        }
+                        else if (ch == '\n')
+                        {
+                            if (quotesMode || alternativeQuotesMode) // saving '\n' only in "title" or 'title'
+                                buffer += ch;
+                            else if (buffer.Length > 0)
+                                return MakeToken(buffer);
+
+                            positionInLine = -1;
+                            lineNumber++;
                         }
                         else
                         {
