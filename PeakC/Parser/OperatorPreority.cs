@@ -35,14 +35,14 @@ namespace Peak.PeakC.Parser
 
             Preority.Add(new Nonterminal() { Type = NonterminalType.Program, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.CodeBlock, IsBinary = false});
-            Preority.Add(new Nonterminal() { Type = NonterminalType.Type, IsBinary = false });
+         // Preority.Add(new Nonterminal() { Type = NonterminalType.Type, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Modifier, IsBinary = false });
-            Preority.Add(new Nonterminal() { Type = NonterminalType.Comma, IsBinary = false, Terminals = new List<string> { "," } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.Sequence, IsBinary = false, Terminals = new List<string> { "," } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Dot, IsBinary = false, Terminals = new List<string> { "." } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Assigment, IsBinary = true, Terminals = new List<string> { "<<" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.IncrementOrDecrement, IsBinary = false, Terminals = new List<string> { "++", "--" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.DoubleDot, IsBinary = false, Terminals = new List<string> { ":" } });
-            Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Equals, IsBinary = true, Terminals = new List<string> { "==" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Comparison, IsBinary = true, Terminals = new List<string> { "=", "!=", ">", "<", ">=", "<=" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.PlusMinus, IsBinary = true, Terminals = new List<string> { "+", "-" } });
@@ -85,7 +85,7 @@ namespace Peak.PeakC.Parser
         CodeBlock, // if-else | while | load | func/proc declaration | expression
         Type,
         Modifier,
-        Comma,
+        Sequence, // <expr> {',' <expr>} | <expr>
         Assigment,
         IncrementOrDecrement,
         DoubleDot,

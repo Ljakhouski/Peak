@@ -31,7 +31,7 @@ namespace Peak.PeakC.Parser
         {
             this.lexer = new Lexer(path);
             this.preproc = new Preprocessor(lexer);
-            return (ProgramNode)parse(byType(NonterminalType.Program));
+            return (ProgramNode)parse(NonterminalType.Program);
         }
         private bool next()
         {
@@ -107,10 +107,6 @@ namespace Peak.PeakC.Parser
             
             return t;
         }
-        private Nonterminal byType(NonterminalType type)
-        {
-            return NonterminalPreority.GetByType(type);
-        }
 
         /* parsing methods */
 
@@ -123,6 +119,9 @@ namespace Peak.PeakC.Parser
                     if (t == "load")
                     {
                         programNode.Node.Add(parseLoad());
+
+                        if (getNext() == ";")
+                            next();
                     }
                     else
                     {
@@ -133,13 +132,17 @@ namespace Peak.PeakC.Parser
                     return programNode;
                     
             }
-            programNode.Node.Add(parse(byType(NonterminalType.CodeBlock)));
+            programNode.Node.Add(parse(NonterminalType.CodeBlock));
             if (next())
                 Error.ErrMessage(t, "expected end of file");
 
             return programNode;
         }
 
+        private Node parse(NonterminalType type)
+        {
+            return parse(NonterminalPreority.GetByType(type));
+        }
         private Node parse(Nonterminal nt)
         {
             switch (nt.Type)
@@ -152,11 +155,17 @@ namespace Peak.PeakC.Parser
                     return parseModifier();
                 case NonterminalType.Dot:
                     return parseDot();
-                case NonterminalType.Assigment:
-                    return parseBinry(nt);
+                case NonterminalType.Sequence:
+                    return parseSequence();
                 case NonterminalType.Data:
                     return parseData();
+                default:
+                    if (nt.IsBinary)
+                        return parseBinry(nt);
+                    break;
+                    
             }
+            
             throw new Exception();
         }
           
@@ -164,7 +173,7 @@ namespace Peak.PeakC.Parser
         {
             if (t == "load")
             {
-                expect(type.StrConst);
+                expect(type.StrValue);
                 var s = t; 
                 expect(";"); 
                 return new LoadNode(s);
@@ -231,7 +240,7 @@ namespace Peak.PeakC.Parser
                 next();
                 var name = expectName();
                 expect("(");
-                var args = parse(byType(NonterminalType.Comma));
+                var args = parse(NonterminalType.Sequence);
                 if (args is SequenceNode || args is VariableInitNode || args is EmptyNode)
                 {
                     expect(")");
@@ -243,7 +252,7 @@ namespace Peak.PeakC.Parser
                     else if (getNext() == "[")
                     {
                         next();
-                        var bn = parse(byType(NonterminalType.CodeBlock));
+                        var bn = parse(NonterminalType.CodeBlock);
                         expect("]");
                         return new ProcedureNode(name, args, (CodeBlockNode)bn);
                     }
@@ -255,9 +264,9 @@ namespace Peak.PeakC.Parser
             }
             else
             {
-                var modifier = parse(byType(NonterminalType.Modifier));
+                var modifier = parse(NonterminalType.Modifier);
 
-                var expr = parse(byType(NonterminalType.Dot)); // if begin <type_expr> then parse as var-declaration, else expression will be <expression> <;>
+                var expr = parse(NonterminalType.Dot); // if begin <type_expr> then parse as var-declaration, else expression will be <expression> <;>
                 if (maybeTypeExpression(expr))
                 {
                     var varInitNode = new VariableInitNode(
@@ -335,6 +344,38 @@ namespace Peak.PeakC.Parser
             }
         }
         
+        private Node parseSequence()
+        {
+            var sequence = new SequenceNode() { Sequence = new List<Node>() };
+            Node n = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
+
+            if (getNext() == ",") // if expression contains at least one comma, then <dotExpr> -> <expr> <,> <expr> ... ? 
+            {
+                next();
+                sequence.Sequence.Add(n);
+                var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
+                if (expr is EmptyNode)
+                    Error.ErrMessage(t, "expression expected");
+                else
+                    sequence.Sequence.Add(expr);
+            }
+            return n;
+
+            while (true) // if expression contains two and more comma. <sequence> -> <expr> { <,> <expr> }
+            {
+                if (getNext() == ",")
+                {
+                    next();
+                    var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
+                    if (expr is EmptyNode)
+                        Error.ErrMessage(t, "expression expected");
+                    else
+                        sequence.Sequence.Add(expr);
+                }
+                else
+                    return n;
+            }
+        }
         private Node parseBinry(Nonterminal nonterm) // <binaryEpxr> -> <binaryEpxr> operator <expr> | <expr> 
         {
             Node n;
@@ -359,35 +400,66 @@ namespace Peak.PeakC.Parser
             }
             
         }
-
-      /*  private Node parseData()
+        private Node parseFuncCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
         {
-            if (next())
+            var expr = parseData();
+            if (expr is IdentifierNode && getNext() == "(")
             {
-                if (t.Type == type.IntConst)
+                next();
+                if (getNext() == ")")
                 {
-                    if (getNext() == ".")
-                    {
-                        next();
-                        if (getNext().Type == type.IntConst)
-                            return new DoubleNode()
-                    }
+                    next();
+                    return new FuncCallNode((expr as IdentifierNode).Id);
                 }
+                else
+                {
+                    next();
+                    var n = new FuncCallNode((expr as IdentifierNode).Id, parse(NonterminalType.AndOr));
+                    expect(")");
+                    return n;
+                }
+                   
             }
-            else
+            return expr;
+                
+        }
+        private Node parseData()
+        {
+            next();
+
+            if (t.Type == type.IntValue)
             {
-                return EmptyNode
+                if (getNext() == ".")
+                {
+                    var doubleBeginToken = t;
+                    next();
+                    if (nextToken().Type == type.IntValue)
+                        return new ConstValueNode(new Token(type.DoubleValue, doubleBeginToken.Content + "." + t.Content, doubleBeginToken));
+
+                    else
+                        Error.ErrMessage(t, "value expected");
+                }
+                else
+                    return new ConstValueNode(t);
             }
-        }*/
+            else if (t.Type == type.StrValue   ) return new ConstValueNode(t);
+            else if (t.Type == type.BoolValue  ) return new ConstValueNode(t);
+            else if (t.Type == type.Identifier ) return new IdentifierNode(t);
+            else
+                Error.ErrMessage(t, "identifier expected");
+
+            throw new Exception();           
+        }
+       
        
         private bool maybeTypeExpression(Node expr)
         {
-            if (expr is NameNode)
+            if (expr is IdentifierNode)
                 return true;
             else if (expr is DotNode)
                 foreach (Node n in (expr as DotNode).Sequence)
                 {
-                    if (!(n is NameNode || n is TypeNode))
+                    if (!(n is IdentifierNode || n is TypeNode))
                     {
                         return false;
                     }

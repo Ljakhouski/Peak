@@ -63,7 +63,7 @@ namespace Peak.PeakC
 
         private void DefineType()
         {
-            bool isIntConst()
+            bool isIntValue()
             {
                 string numbers = "0123456789";
                 foreach (char ch in Content)
@@ -155,9 +155,11 @@ namespace Peak.PeakC
 
             if (terms.Contains(this.Content))
                 this.Type = type.Term;
-            if (modifiers.Contains(this.Content))
+            else if (modifiers.Contains(this.Content))
                 this.Type = type.Modifier;
-            if (Content.Length != 0)
+            else if (isIntValue())
+                this.Type = type.IntValue;
+            else if (Content.Length != 0)
                 this.Type = type.Identifier;
             else
                 Error.ErrMessage(this, "unknow type");
@@ -174,10 +176,10 @@ namespace Peak.PeakC
         //KeyWord,    // func proc while if 
         //Operator,   // +-*/ : += -= ++ -- , 
         //
-        //BoolConst,
-        //IntConst,
-        //DoubleConst,
-        StrConst,
+        StrValue,
+        IntValue,
+        DoubleValue,
+        BoolValue,
         Modifier,
         //
         //ServiceLexem,

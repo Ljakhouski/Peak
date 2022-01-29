@@ -19,7 +19,11 @@ namespace Peak.PeakC
 
             Preprocessor preproc = new Preprocessor(l);
             while (preproc.NextTokenExist())
-                Console.WriteLine("token: "+preproc.GetNextToken().Content);
+            {
+                var t = preproc.GetNextToken();
+                Console.WriteLine("token: "+t.Content + "  line: "+t.Line+ " pos: "+t.Position);
+            }
+                
 
             Parser.Parser pars = new Parser.Parser();
             Node n = pars.GetNode(args[0]);

@@ -174,13 +174,20 @@ namespace Peak.PeakC
                         }
                         else if (ch == '\n')
                         {
-                            if (quotesMode || alternativeQuotesMode) // saving '\n' only in "title" or 'title'
-                                buffer += ch;
-                            else if (buffer.Length > 0)
+                            //if (quotesMode || alternativeQuotesMode) // saving '\n' only in "title" or 'title'
+                            //    buffer += ch;
+                            /*else*/
+                            if (buffer.Length > 0)
+                            {
+                                position--; // for repeat parsing '\n'
                                 return MakeToken(buffer);
+                            }
+                                
 
                             positionInLine = -1;
                             lineNumber++;
+
+                            return MakeToken(ch.ToString());
                         }
                         else
                         {

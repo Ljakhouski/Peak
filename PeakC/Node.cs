@@ -148,6 +148,18 @@ namespace Peak.PeakC
         }
     }
 
+    class FuncCallNode : Node
+    {
+        public Token Id { get; set; }
+        public Node Args { get; set; }
+        
+        public FuncCallNode(Token id, Node args = null)
+        {
+            this.Id = id;
+            this.Args = args;
+        }
+    }
+
     class LoadNode : Node
     {
         public Token LoadFileName { get; set; }
@@ -157,12 +169,32 @@ namespace Peak.PeakC
             this.LoadFileName = loadFileName;
         }
     }
-    class NameNode : Node
+    class IdentifierNode : Node
     {
-        public Token Name { get; set; }
-        public NameNode(Token name)
+        public Token Id { get; set; }
+        public IdentifierNode(Token id)
         {
-            this.Name = name;
+            this.Id = id;
+        }
+    }
+
+    class RoundBracketNode : Node
+    {
+        public Node Expression { get; set; }
+
+        public RoundBracketNode(Node expr)
+        {
+            this.Expression = expr;
+        }
+    }
+
+    class ConstValueNode : Node // int/double/str/bool const
+    {
+        public Token Value { get; set; }
+
+        public ConstValueNode(Token t)
+        {
+            this.Value = t;
         }
     }
 }
