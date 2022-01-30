@@ -9,7 +9,7 @@ namespace Peak.PeakC
         {
             NonterminalPreority.MakePriorityList();
             //Test:
-
+            
             Lexer l = new Lexer(args[0]);
             /*while (!l.EndOfFile())
             {
@@ -27,6 +27,7 @@ namespace Peak.PeakC
 
             Parser.Parser pars = new Parser.Parser();
             Node n = pars.GetNode(args[0]);
+            //int i = 0;
         }
     }
 }

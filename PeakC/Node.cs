@@ -43,11 +43,18 @@ namespace Peak.PeakC
     class VariableInitNode : Node
     {
         public Token Name { get; set; }
+        public Node Type { get; set; }
         public Node RightExpression { get; set; }
         public VariableInitNode(Token name, Node rightExpression)
         {
             this.Name = name;
             RightExpression = rightExpression;
+        }
+        public VariableInitNode(Node type, Token name, Node rightExpression = null)
+        {
+            this.Name = name;
+            this.Type = type;
+            this.RightExpression = rightExpression;
         }
         public VariableInitNode(Token name)
         {
@@ -106,11 +113,13 @@ namespace Peak.PeakC
     }
     class ProcedureNode : Node
     {
+        public ModifierNode Modifiers { get; set; }
         public Node Args { get; set; }
         public Token Name { get; set; } 
         public CodeBlockNode Code { get; set; }
-        public ProcedureNode(Token name, Node args, CodeBlockNode code = null)
+        public ProcedureNode(ModifierNode modifiers, Token name, Node args, CodeBlockNode code = null)
         {
+            this.Modifiers = modifiers;
             this.Name = name;
             this.Args = args;
             this.Code = code;

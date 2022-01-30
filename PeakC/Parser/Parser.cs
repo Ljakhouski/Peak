@@ -9,8 +9,8 @@ namespace Peak.PeakC.Parser
         Global,
         Local
     }
-    class Parser
-    {
+    class Parser 
+    { 
         /* Common LL(k=1) parser */
 
         private Lexer lexer;
@@ -157,6 +157,8 @@ namespace Peak.PeakC.Parser
                     return parseDot();
                 case NonterminalType.Sequence:
                     return parseSequence();
+                case NonterminalType.Args:
+                    return parseArgs();
                 case NonterminalType.Data:
                     return parseData();
                 default:
@@ -192,10 +194,8 @@ namespace Peak.PeakC.Parser
                     return n;
                 
                 else if (getNext() == "]")
-                {
-                    next();
                     return n;
-                }
+
                 else
                     n.Node.Add(parseCodeBlockExpression());       
         }
@@ -214,11 +214,21 @@ namespace Peak.PeakC.Parser
 
 
             /* <expression> | <type_expression> <name> '<<' <expression> ';' | <type_expression> <name> ...*/
-            
-            //int state = position;
-            
 
-            if(getNext() == "#")
+            //int state = position;
+            var modifier = parse(NonterminalType.Modifier);
+
+            ModifierNode getModifier()
+            {
+                if (modifier is ModifierNode)
+                    return modifier as ModifierNode;
+                else if (modifier is EmptyNode)
+                    return null;
+                else
+                    throw new Exception();
+            }
+
+            if (getNext() == "#")
             {
                 next();
                 var name = expectName();
@@ -240,57 +250,59 @@ namespace Peak.PeakC.Parser
                 next();
                 var name = expectName();
                 expect("(");
-                var args = parse(NonterminalType.Sequence);
-                if (args is SequenceNode || args is VariableInitNode || args is EmptyNode)
+                var args = parse(NonterminalType.Args);
+                expect(")");
+
+                if (getNext() == ";")
                 {
-                    expect(")");
-                    if (getNext() == ";")
-                    {
-                        next();
-                        return new ProcedureNode(name, args);
-                    }
-                    else if (getNext() == "[")
-                    {
-                        next();
-                        var bn = parse(NonterminalType.CodeBlock);
-                        expect("]");
-                        return new ProcedureNode(name, args, (CodeBlockNode)bn);
-                    }
-                    else
-                        Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+                    next();
+                    return new ProcedureNode(getModifier(), name, args);
+                }
+                else if (getNext() == "[")
+                {
+                    next();
+                    var bn = parse(NonterminalType.CodeBlock);
+                    expect("]");
+                    return new ProcedureNode(getModifier(), name, args, (CodeBlockNode)bn);
                 }
                 else
-                    Error.ErrMessage(t, "wrong argument expression");
+                    Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+                
             }
             else
             {
-                var modifier = parse(NonterminalType.Modifier);
+                //var modifier = parse(NonterminalType.Modifier);
 
                 var expr = parse(NonterminalType.Dot); // if begin <type_expr> then parse as var-declaration, else expression will be <expression> <;>
                 if (maybeTypeExpression(expr))
                 {
                     var varInitNode = new VariableInitNode(
+                        expr, 
                         expectName()
-                    );
+                        );
 
                     varInitNode.Modifiers = modifier.Modifiers;
 
                     if (getNext() == "<<")
                     {
                         next();
-                        varInitNode.RightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.CodeBlock));
+                        varInitNode.RightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Sequence));
                         expect(";");
                         return varInitNode;
                     }
                     else
-                        Error.ErrMessage(getNext(), "expected \"<<\"");
+                    {
+                        expect(";");
+                        return varInitNode;
+                    }
+                        //Error.ErrMessage(getNext(), "expected \"<<\"");
 
                 }
                 else
                 {
                     if (modifier is EmptyNode == false)
                     {
-                        Error.ErrMessage(modifier.Modifiers[0], "expected name");
+                        Error.ErrMessage(modifier.Modifiers[0], "expected func/proc/variable declaration");
                     }
                     expect(";");
                     return expr;
@@ -445,6 +457,7 @@ namespace Peak.PeakC.Parser
             else if (t.Type == type.StrValue   ) return new ConstValueNode(t);
             else if (t.Type == type.BoolValue  ) return new ConstValueNode(t);
             else if (t.Type == type.Identifier ) return new IdentifierNode(t);
+            //else if (t.Type == type.Term       ) return new IdentifierNode(t);
             else
                 Error.ErrMessage(t, "identifier expected");
 
@@ -452,6 +465,45 @@ namespace Peak.PeakC.Parser
         }
        
        
+        private Node parseArgs()
+        {
+            if (getNext() == ")")
+                return new EmptyNode(t);
+
+            var n = new SequenceNode();
+            var expr = parse(NonterminalType.Assigment);
+
+            if (maybeTypeExpression(expr))
+            {
+                var name = expectName();
+                if (getNext() == "<<")
+                {
+                    // var varInit = parse(NonterminalType.)
+                    Error.ErrMessage(nextToken(), "assigment is not support for argument");
+                }
+                n.Sequence.Add(new VariableInitNode(expr, name));
+            }
+            else
+                Error.ErrMessage(t, "type expression expected");
+
+          
+            while (true)
+                if (getNext() == ",")
+                {
+                    next();
+                    var nextExpr = parse(NonterminalType.Assigment);
+                    if (maybeTypeExpression(nextExpr))
+                    {
+                        var name = expectName();
+                        n.Sequence.Add(new VariableInitNode(nextExpr, name));
+                    }
+                    else
+                        Error.ErrMessage(t, "type expression expected");
+                }
+                else
+                    return n;
+            
+        }
         private bool maybeTypeExpression(Node expr)
         {
             if (expr is IdentifierNode)

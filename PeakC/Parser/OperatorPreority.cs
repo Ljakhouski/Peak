@@ -35,7 +35,7 @@ namespace Peak.PeakC.Parser
 
             Preority.Add(new Nonterminal() { Type = NonterminalType.Program, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.CodeBlock, IsBinary = false});
-         // Preority.Add(new Nonterminal() { Type = NonterminalType.Type, IsBinary = false });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.Args, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Modifier, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Sequence, IsBinary = false, Terminals = new List<string> { "," } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
@@ -50,7 +50,7 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.Data, IsBinary = false });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Double, IsBinary = false, Terminals = new List<string> { "." } });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Name, IsBinary = false, Terminals = new List<string> { "," } });
-
+            
         }
         public static Nonterminal GetNextByPreority(Nonterminal n) // or "take"...
         {
@@ -86,6 +86,7 @@ namespace Peak.PeakC.Parser
         Type,
         Modifier,
         Sequence, // <expr> {',' <expr>} | <expr>
+        Args,     // <type_expr> { ',' <type_expr> } | <type_expr>
         Assigment,
         IncrementOrDecrement,
         DoubleDot,
