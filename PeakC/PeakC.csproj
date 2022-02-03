@@ -11,4 +11,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RuntimeEnvironment\RuntimeEnvironment.csproj" />
+  </ItemGroup>
+
 </Project>
