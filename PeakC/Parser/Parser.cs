@@ -159,6 +159,8 @@ namespace Peak.PeakC.Parser
                     return parseSequence();
                 case NonterminalType.Args:
                     return parseArgs();
+                case NonterminalType.FuncCall:
+                    return parseFuncCall();
                 case NonterminalType.Data:
                     return parseData();
                 default:

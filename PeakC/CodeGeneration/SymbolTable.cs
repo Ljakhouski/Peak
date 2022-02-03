@@ -16,6 +16,7 @@ namespace Peak.CodeGeneration
 
         public List<TableElement> Data = new List<TableElement>();
         public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>(); 
+        public int MemorySize { get; set; }
         public SymbolTable()
         {
 
@@ -34,7 +35,7 @@ namespace Peak.CodeGeneration
             this.loadetFiles.Add(file);
         }
 
-        private int calculateNewOffsetAddress()
+        private int calculateNewOffsetAddress() // for last element
         {
             for (int i = Data.Count-1; i>0; i--)
             {
@@ -62,20 +63,24 @@ namespace Peak.CodeGeneration
             tableElement.Ref = this;
             tableElement.OffsetAddress = calculateNewOffsetAddress();
             this.Data.Add(tableElement);
+            //if ()
         }
 
-        public int GetConstantAddress(int content)
+       
+
+        public int GetConstantAddress(ConstValueNode node)
         {
-            /*foreach(RuntimeEnvironment.RuntimeModule.Constant c in ConstandData)
+            if (node.Value.Type == type.IntValue)
             {
-                if (c.Type == RuntimeEnvironment.RuntimeModule.ConstantType.Int)
-            }*/
-            this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
-            {
-                Type = RuntimeEnvironment.RuntimeModule.ConstantType.Int,
-                IntValue = content
-            });
-            return ConstandData.Count - 1;
+                this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+                {
+                    Type = RuntimeEnvironment.RuntimeModule.ConstantType.Int,
+                    IntValue = int.Parse(node.Value.Content)
+                });
+                return ConstandData.Count - 1;
+            }
+            else
+                throw new Exception();
         }
     }
 }

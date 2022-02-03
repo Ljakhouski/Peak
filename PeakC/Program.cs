@@ -1,4 +1,5 @@
 ﻿using System;
+using Peak.CodeGeneration;
 using Peak.PeakC.Parser;
 
 namespace Peak.PeakC
@@ -27,7 +28,9 @@ namespace Peak.PeakC
 
             Parser.Parser pars = new Parser.Parser();
             Node n = pars.GetNode(args[0]);
-            //int i = 0;
+            var codeGen = new ByteCodeGenerator();
+            var m = codeGen.GetProgramRuntimeModule((ProgramNode)n);
+            int i = 0;
         }
     }
 }

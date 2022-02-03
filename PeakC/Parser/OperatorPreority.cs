@@ -98,6 +98,7 @@ namespace Peak.PeakC.Parser
         Dot,    // contains array-access-expression // ???
         Data,   // Names (ID) | func calling | array-access-expression
         Double, // <int_const>, ".", <int_const>
+        FuncCall, // <ID>, '(', <args expression>, ')'
     }
     class Nonterminal
     {
