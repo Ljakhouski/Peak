@@ -26,7 +26,19 @@ namespace Peak.CodeGeneration
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj);
+            if (obj is SymbolType)
+            {
+                SymbolType t = (SymbolType)obj;
+                if (this.Value == t.Value)
+                {
+                    if (this.Value == Type.Proc) { throw new Exception(); }
+                    return true;
+                }
+                else 
+                    return false;
+            }
+            else
+                return base.Equals(obj);
         }
 
         public SymbolType(ConstValueNode node)
@@ -40,11 +52,46 @@ namespace Peak.CodeGeneration
                 makeSymbolTypeForConst((ConstValueNode)node);
             else if (node is ConstantNode)
                 makeSymbolTypeForConstantNode((ConstantNode)node);
+            else if (node is IdentifierNode)
+                makeSymbolTypeForIdentifier((IdentifierNode)node);
+            else
+                throw new Exception();
+        }
+
+        private void makeSymbolTypeForIdentifier(IdentifierNode node)
+        {
+            if (node.Id == "int")
+            {
+                this.Value = Type.Int;
+            }
+            else if (node.Id == "double")
+            {
+                this.Value = Type.Double;
+            }
+            else if (node.Id == "str")
+            {
+                this.Value = Type.Str;
+            }
+            else
+                Error.ErrMessage(node.Id, "currently not supported");
         }
 
         private void makeSymbolTypeForConstantNode(ConstantNode node)
         {
-            
+            if (node.Content == "int")
+            {
+                this.Value = Type.Int;
+            }
+            else if (node.Content == "double")
+            {
+                this.Value = Type.Double;
+            }
+            else if (node.Content == "str")
+            {
+                this.Value = Type.Str;
+            }
+            else
+                throw new Exception();
         }
 
         private void makeSymbolTypeForConst(ConstValueNode node)

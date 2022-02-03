@@ -27,9 +27,25 @@ namespace Peak.CodeGeneration
             currentModule = new RuntimeModule();
             currentModule.Methods = new MethodDescription[1] { new MethodDescription() };
             generateForProgramNode(programNode, globalTable);
+            writeConstantSection();
+            writeGlobalMemoryInfo();
             return currentModule;
         }
 
+        private void writeConstantSection()
+        {
+            currentModule.Constant = new Constant[globalTable.ConstandData.Count];
+
+            for (int i = 0; i < globalTable.ConstandData.Count; i++)
+            {
+                currentModule.Constant[i] = globalTable.ConstandData[i];
+            }
+        }
+
+        private void writeGlobalMemoryInfo()
+        {
+            currentModule.Methods[0].LocalVarsArraySize = globalTable.MemorySize;
+        }
         private void generateForProgramNode(ProgramNode node, SymbolTable currentSymbolTable)
         {
             foreach (Node n in ((ProgramNode)node).Node)
@@ -114,8 +130,20 @@ namespace Peak.CodeGeneration
                 else
                 {
                     var res = generateByteCode(n.RightExpression, currentSymbolTable);
-                    //if (res.Result == n.Type)
-                    throw new Exception();
+                    var type = new SymbolType(n.Type);
+                    if (res.Result.Equals(type))
+                    {
+                        currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type});
+
+                        generateForGetData(n.Name, currentSymbolTable);
+                        var code = new List<Command>()
+                        {
+                            new Command(){ Name = CommandName.Set}
+                        };
+                        addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
+                    }
+                    else
+                        throw new Exception();
                 }
             }
         }

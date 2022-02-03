@@ -15,7 +15,7 @@ namespace Peak.CodeGeneration
         public SymbolTable Next { get; set; }
 
         public List<TableElement> Data = new List<TableElement>();
-        public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>(); 
+        public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>();
         public int MemorySize { get; set; }
         public SymbolTable()
         {
@@ -24,7 +24,7 @@ namespace Peak.CodeGeneration
 
         public bool IsNewFile(string file)
         {
-            
+
             if (this.loadetFiles.Contains(Path.GetFullPath(file)))
                 return true;
             return false;
@@ -37,12 +37,33 @@ namespace Peak.CodeGeneration
 
         private int calculateNewOffsetAddress() // for last element
         {
-            for (int i = Data.Count-1; i>0; i--)
+            var table = this;
+
+            while (true)
             {
-                if (Data[i].OffsetAddress != -1)
-                    return Data[i].OffsetAddress + 1;
+                for (int i = Data.Count - 1; i >= 0; i--)
+                {
+                    if (Data[i].OffsetAddress != -1)
+                    {
+                        expandMemorySizeByLastAddress(Data[i].OffsetAddress + 1);
+                        return Data[i].OffsetAddress + 1;
+                    }
+
+                }
+
+                if (table.IsGlobalScopeTable)
+                {
+                    expandMemorySizeByLastAddress(0);
+                    return 0;
+                }
+
+                /*else if (table.IsMethodScope)
+                {
+
+                }*/
+                else
+                    table = table.Prev;
             }
-            return 0;
         }
 
         public bool ContainsSymbol(Token name)
@@ -66,8 +87,12 @@ namespace Peak.CodeGeneration
             //if ()
         }
 
-       
 
+        private void expandMemorySizeByLastAddress(int size)
+        {
+            if (this.MemorySize < size + 1)
+                MemorySize = size + 1;
+        }
         public int GetConstantAddress(ConstValueNode node)
         {
             if (node.Value.Type == type.IntValue)
