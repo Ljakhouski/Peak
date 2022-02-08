@@ -16,5 +16,10 @@ namespace RuntimeEnvironment.RuntimeModule
         PushConst,
 
         Set, // a = b
+
+        Add,
+        Sub,
+        Mul,
+        Div,
     }
 }

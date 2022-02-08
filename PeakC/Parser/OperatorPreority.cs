@@ -39,14 +39,14 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.Modifier, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Sequence, IsBinary = false, Terminals = new List<string> { "," } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
-            Preority.Add(new Nonterminal() { Type = NonterminalType.Dot, IsBinary = false, Terminals = new List<string> { "." } });
-            Preority.Add(new Nonterminal() { Type = NonterminalType.Assigment, IsBinary = true, Terminals = new List<string> { "<<" } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.Assignment, IsBinary = true, Terminals = new List<string> { "<<" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.IncrementOrDecrement, IsBinary = false, Terminals = new List<string> { "++", "--" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.DoubleDot, IsBinary = false, Terminals = new List<string> { ":" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Equals, IsBinary = true, Terminals = new List<string> { "==" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Comparison, IsBinary = true, Terminals = new List<string> { "=", "!=", ">", "<", ">=", "<=" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.PlusMinus, IsBinary = true, Terminals = new List<string> { "+", "-" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.MulDiv, IsBinary = true, Terminals = new List<string> { "*", "/" } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.Dot, IsBinary = false, Terminals = new List<string> { "." } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Data, IsBinary = false });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Double, IsBinary = false, Terminals = new List<string> { "." } });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Name, IsBinary = false, Terminals = new List<string> { "," } });
@@ -87,7 +87,7 @@ namespace Peak.PeakC.Parser
         Modifier,
         Sequence, // <expr> {',' <expr>} | <expr>
         Args,     // <type_expr> { ',' <type_expr> } | <type_expr>
-        Assigment,
+        Assignment,
         IncrementOrDecrement,
         DoubleDot,
         AndOr,

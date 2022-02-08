@@ -237,7 +237,7 @@ namespace Peak.PeakC.Parser
                 if (getNext() == "<<")
                 {
                     next();
-                    var rightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Assigment));
+                    var rightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Assignment));
                     expect(";");
                     return new VariableInitNode(name, rightExpression);
                 }
@@ -275,7 +275,7 @@ namespace Peak.PeakC.Parser
             {
                 //var modifier = parse(NonterminalType.Modifier);
 
-                var expr = parse(NonterminalType.Dot); // if begin <type_expr> then parse as var-declaration, else expression will be <expression> <;>
+                var expr = parse(NonterminalType.Assignment); // if begin <type_expr> then parse as var-declaration, else expression will be <expression> <;>
                 if (maybeTypeExpression(expr))
                 {
                     var varInitNode = new VariableInitNode(
@@ -473,7 +473,7 @@ namespace Peak.PeakC.Parser
                 return new EmptyNode(t);
 
             var n = new SequenceNode();
-            var expr = parse(NonterminalType.Assigment);
+            var expr = parse(NonterminalType.Assignment);
 
             if (maybeTypeExpression(expr))
             {
@@ -493,7 +493,7 @@ namespace Peak.PeakC.Parser
                 if (getNext() == ",")
                 {
                     next();
-                    var nextExpr = parse(NonterminalType.Assigment);
+                    var nextExpr = parse(NonterminalType.Assignment);
                     if (maybeTypeExpression(nextExpr))
                     {
                         var name = expectName();
@@ -518,7 +518,7 @@ namespace Peak.PeakC.Parser
                         return false;
                     }
                 }
-            return true;
+            return false;
         }
     }
 }

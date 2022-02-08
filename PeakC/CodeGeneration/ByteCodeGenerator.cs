@@ -12,7 +12,7 @@ namespace Peak.CodeGeneration
         public bool Nothing { get; set; }
         public SymbolType Result { get; set; }
     }
-    class ByteCodeGenerator
+    partial class ByteCodeGenerator
     {
         private RuntimeModule currentModule;
         private SymbolTable globalTable;
@@ -26,6 +26,7 @@ namespace Peak.CodeGeneration
             globalTable = new SymbolTable() { IsGlobalScopeTable = true };
             currentModule = new RuntimeModule();
             currentModule.Methods = new MethodDescription[1] { new MethodDescription() };
+            globalTable.GeneratedMethodAddress = 0; // reference to "GLOBAL" method
             generateForProgramNode(programNode, globalTable);
             writeConstantSection();
             writeGlobalMemoryInfo();
@@ -45,6 +46,7 @@ namespace Peak.CodeGeneration
         private void writeGlobalMemoryInfo()
         {
             currentModule.Methods[0].LocalVarsArraySize = globalTable.MemorySize;
+            currentModule.Methods[0].Name = "GLOBAL";
         }
         private void generateForProgramNode(ProgramNode node, SymbolTable currentSymbolTable)
         {
@@ -67,7 +69,18 @@ namespace Peak.CodeGeneration
                 }
                 else if (n is ProgramNode)
                 {
+                    generateForProgramNode((ProgramNode)n, currentSymbolTable);
+                }
+                else if (n is BinaryNode)
+                {
+                    var binary = (BinaryNode)n;
 
+                    if (binary.Operator == "<<")
+                    {
+                        var res = generateForAssignment(binary, currentSymbolTable);
+                    }
+                    else
+                        throw new Exception();
                 }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
@@ -78,6 +91,24 @@ namespace Peak.CodeGeneration
             if (node is ConstValueNode)
             {
                 return generationForConst(node as ConstValueNode, currentSymbolTable);
+            }
+            else if (node is IdentifierNode)
+            {
+                return generateDataAccess((node as IdentifierNode).Id, currentSymbolTable);
+            }
+            else if (node is BinaryNode)
+            {
+                switch (((BinaryNode)node).Operator.Content)
+                {
+                    case "+":
+                    case "-":
+                    case "*":
+                    case "/":
+                        return generateForMathOperators(node as BinaryNode, currentSymbolTable);
+                        break;
+                    default:
+                        throw new Exception("does not supported");
+                }
             }
             else
                 throw new Exception();
@@ -111,7 +142,7 @@ namespace Peak.CodeGeneration
                     else
                     {
                         currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.Result, InfoNode = n, Name = n.Name.Content });
-                        var res = generateForGetData(n.Name, currentSymbolTable);
+                        var res = generateDataAccess(n.Name, currentSymbolTable);
                         if (res.Nothing || res.Result != type.Result)
                         {
                             throw new Exception();
@@ -129,75 +160,35 @@ namespace Peak.CodeGeneration
                 }
                 else
                 {
-                    var res = generateByteCode(n.RightExpression, currentSymbolTable);
                     var type = new SymbolType(n.Type);
-                    if (res.Result.Equals(type))
+
+                    if (n.RightExpression != null)
                     {
-                        currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type});
+                        var res = generateByteCode(n.RightExpression, currentSymbolTable);
 
-                        generateForGetData(n.Name, currentSymbolTable);
-                        var code = new List<Command>()
+                        if (res.Result.Equals(type))
                         {
-                            new Command(){ Name = CommandName.Set}
-                        };
-                        addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
-                    }
-                    else
-                        throw new Exception();
-                }
-            }
-        }
+                            currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
 
-        private GenerationResult generateForGetData(Token name, SymbolTable currentSymbolTable)
-        {
-            SymbolTable currentContext = currentSymbolTable;
-
-            while (true)
-            {
-                foreach (TableElement t in currentSymbolTable.Data)
-                {
-                    if (t.Name == name.Content)
-                    {
-                        if (currentContext.IsGlobalScopeTable)
-                        {
+                            generateDataAccess(n.Name, currentSymbolTable);
                             var code = new List<Command>()
                             {
-                                new Command(){ Name = CommandName.PushStatic, Operands = new int[]{ t.OffsetAddress} }
+                                new Command(){ Name = CommandName.Set}
                             };
                             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
                         }
                         else
-                        {
-                            var code = new List<Command>()
-                            {
-                                new Command(){ Name = CommandName.Push, Operands = new int[]{ t.OffsetAddress} }
-                            };
-                            addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
-                        }
-                        return new GenerationResult() { Nothing = false, Result = t.Type };
+                            throw new Exception();
+                    }
+                    else
+                    {
+                        currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
                     }
                 }
-
-                /*if (currentContext.)*/ // this is the function context and i can get a reference to another symbol-table with an access-code
-                if (/*currentContext.Prev.IsGlobalScopeTable*/ currentContext.IsGlobalScopeTable)
-                {
-                    Error.ErrMessage(name, "name does not exist");
-                }
-                /*else if (currentContext)*/
-                else
-                {
-                    currentContext = currentContext.Prev;
-                }
             }
-
-
-
-
-
-
-
-
         }
+
+
 
         private GenerationResult generationForConst(ConstValueNode node, SymbolTable currentSymbolTable)
         {
@@ -224,6 +215,22 @@ namespace Peak.CodeGeneration
             currentModule.Methods[currentModule.Methods.Length - 1].Code.CopyTo(newCodeArray, 0);
             newByteCode.ToArray().CopyTo(newCodeArray, currentModule.Methods[currentModule.Methods.Length - 1].Code.Length);
             currentModule.Methods[currentModule.Methods.Length - 1].Code = newCodeArray;
+        }
+
+        private void addByteCode(MethodDescription method, CommandName name, int[] operands = null)
+        {
+            var command = new Command() { Name = name, Operands = operands };
+            if (method.Code == null)
+            {
+                method.Code = new Command[1] { command };
+            }
+            else
+            {
+                var code = method.Code;
+                Array.Resize(ref code, code.Length + 1);
+                code[code.Length - 1] = command;
+                method.Code = code;
+            }
         }
 
     }

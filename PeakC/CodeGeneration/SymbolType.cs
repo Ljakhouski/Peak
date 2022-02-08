@@ -24,6 +24,7 @@ namespace Peak.CodeGeneration
         public List<SymbolType> Args { get; set; }
         public SymbolType ReturnType { get; set; } // only for procedure
 
+
         public override bool Equals(object obj)
         {
             if (obj is SymbolType)
@@ -34,11 +35,44 @@ namespace Peak.CodeGeneration
                     if (this.Value == Type.Proc) { throw new Exception(); }
                     return true;
                 }
-                else 
+                else
                     return false;
             }
             else
                 return base.Equals(obj);
+        }
+        public static bool operator ==(SymbolType first, SymbolType second)
+        {
+            if (first as object == null)
+                return false;
+
+            return first.Equals(second);
+            
+        }
+        public static bool operator !=(SymbolType first, SymbolType second)
+        {
+            return !(first == second);
+            /*if (first == null)
+                return true;
+
+            return !first.Equals(second);
+            */
+        }
+        public override string ToString()
+        {
+            switch (this.Value)
+            {
+                case Type.Int:
+                    return "int";
+                case Type.Double:
+                    return "double";
+                case Type.Str:
+                    return "string";
+                case Type.Bool:
+                    return "bool";
+                default:
+                    throw new Exception();
+            }
         }
 
         public SymbolType(ConstValueNode node)

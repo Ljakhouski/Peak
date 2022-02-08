@@ -1,6 +1,7 @@
 ﻿using Peak.PeakC;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Text;
@@ -17,6 +18,8 @@ namespace Peak.CodeGeneration
         public List<TableElement> Data = new List<TableElement>();
         public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>();
         public int MemorySize { get; set; }
+
+        public int GeneratedMethodAddress { get; set; }
         public SymbolTable()
         {
 
@@ -101,6 +104,33 @@ namespace Peak.CodeGeneration
                 {
                     Type = RuntimeEnvironment.RuntimeModule.ConstantType.Int,
                     IntValue = int.Parse(node.Value.Content)
+                });
+                return ConstandData.Count - 1;
+            }
+            else if (node.Value.Type == type.DoubleValue)
+            {
+                this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+                {
+                    Type = RuntimeEnvironment.RuntimeModule.ConstantType.Double,
+                    DoubleValue = double.Parse(node.Value.Content, CultureInfo.InvariantCulture)
+                });
+                return ConstandData.Count - 1;
+            }
+            else if (node.Value.Type == type.BoolValue)
+            {
+                this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+                {
+                    Type = RuntimeEnvironment.RuntimeModule.ConstantType.Bool,
+                    BoolValue = bool.Parse(node.Value.Content)
+                });
+                return ConstandData.Count - 1;
+            }
+            else if (node.Value.Type == type.StrValue)
+            {
+                this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+                {
+                    Type = RuntimeEnvironment.RuntimeModule.ConstantType.Str,
+                    StrValue = node.Value.Content
                 });
                 return ConstandData.Count - 1;
             }
