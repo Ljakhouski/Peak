@@ -15,9 +15,9 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Margin="8">
-            <Button Background="#FF384059" Content="  [ new ]  " Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
-            <Button Background="#FF313851" Content="  [ open ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
-            <Button Background="#FF323C59" Content="  [ save ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
+            <Button Background="#FF384059" Content="  [ new ]  " Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Button_Click"/>
+            <Button Background="#FF313851" Content="  [ open ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Button_Click_2"/>
+            <Button Background="#FF323C59" Content="  [ save ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Button_Click_1"/>
             <Label Content="   ||   " Foreground="White"/>
             <Button Background="#FFEAC210" Content="  [ compile ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
             <Button Background="#FFE69911" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>

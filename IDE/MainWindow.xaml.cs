@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,15 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Menu;
 
 namespace IDE
 {
@@ -50,7 +45,7 @@ namespace IDE
             editor.SyntaxHighlighting = HighlightingLoader.Load(xshd, HighlightingManager.Instance);
         }
 
-        private void makeNewTab(string fileName)
+        private void makeNewTab(string fileName, string path = "")
         {
             var editor = new TextEditor();
             editor.ShowLineNumbers = true;
@@ -59,18 +54,10 @@ namespace IDE
             //editor.Background = new SolidColorBrush() { Color = Color.FromArgb(10, 10, 20, 20) };
             loadHighlighter(editor);
 
-            var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
-            tabContent.Children.Add(new Label() { Content = fileName });
-            tabContent.Children.Add(new Button() { 
-                Content = "[X]",
-                Height = 20,
-                Width = 20,
-                Background = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
-                BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
-            });
-            
-        
-            mainTabControl.Items.Add(new TabItem() { Content = editor, Header = /*"new.p"*/  tabContent});
+            var tabHeader = new CoustomTabHeader(mainTabControl.Items.Count, mainTabControl, editor, fileName, path);
+
+
+            mainTabControl.Items.Add(new TabItem() { Content = editor, Header = /*"new.p"*/  tabHeader });
         }
 
         private void insertBaseText()
@@ -78,5 +65,94 @@ namespace IDE
             (((TabItem)mainTabControl.Items[mainTabControl.Items.Count - 1]).Content as TextEditor).Text
             = "load \"std.p\";\nprint(\"Hello World\");";
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            makeNewTab("unknow.p");
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            var header = (mainTabControl.SelectedItem as TabItem).Header as CoustomTabHeader;
+            header.SaveFile();
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog() { Filter = "Peak project (*.p)|" };
+            if (dialog.ShowDialog() == true)
+            {
+                string[] splitResult = dialog.FileName.Split('/');
+                string[] pathArray = (string[])splitResult.Clone();
+                Array.Resize(ref pathArray, pathArray.Length - 1);
+
+                string path = "";
+                foreach (string S in pathArray) { path += S; }
+                makeNewTab(splitResult[dialog.FileName.Split('/').Length - 1], path);
+            }
+
+        }
+    }
+
+    public class CoustomTabHeader : System.Windows.Controls.UserControl
+    {
+        private int index;
+        private TabControl tabControl;
+        private TextEditor editor;
+        private string fileName;
+        private string path;
+        public CoustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
+        {
+            this.index = index;
+            this.tabControl = tabControl;
+            this.editor = editor;
+            this.fileName = fileName;
+            this.path = path;
+
+            var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
+            tabContent.Children.Add(new Label() { Content = fileName });
+            tabContent.Children.Add(new Button()
+            {
+                Content = "[X]",
+                Height = 20,
+                Width = 20,
+                Background = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+                BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+            });
+            (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
+            //editor.KeyDown += Editor_KeyDown;
+            this.Content = tabContent;
+            if (path!="")
+            {
+                editor.Text = File.ReadAllText(path + fileName);
+            }
+        }
+
+        private void Editor_KeyDown(object sender, KeyEventArgs e)
+        {
+
+        }
+
+        public void CloseTabClicked(object sender, RoutedEventArgs e)
+        {
+            this.tabControl.Items.RemoveAt(index);
+        }
+
+        public void SaveFile()
+        {
+            var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|" };
+            if (path.Length == 0)
+                if (dialog.ShowDialog() == true)
+                {
+                    File.WriteAllText(dialog.FileName, editor.Text);
+                    this.path = dialog.FileName.Substring(dialog.FileName.Length - path.Length - 1);
+                }
+
+                else
+                    File.WriteAllText(path + fileName, editor.Text);
+
+
+        }
+
     }
 }
