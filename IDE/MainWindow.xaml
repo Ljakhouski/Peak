@@ -1,0 +1,38 @@
+﻿<Window x:Class="IDE.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IDE"
+        mc:Ignorable="d"
+        Title="IDE" Height="600" Width="800" Background="#FF323844">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="8">
+            <Button Background="#FF384059" Content="  [ new ]  " Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
+            <Button Background="#FF313851" Content="  [ open ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
+            <Button Background="#FF323C59" Content="  [ save ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White"/>
+            <Label Content="   ||   " Foreground="White"/>
+            <Button Background="#FFEAC210" Content="  [ compile ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
+            <Button Background="#FFE69911" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
+        </StackPanel>
+        <TabControl x:Name="mainTabControl" Grid.Row="1">
+        </TabControl>
+        
+        <RichTextBox x:Name="messageTextBox"
+                     IsReadOnly="True"
+                     Grid.Row="3"
+                     />
+        <GridSplitter Background="#FF3C436E" Grid.Row="2" Height="10"
+         HorizontalAlignment="Stretch" VerticalAlignment="Center" >
+        </GridSplitter>
+    </Grid>
+    
+    
+</Window>

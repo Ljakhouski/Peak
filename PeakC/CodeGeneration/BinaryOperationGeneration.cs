@@ -45,9 +45,12 @@ namespace Peak.CodeGeneration
                 Error.ErrMessage(n.Right.MetaInf, "expression must be return \"int\" or \"double\"");
             
 
-            if (left.Result == right.Result &&
-                left.Result.Value != SymbolType.Type.Int
-             || left.Result.Value != SymbolType.Type.Double)
+            if (/*left.Result == right.Result &&*/
+                (left.Result.Value == SymbolType.Type.Int
+             || left.Result.Value == SymbolType.Type.Double)
+             &&
+             (  right.Result.Value == SymbolType.Type.Int
+             || right.Result.Value == SymbolType.Type.Double))
             {
                 var method = currentModule.Methods[currentSymbolTable.GeneratedMethodAddress];
 

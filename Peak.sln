@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PeakC", "PeakC\PeakC.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RuntimeEnvironment", "RuntimeEnvironment\RuntimeEnvironment.csproj", "{08BE310B-5ABF-4C3B-9DD2-081BB0A7156B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IDE", "IDE\IDE.csproj", "{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{08BE310B-5ABF-4C3B-9DD2-081BB0A7156B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08BE310B-5ABF-4C3B-9DD2-081BB0A7156B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08BE310B-5ABF-4C3B-9DD2-081BB0A7156B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
