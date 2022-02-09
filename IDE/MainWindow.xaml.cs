@@ -58,6 +58,7 @@ namespace IDE
 
 
             mainTabControl.Items.Add(new TabItem() { Content = editor, Header = /*"new.p"*/  tabHeader });
+            mainTabControl.SelectedIndex = mainTabControl.Items.Count - 1;
         }
 
         private void insertBaseText()
@@ -79,16 +80,16 @@ namespace IDE
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog() { Filter = "Peak project (*.p)|" };
+            var dialog = new OpenFileDialog() { Filter = "Peak project (*.p)|*.p|All files (*.*)|*.*" };
             if (dialog.ShowDialog() == true)
             {
-                string[] splitResult = dialog.FileName.Split('/');
+                string[] splitResult = dialog.FileName.Split('\\');
                 string[] pathArray = (string[])splitResult.Clone();
                 Array.Resize(ref pathArray, pathArray.Length - 1);
 
                 string path = "";
-                foreach (string S in pathArray) { path += S; }
-                makeNewTab(splitResult[dialog.FileName.Split('/').Length - 1], path);
+                foreach (string S in pathArray) { path += S + '\\'; }
+                makeNewTab(splitResult[splitResult.Length - 1], path);
             }
 
         }
@@ -101,6 +102,7 @@ namespace IDE
         private TextEditor editor;
         private string fileName;
         private string path;
+        private bool notSaved = true;
         public CoustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
         {
             this.index = index;
@@ -120,17 +122,27 @@ namespace IDE
                 BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
             });
             (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
-            //editor.KeyDown += Editor_KeyDown;
+            editor.KeyDown += Editor_KeyDown;
             this.Content = tabContent;
             if (path!="")
             {
                 editor.Text = File.ReadAllText(path + fileName);
+                notSaved = false;
+            }
+            else
+            {
+                this.notSaved = true;
+                CheckNotSavedFlag();
             }
         }
 
         private void Editor_KeyDown(object sender, KeyEventArgs e)
         {
-
+            if (notSaved == false)
+            {
+                notSaved = true;
+                CheckNotSavedFlag();
+            }
         }
 
         public void CloseTabClicked(object sender, RoutedEventArgs e)
@@ -140,18 +152,41 @@ namespace IDE
 
         public void SaveFile()
         {
-            var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|" };
+            var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|*.p" };
             if (path.Length == 0)
                 if (dialog.ShowDialog() == true)
                 {
                     File.WriteAllText(dialog.FileName, editor.Text);
                     this.path = dialog.FileName.Substring(dialog.FileName.Length - path.Length - 1);
                 }
-
                 else
-                    File.WriteAllText(path + fileName, editor.Text);
+                    return;
+            else
+                File.WriteAllText(path + fileName, editor.Text);
 
+            notSaved = false;
+            CheckNotSavedFlag();
+        }
 
+        public void CheckNotSavedFlag()
+        {
+            if (notSaved)
+            {
+                var label = (this.Content as StackPanel).Children[0] as Label;
+                if ((label.Content as string)[(label.Content as string).Length - 1] != '*')
+                {
+                    label.Content += "*";
+                }
+            }
+            else
+            {
+                var label = (this.Content as StackPanel).Children[0] as Label;
+                if ((label.Content as string)[(label.Content as string).Length - 1] == '*')
+                {
+                    string S = label.Content.ToString();
+                    label.Content = S.Remove(S.Length - 1);
+                }
+            }
         }
 
     }
