@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RuntimeEnvironment.RuntimeModule
 {
-    public enum CommandName
+    public enum InstructionName
     {
         Push, // <address>        - push on value-stack from frame-stack
         PushStatic, // <address>  - push on value-stack from 0-element from frame-stack
@@ -21,5 +21,6 @@ namespace RuntimeEnvironment.RuntimeModule
         Sub,
         Mul,
         Div,
+        Jump,
     }
 }

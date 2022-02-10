@@ -4,9 +4,9 @@ using System.Text;
 
 namespace RuntimeEnvironment.RuntimeModule
 {
-    public struct Command
+    public struct Instruction
     {
-        public CommandName Name;
+        public InstructionName Name;
         public int[] Operands;
     }
 }

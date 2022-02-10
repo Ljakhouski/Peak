@@ -11,7 +11,7 @@ namespace RuntimeEnvironment.RuntimeModule
 
 
         public int LocalVarsArraySize { get; set; }
-        public Command[] Code { get; set; }
+        public Instruction[] Code { get; set; }
 
     }
 }

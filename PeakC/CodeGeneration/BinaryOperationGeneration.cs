@@ -22,7 +22,7 @@ namespace Peak.CodeGeneration
             if (left.Result.Equals(right.Result))
             {
                 var method = currentModule.Methods[currentSymbolTable.GeneratedMethodAddress];
-                addByteCode(method, CommandName.Set);
+                addByteCode(method, InstructionName.Set);
                 return new GenerationResult() { Nothing = true };
             }
             else
@@ -57,16 +57,16 @@ namespace Peak.CodeGeneration
                 switch (n.Operator.Content)
                 {
                     case "+":
-                        addByteCode(method, CommandName.Add);
+                        addByteCode(method, InstructionName.Add);
                         break;
                     case "-":
-                        addByteCode(method, CommandName.Sub);
+                        addByteCode(method, InstructionName.Sub);
                         break;
                     case "*":
-                        addByteCode(method, CommandName.Mul);
+                        addByteCode(method, InstructionName.Mul);
                         break;
                     case "/":
-                        addByteCode(method, CommandName.Div);
+                        addByteCode(method, InstructionName.Div);
                         break;
                 }
                 

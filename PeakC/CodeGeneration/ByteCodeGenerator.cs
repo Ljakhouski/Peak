@@ -149,9 +149,9 @@ namespace Peak.CodeGeneration
                         }
                         else
                         {
-                            var code = new List<Command>()
+                            var code = new List<Instruction>()
                             {
-                                new Command(){ Name = CommandName.Set}
+                                new Instruction(){ Name = InstructionName.Set}
                             };
                             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
                         }
@@ -171,9 +171,9 @@ namespace Peak.CodeGeneration
                             currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
 
                             generateDataAccess(n.Name, currentSymbolTable);
-                            var code = new List<Command>()
+                            var code = new List<Instruction>()
                             {
-                                new Command(){ Name = CommandName.Set}
+                                new Instruction(){ Name = InstructionName.Set}
                             };
                             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
                         }
@@ -193,11 +193,11 @@ namespace Peak.CodeGeneration
         private GenerationResult generationForConst(ConstValueNode node, SymbolTable currentSymbolTable)
         {
             var res = new GenerationResult() { Nothing = false };
-            var byteCode = new List<Command>()
+            var byteCode = new List<Instruction>()
                     {
-                        new Command()
+                        new Instruction()
                         {
-                            Name = CommandName.PushConst,
+                            Name = InstructionName.PushConst,
                             Operands = new int[1]{ globalTable.GetConstantAddress(node) }
                         }
                     };
@@ -205,24 +205,24 @@ namespace Peak.CodeGeneration
             res.Result = new SymbolType(node);
             return res;
         }
-        private void addByteCode(MethodDescription method, List<Command> newByteCode)
+        private void addByteCode(MethodDescription method, List<Instruction> newByteCode)
         {
             if (method.Code == null)
             {
-                method.Code = new Command[0];
+                method.Code = new Instruction[0];
             }
-            var newCodeArray = new Command[method.Code.Length + newByteCode.Count];
+            var newCodeArray = new Instruction[method.Code.Length + newByteCode.Count];
             currentModule.Methods[currentModule.Methods.Length - 1].Code.CopyTo(newCodeArray, 0);
             newByteCode.ToArray().CopyTo(newCodeArray, currentModule.Methods[currentModule.Methods.Length - 1].Code.Length);
             currentModule.Methods[currentModule.Methods.Length - 1].Code = newCodeArray;
         }
 
-        private void addByteCode(MethodDescription method, CommandName name, int[] operands = null)
+        private void addByteCode(MethodDescription method, InstructionName name, int[] operands = null)
         {
-            var command = new Command() { Name = name, Operands = operands };
+            var command = new Instruction() { Name = name, Operands = operands };
             if (method.Code == null)
             {
-                method.Code = new Command[1] { command };
+                method.Code = new Instruction[1] { command };
             }
             else
             {

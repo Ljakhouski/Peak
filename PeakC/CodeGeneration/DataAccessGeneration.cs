@@ -22,17 +22,17 @@ namespace Peak.CodeGeneration
                     {
                         if (currentContext.IsGlobalScopeTable)
                         {
-                            var code = new List<Command>()
+                            var code = new List<Instruction>()
                             {
-                                new Command(){ Name = CommandName.PushStatic, Operands = new int[]{ t.OffsetAddress} }
+                                new Instruction(){ Name = InstructionName.PushStatic, Operands = new int[]{ t.OffsetAddress} }
                             };
                             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
                         }
                         else
                         {
-                            var code = new List<Command>()
+                            var code = new List<Instruction>()
                             {
-                                new Command(){ Name = CommandName.Push, Operands = new int[]{ t.OffsetAddress} }
+                                new Instruction(){ Name = InstructionName.Push, Operands = new int[]{ t.OffsetAddress} }
                             };
                             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
                         }
