@@ -21,6 +21,7 @@
             <Label Content="   ||   " Foreground="White"/>
             <Button Background="#FFEAC210" Content="  [ compile ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
             <Button Background="#FFE69911" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
+            <Button Background="#FFB6E611" Content="  [ disasm ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="viewDisasm"/>
         </StackPanel>
         <TabControl x:Name="mainTabControl" Grid.Row="1">
         </TabControl>

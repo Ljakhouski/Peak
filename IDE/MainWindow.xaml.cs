@@ -54,7 +54,7 @@ namespace IDE
             //editor.Background = new SolidColorBrush() { Color = Color.FromArgb(10, 10, 20, 20) };
             loadHighlighter(editor);
 
-            var tabHeader = new CoustomTabHeader(mainTabControl.Items.Count, mainTabControl, editor, fileName, path);
+            var tabHeader = new CustomTabHeader(mainTabControl.Items.Count, mainTabControl, editor, fileName, path);
 
 
             mainTabControl.Items.Add(new TabItem() { Content = editor, Header = /*"new.p"*/  tabHeader });
@@ -74,7 +74,7 @@ namespace IDE
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            var header = (mainTabControl.SelectedItem as TabItem).Header as CoustomTabHeader;
+            var header = (mainTabControl.SelectedItem as TabItem).Header as CustomTabHeader;
             header.SaveFile();
         }
 
@@ -93,9 +93,18 @@ namespace IDE
             }
 
         }
+
+        private void viewDisasm(object sender, RoutedEventArgs e)
+        {
+            var viewer = new DisAsmViewer();
+            viewer.MakeDisasbInfo("Output/module.pem");
+
+            mainTabControl.Items.Add(new TabItem(){ Header = new DisasmTabHeader(viewer, mainTabControl), Content = viewer});
+            mainTabControl.SelectedIndex = mainTabControl.Items.Count - 1;
+        }
     }
 
-    public class CoustomTabHeader : System.Windows.Controls.UserControl
+    public class CustomTabHeader : System.Windows.Controls.UserControl
     {
         private int index;
         private TabControl tabControl;
@@ -103,7 +112,7 @@ namespace IDE
         private string fileName;
         private string path;
         private bool notSaved = true;
-        public CoustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
+        public CustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
         {
             this.index = index;
             this.tabControl = tabControl;
@@ -189,5 +198,36 @@ namespace IDE
             }
         }
 
+    }
+
+    public class DisasmTabHeader : System.Windows.Controls.UserControl
+    {
+        private DisAsmViewer viewer;
+        private TabControl tabControl;
+        private int index;
+        public DisasmTabHeader(DisAsmViewer viewer, TabControl tabControl)
+        {
+            this.viewer = viewer;
+            this.tabControl = tabControl;
+
+            var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
+            tabContent.Children.Add(new Label() { Content = "DISASM" });
+            tabContent.Children.Add(new Button()
+            {
+                Content = "[X]",
+                Height = 20,
+                Width = 20,
+                Background = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+                BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+            });
+            (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
+            this.Content = tabContent;
+            this.index = tabControl.Items.Count;
+        }
+
+        private void CloseTabClicked(object sender, RoutedEventArgs e)
+        {
+            this.tabControl.Items.RemoveAt(index);
+        }
     }
 }

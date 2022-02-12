@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RuntimeEnvironment\RuntimeEnvironment.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="PeakCodeHighlighter.xshd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

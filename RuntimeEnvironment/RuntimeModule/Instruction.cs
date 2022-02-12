@@ -4,6 +4,7 @@ using System.Text;
 
 namespace RuntimeEnvironment.RuntimeModule
 {
+    [Serializable]
     public struct Instruction
     {
         public InstructionName Name;
