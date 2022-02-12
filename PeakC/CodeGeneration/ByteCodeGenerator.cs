@@ -11,11 +11,14 @@ namespace Peak.CodeGeneration
     {
         public bool Nothing { get; set; }
         public SymbolType Result { get; set; }
+
+        public TableElement NameResult { get; set; } // only for analysis data-contains in name from name-table
     }
     partial class ByteCodeGenerator
     {
         private RuntimeModule currentModule;
         private SymbolTable globalTable;
+
         public ByteCodeGenerator()
         {
 
@@ -26,7 +29,8 @@ namespace Peak.CodeGeneration
             globalTable = new SymbolTable() { IsGlobalScopeTable = true };
             currentModule = new RuntimeModule();
             currentModule.Methods = new MethodDescription[1] { new MethodDescription() };
-            globalTable.GeneratedMethodAddress = 0; // reference to "GLOBAL" method
+            //globalTable.GeneratedMethodAddress = 0; // reference to "GLOBAL" method
+            globalTable.CurrentMethod = currentModule.Methods[0];
             generateForProgramNode(programNode, globalTable);
             writeConstantSection();
             writeGlobalMemoryInfo();
@@ -94,7 +98,7 @@ namespace Peak.CodeGeneration
             }
             else if (node is IdentifierNode)
             {
-                return generateDataAccess((node as IdentifierNode).Id, currentSymbolTable);
+                return generatePushOnStackName((node as IdentifierNode).Id, currentSymbolTable);
             }
             else if (node is BinaryNode)
             {
@@ -142,21 +146,8 @@ namespace Peak.CodeGeneration
                     else
                     {
                         currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.Result, InfoNode = n, Name = n.Name.Content });
-                        var res = generateDataAccess(n.Name, currentSymbolTable);
-                        if (res.Nothing || res.Result != type.Result)
-                        {
-                            throw new Exception();
-                        }
-                        else
-                        {
-                            var code = new List<Instruction>()
-                            {
-                                new Instruction(){ Name = InstructionName.Set}
-                            };
-                            addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
-                        }
+                        var res = generateStoreName(n.Name, currentSymbolTable);
                     }
-
                 }
                 else
                 {
@@ -170,15 +161,10 @@ namespace Peak.CodeGeneration
                         {
                             currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
 
-                            generateDataAccess(n.Name, currentSymbolTable);
-                            var code = new List<Instruction>()
-                            {
-                                new Instruction(){ Name = InstructionName.Set}
-                            };
-                            addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], code);
+                            generateStoreName(n.Name, currentSymbolTable);
                         }
                         else
-                            throw new Exception();
+                            Error.ErrMessage(n.MetaInf, "variable type does not match");
                     }
                     else
                     {
@@ -231,6 +217,16 @@ namespace Peak.CodeGeneration
                 code[code.Length - 1] = command;
                 method.Code = code;
             }
+        }
+
+        private void addByteCode(MethodDescription method, InstructionName name, int operand)
+        {
+            addByteCode(method, name, new int[] { operand });
+        }
+
+        private void addByteCode(MethodDescription method, InstructionName name, int op1, int op2)
+        {
+            addByteCode(method, name, new int[] { op1, op2 });
         }
 
     }

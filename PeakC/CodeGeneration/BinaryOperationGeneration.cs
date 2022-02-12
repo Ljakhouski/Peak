@@ -15,14 +15,12 @@ namespace Peak.CodeGeneration
             if (n.Operator != "<<")
                 throw new Exception();
 
-            var left = generateByteCode(n.Left, currentSymbolTable);
+            
             var right = generateByteCode(n.Right, currentSymbolTable);
-
+            var left = generateStoreData(n.Left, currentSymbolTable);
 
             if (left.Result.Equals(right.Result))
             {
-                var method = currentModule.Methods[currentSymbolTable.GeneratedMethodAddress];
-                addByteCode(method, InstructionName.Set);
                 return new GenerationResult() { Nothing = true };
             }
             else
@@ -52,8 +50,7 @@ namespace Peak.CodeGeneration
              (  right.Result.Value == SymbolType.Type.Int
              || right.Result.Value == SymbolType.Type.Double))
             {
-                var method = currentModule.Methods[currentSymbolTable.GeneratedMethodAddress];
-
+                var method = currentSymbolTable.CurrentMethod;
                 switch (n.Operator.Content)
                 {
                     case "+":

@@ -14,5 +14,7 @@ namespace Peak.CodeGeneration
         public SymbolTable Ref { get; set; }
         public Token Info { get; set; } // meta-data for error sending
         public Node InfoNode { get; set; }
+
+        public SymbolTable MethodContextTable { get; set; }
     }
 }

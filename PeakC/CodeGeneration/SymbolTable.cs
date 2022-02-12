@@ -1,4 +1,5 @@
 ﻿using Peak.PeakC;
+using RuntimeEnvironment.RuntimeModule;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,7 +20,11 @@ namespace Peak.CodeGeneration
         public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>();
         public int MemorySize { get; set; }
 
-        public int GeneratedMethodAddress { get; set; }
+        //public int GeneratedMethodAddress { get; set; }
+        public MethodDescription CurrentMethod { get; set; }
+
+        public bool IsMethodScope { get; set; } = false;
+
         public SymbolTable()
         {
 
@@ -38,7 +43,7 @@ namespace Peak.CodeGeneration
             this.loadetFiles.Add(file);
         }
 
-        private int calculateNewOffsetAddress() // for last element
+        private int calculateNewOffsetAddress() // for last element throught if-else-while context
         {
             var table = this;
 
@@ -76,12 +81,21 @@ namespace Peak.CodeGeneration
                 if (t.Name == name.Content)
                     return true;
             }
-            if (Prev != null)
+            /*if (Prev != null)
                 return Prev.ContainsSymbol(name);
-            else
-                return false;
+            else*/
+            return false;
         }
 
+        public TableElement GetSymbol(Token name)
+        {
+            foreach (TableElement t in Data)
+            {
+                if (t.Name == name.Content)
+                    return t;
+            }
+            throw new Exception();
+        }
         public void RegisterSymbol(TableElement tableElement)
         {
             tableElement.Ref = this;
@@ -137,5 +151,6 @@ namespace Peak.CodeGeneration
             else
                 throw new Exception();
         }
+
     }
 }

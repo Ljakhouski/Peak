@@ -18,6 +18,7 @@ namespace Peak.CodeGeneration
             Object, // name of struct instance
             Array,
             Dict,
+            RefOnMethodContext,
         }
         public Type Value { get; set; }
         public SymbolType SecondValue { get; set; } // only for define type of array/struct/stack/dict...
