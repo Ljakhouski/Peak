@@ -47,7 +47,9 @@ namespace IDE
             asm.Add("   module name:     "   + module.ModuleName);
             asm.Add("   constant size:   "   + module.Constant.Length);
             asm.Add("   methods:         "   + module.Methods.Length);
-            asm.Add(".const\n");
+            asm.Add("\n.const\n");
+
+            int i_ = 0;
             foreach (Constant c in module.Constant)
             {
                 string value;
@@ -63,14 +65,21 @@ namespace IDE
                         value = c.DoubleValue.ToString();
                         break;
                     case ConstantType.Str:
-                        value = c.StrValue.ToString();
+                        value = "\""+c.StrValue.ToString()+"\"";
                         break;
                     default:
                         value = "UNKNOW";
                         break;
                 }
-                asm.Add("   type: " + c.Type.ToString() + "   value: "+value); ;
+
+                string spaces = "   ";
+                for (int i_2 = 0; i_2 < i_.ToString().Length; i_2++)
+                    if (i_2 < 5)
+                        spaces = spaces.Remove(0, 1);
+                asm.Add("   "+i_.ToString()+spaces+" type: " + c.Type.ToString() + "   value: "+value);
+                i_++;
             }
+            asm.Add("\n");
 
             foreach (MethodDescription method in module.Methods)
             {
@@ -78,6 +87,9 @@ namespace IDE
                 asm.Add("\n.code");
 
                 int i = 0;
+
+                if (method.Code == null)
+                    return asm;
                 foreach (Instruction opCode in method.Code)
                 {
                     string operands="";
@@ -94,9 +106,7 @@ namespace IDE
                     asm.Add("   " + i.ToString() + spaces +"  " + opCode.Name.ToString()+"   "+operands);
                     i++;
                 }
-                asm.Add("");
-                asm.Add("__________________________");
-                asm.Add("");
+                asm.Add("\n__________________________\n");
             }
 
             return asm;

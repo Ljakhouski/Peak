@@ -1,5 +1,2 @@
-//comment
-/**//**/
-
-?i : 0
-?S : "string"
+load "std.p";
+print("Hello World");

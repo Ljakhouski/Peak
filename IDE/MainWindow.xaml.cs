@@ -4,8 +4,10 @@ using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,7 +27,7 @@ namespace IDE
         public MainWindow()
         {
             InitializeComponent();
-            makeNewTab("new.p");
+            makeNewTab("new.p"/*, Directory.GetCurrentDirectory()+"\\"*/);
             insertBaseText();
         }
 
@@ -99,8 +101,52 @@ namespace IDE
             var viewer = new DisAsmViewer();
             viewer.MakeDisasbInfo("Output/module.pem");
 
-            mainTabControl.Items.Add(new TabItem(){ Header = new DisasmTabHeader(viewer, mainTabControl), Content = viewer});
+            mainTabControl.Items.Add(new TabItem() { Header = new DisasmTabHeader(viewer, mainTabControl), Content = viewer });
             mainTabControl.SelectedIndex = mainTabControl.Items.Count - 1;
+        }
+
+
+        private void compileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var tabItem = mainTabControl.SelectedItem as TabItem;
+            string file = "";
+            if (tabItem.Header is CustomTabHeader)
+            {
+                var header = tabItem.Header as CustomTabHeader;
+                header.SaveFile();
+                file = header.Path + header.FileName;
+
+
+                ProcessStartInfo compilerProcess = new ProcessStartInfo();
+                compilerProcess.UseShellExecute = false;
+                compilerProcess.WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\Compiler";
+                compilerProcess.FileName = "Compiler/PeakC.exe";
+                compilerProcess.Arguments = file + " -o " + "../Output/";
+                compilerProcess.RedirectStandardOutput = true;
+                compilerProcess.RedirectStandardError = true;
+                
+                //compilerProcess.
+                //Process.Start(compilerProcess);
+                var proc = new Process();
+                proc.StartInfo = compilerProcess;
+                
+                proc.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
+                proc.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
+                proc.Start();
+                
+                string output = proc.StandardOutput.ReadToEnd();
+                //proc.WaitForExit();
+
+                messageTextBox.AppendText(output);
+            }
+
+
+
+        }
+
+        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            messageTextBox.AppendText(outLine.Data);
         }
     }
 
@@ -109,16 +155,16 @@ namespace IDE
         private int index;
         private TabControl tabControl;
         private TextEditor editor;
-        private string fileName;
-        private string path;
+        public string FileName;
+        public string Path;
         private bool notSaved = true;
         public CustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
         {
             this.index = index;
             this.tabControl = tabControl;
             this.editor = editor;
-            this.fileName = fileName;
-            this.path = path;
+            this.FileName = fileName;
+            this.Path = path;
 
             var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
             tabContent.Children.Add(new Label() { Content = fileName });
@@ -133,7 +179,7 @@ namespace IDE
             (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
             editor.KeyDown += Editor_KeyDown;
             this.Content = tabContent;
-            if (path!="")
+            if (path != "")
             {
                 editor.Text = File.ReadAllText(path + fileName);
                 notSaved = false;
@@ -162,21 +208,48 @@ namespace IDE
         public void SaveFile()
         {
             var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|*.p" };
-            if (path.Length == 0)
+            if (Path.Length == 0)
                 if (dialog.ShowDialog() == true)
                 {
                     File.WriteAllText(dialog.FileName, editor.Text);
-                    this.path = dialog.FileName.Substring(dialog.FileName.Length - path.Length - 1);
+                    //this.Path = dialog.FileName.Substring(dialog.FileName.Length - Path.Length - 1);
+                    this.FileName = getFileName(dialog.FileName);
+                    this.Path = getFilePath(dialog.FileName);
+
                 }
                 else
                     return;
             else
-                File.WriteAllText(path + fileName, editor.Text);
+                File.WriteAllText(Path + FileName, editor.Text);
 
             notSaved = false;
             CheckNotSavedFlag();
         }
 
+        private string getFileName(string fileName)
+        {
+            string S = "";
+
+            for (int i = fileName.Length - 1; i > 0; i--)
+            {
+                if (fileName[i] != '\\' && fileName[i] != '/')
+                    S = fileName[i] + S;
+                else return S;
+            }
+            return S;
+        }
+
+        private string getFilePath(string fileName)
+        {
+            string S = "";
+
+            for (int i = fileName.Length - 1; i > 0; i--)
+            {
+                if (fileName[i] == '\\' || fileName[i] == '/')
+                    return fileName.Substring(0, i + 1);
+            }
+            return S;
+        }
         public void CheckNotSavedFlag()
         {
             if (notSaved)
@@ -222,12 +295,16 @@ namespace IDE
             });
             (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
             this.Content = tabContent;
-            this.index = tabControl.Items.Count;
+            this.index = tabControl.Items.Count - 1;
         }
 
         private void CloseTabClicked(object sender, RoutedEventArgs e)
         {
-            this.tabControl.Items.RemoveAt(index);
+            try
+            {
+                this.tabControl.Items.RemoveAt(index);
+            }
+            catch (ArgumentOutOfRangeException e1) { return; }
         }
     }
 }

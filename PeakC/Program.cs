@@ -1,50 +1,86 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using Peak.CodeGeneration;
 using Peak.PeakC.Parser;
+using RuntimeEnvironment.RuntimeModule;
 
 namespace Peak.PeakC
 {
     class Program
     {
-        static void Main (string[] args)
+        static string inputPath;
+        static string outputPath = "";
+        static string name = "";
+        static void Main(string[] args)
         {
+            if (args.Length > 0)
+                inputPath = args[0];
+            else
+            {
+                Console.WriteLine("missing .p file path");
+                return;
+            }
+            try
+            {
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i] == "-o")
+                    {
+                        outputPath = args[i + 1];
+                        i++;
+                        continue;
+                    }
+                    else if (args[i] == "-n")
+                    {
+                        name = args[i + 1];
+                        i++;
+                    }
+
+                }
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                Console.WriteLine("missing argument");
+                return;
+            }
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
             NonterminalPreority.MakePriorityList();
-            //Test:
-            
-            Lexer l = new Lexer(args[0]);
-            /*while (!l.EndOfFile())
+
+            RuntimeModule module;
+            try
             {
-                var t = l.GetToken();
-                Console.WriteLine(t.Content+"   :"+t.Type.ToString());
+                Parser.Parser pars = new Parser.Parser();
+                Node n = pars.GetNode(inputPath);
+
+                module = new ByteCodeGenerator().GetProgramRuntimeModule((ProgramNode)n);
             }
+            catch (CompileException e) { return; }
 
-            Preprocessor preproc = new Preprocessor(l);
-            while (preproc.NextTokenExist())
-            {
-                var t = preproc.GetNextToken();
-                Console.WriteLine("token: "+t.Content + "  line: "+t.Line+ " pos: "+t.Position);
-            }
-                */
-
-            Parser.Parser pars = new Parser.Parser();
-            Node n = pars.GetNode(args[0]);
-            var codeGen = new ByteCodeGenerator();
-            var module = codeGen.GetProgramRuntimeModule((ProgramNode)n);
-
+            module.ModuleName = module.ModuleName == null ? "module" : module.ModuleName;
+            name = name == "" ? module.ModuleName : name;
             BinaryFormatter formatter = new BinaryFormatter();
 
-            string path = "module.pem";
-            if (args.Length > 1)
-                path = args[1] + path;
-
-
-            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+            //string path = "module.pem";
+            try
             {
-                // сериализуем весь массив people
-                formatter.Serialize(fs, module);
+                using (FileStream fs = new FileStream(outputPath + name + ".pem", FileMode.OpenOrCreate))
+                {
+                    formatter.Serialize(fs, module);
+                }
             }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            timer.Stop();
+            Console.WriteLine("Compiled time: " + timer.ElapsedMilliseconds + " ms");
+            //Console.ReadKey();
         }
     }
 }
