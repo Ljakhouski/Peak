@@ -71,10 +71,10 @@ namespace Peak.CodeGeneration
             callArgs.Reverse(); // to reverse code-generation
 
 
-            var argsType = new List<GenerationResult>();
+            var argsType = new List<SymbolType>();
             foreach (Node n in callArgs)
             {
-                argsType.Add(generateByteCode(n, argsCallPlaceSymbolTable));
+                argsType.Add(generateByteCode(n, argsCallPlaceSymbolTable).ExprResult);
             }
             argsType.Reverse();
 
@@ -85,7 +85,7 @@ namespace Peak.CodeGeneration
                 bool isWrong = false;
                 for (int i = 0; i < m.Type.Args.Count - 1; i++)
                 {
-                    if (m.Type.Args[i] != argsType[i].ExprResult)
+                    if (m.Type.Args[i] != argsType[i])
                     {
                         isWrong = true;
                         break;
@@ -108,6 +108,8 @@ namespace Peak.CodeGeneration
 
             Error.ErrMessage(node.Id, "method not exist");
             throw new CompileException();
-        }
+        } 
+
+        //private bool EqualsMethodAndCall(string name, List<SymbolType> args, )
     }
 }
