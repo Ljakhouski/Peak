@@ -159,8 +159,8 @@ namespace Peak.PeakC.Parser
                     return parseSequence();
                 case NonterminalType.Args:
                     return parseArgs();
-                case NonterminalType.FuncCall:
-                    return parseFuncCall();
+                case NonterminalType.MethodCall:
+                    return parseMethodCall();
                 case NonterminalType.Data:
                     return parseData();
                 default:
@@ -414,7 +414,7 @@ namespace Peak.PeakC.Parser
             }
             
         }
-        private Node parseFuncCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
+        private Node parseMethodCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
         {
             var expr = parseData();
             if (expr is IdentifierNode && getNext() == "(")
@@ -423,12 +423,11 @@ namespace Peak.PeakC.Parser
                 if (getNext() == ")")
                 {
                     next();
-                    return new FuncCallNode((expr as IdentifierNode).Id);
+                    return new MethodCallNode((expr as IdentifierNode).Id);
                 }
                 else
                 {
-                    next();
-                    var n = new FuncCallNode((expr as IdentifierNode).Id, parse(NonterminalType.AndOr));
+                    var n = new MethodCallNode((expr as IdentifierNode).Id, parse(NonterminalType.Sequence));
                     expect(")");
                     return n;
                 }
@@ -459,6 +458,15 @@ namespace Peak.PeakC.Parser
             else if (t.Type == type.StrValue   ) return new ConstValueNode(t);
             else if (t.Type == type.BoolValue  ) return new ConstValueNode(t);
             else if (t.Type == type.Identifier ) return new IdentifierNode(t);
+            /*{
+                if (getNext() == "(")
+                {
+                    back();
+                    return parse(NonterminalType.MethodCall);
+                }
+                else
+                    
+            }*/
             //else if (t.Type == type.Term       ) return new IdentifierNode(t);
             else
                 Error.ErrMessage(t, "identifier expected");

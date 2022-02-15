@@ -110,15 +110,15 @@ namespace Peak.CodeGeneration
 
         private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable)
         {
-            if (currentSymbolTable.ContainsSymbol(name))
+            if (currentSymbolTable.ContainsHere(name))
             {
                 var element = currentSymbolTable.GetSymbol(name);
 
                 if (currentSymbolTable.IsGlobalScopeTable)
-                    addByteCode(currentSymbolTable.CurrentMethod, InstructionName.StoreGlobal, element.OffsetAddress);
+                    addByteCode(InstructionName.StoreGlobal, element.OffsetAddress);
                 else
-                    addByteCode(currentSymbolTable.CurrentMethod, InstructionName.Store, element.OffsetAddress);
-                return new GenerationResult() { NameResult = element, Nothing = false, Result = element.Type };
+                    addByteCode(InstructionName.Store, element.OffsetAddress);
+                return new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
             }
             else if (currentSymbolTable.IsGlobalScopeTable)
             {
@@ -143,15 +143,15 @@ namespace Peak.CodeGeneration
 
         private GenerationResult generatePushOnStackName(Token name, SymbolTable currentSymbolTable)
         {
-            if (currentSymbolTable.ContainsSymbol(name))
+            if (currentSymbolTable.ContainsHere(name))
             {
                 var element = currentSymbolTable.GetSymbol(name);
 
                 if (currentSymbolTable.IsGlobalScopeTable)
-                    addByteCode(currentSymbolTable.CurrentMethod, InstructionName.PushGlobal, element.OffsetAddress);
+                    addByteCode(InstructionName.PushGlobal, element.OffsetAddress);
                 else
-                    addByteCode(currentSymbolTable.CurrentMethod, InstructionName.Push, element.OffsetAddress);
-                return new GenerationResult() { NameResult = element, Nothing = false, Result = element.Type };
+                    addByteCode(InstructionName.Push, element.OffsetAddress);
+                return new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
             }
             else if (currentSymbolTable.IsGlobalScopeTable)
             {
@@ -181,7 +181,7 @@ namespace Peak.CodeGeneration
                 if (element.Type.Value == SymbolType.Type.RefOnMethodContext)
                 {
                     var address = element.OffsetAddress;
-                    addByteCode(currentSymbolTable.CurrentMethod, InstructionName.Push, address);
+                    addByteCode(InstructionName.Push, address);
                     return element.MethodContextTable;
                 }
             }

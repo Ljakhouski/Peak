@@ -48,7 +48,7 @@ namespace Peak.CodeGeneration
                 return false;
 
             return first.Equals(second);
-            
+
         }
         public static bool operator !=(SymbolType first, SymbolType second)
         {
@@ -89,8 +89,34 @@ namespace Peak.CodeGeneration
                 makeSymbolTypeForConstantNode((ConstantNode)node);
             else if (node is IdentifierNode)
                 makeSymbolTypeForIdentifier((IdentifierNode)node);
+            else if (node is ProcedureNode)
+                makeSymbolTypeForProcedure((ProcedureNode)node);
             else
                 throw new Exception();
+        }
+
+        private void makeSymbolTypeForProcedure(ProcedureNode node)
+        {
+            this.Value = Type.Proc;
+            this.Args = new List<SymbolType>();
+            if (node.Args is VariableInitNode)
+            {
+                this.Args.Add(new SymbolType(node.Args));
+            }
+            else if (node.Args is SequenceNode)
+                foreach (Node n in (node.Args as SequenceNode).Sequence)
+                {
+                    if (n is VariableInitNode)
+                    {
+                        if ((n as VariableInitNode).Type != null)
+                            this.Args.Add(new SymbolType((n as VariableInitNode).Type));
+                        else
+                            Error.ErrMessage((n as VariableInitNode).Name, "expected type");
+                    }
+
+                    else
+                        Error.ErrMessage(n.MetaInf, "expected variable initialize");
+                }
         }
 
         private void makeSymbolTypeForIdentifier(IdentifierNode node)

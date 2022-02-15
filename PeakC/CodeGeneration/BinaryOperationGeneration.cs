@@ -19,14 +19,14 @@ namespace Peak.CodeGeneration
             var right = generateByteCode(n.Right, currentSymbolTable);
             var left = generateStoreData(n.Left, currentSymbolTable);
 
-            if (left.Result.Equals(right.Result))
+            if (left.ExprResult.Equals(right.ExprResult))
             {
                 return new GenerationResult() { Nothing = true };
             }
             else
                 Error.ErrMessage(n.Operator,
-                    "assignment " + left.Result.ToString() 
-                    + " and " + right.Result.ToString()
+                    "assignment " + left.ExprResult.ToString() 
+                    + " and " + right.ExprResult.ToString()
                     + " not possible" );
             throw new Exception();
         }
@@ -44,11 +44,11 @@ namespace Peak.CodeGeneration
             
 
             if (/*left.Result == right.Result &&*/
-                (left.Result.Value == SymbolType.Type.Int
-             || left.Result.Value == SymbolType.Type.Double)
+                (left.ExprResult.Value == SymbolType.Type.Int
+             || left.ExprResult.Value == SymbolType.Type.Double)
              &&
-             (  right.Result.Value == SymbolType.Type.Int
-             || right.Result.Value == SymbolType.Type.Double))
+             (  right.ExprResult.Value == SymbolType.Type.Int
+             || right.ExprResult.Value == SymbolType.Type.Double))
             {
                 var method = currentSymbolTable.CurrentMethod;
                 switch (n.Operator.Content)
@@ -67,17 +67,17 @@ namespace Peak.CodeGeneration
                         break;
                 }
                 
-                return new GenerationResult() { Nothing = false, Result = left.Result};
+                return new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
             }
-            else if (left.Result == right.Result &&
-               left.Result.Value == SymbolType.Type.Str)
+            else if (left.ExprResult == right.ExprResult &&
+               left.ExprResult.Value == SymbolType.Type.Str)
             {
                 throw new Exception("temporarily unsupported");
             }
             else
                 Error.ErrMessage(n.Operator,
-                    "operator \"" + n.Operator + "\" does not accept type " + left.Result.ToString()
-                    + " and " + right.Result.ToString());
+                    "operator \"" + n.Operator + "\" does not accept type " + left.ExprResult.ToString()
+                    + " and " + right.ExprResult.ToString());
             throw new Exception();
         }
     }

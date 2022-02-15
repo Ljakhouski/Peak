@@ -9,21 +9,21 @@ using System.Text;
 
 namespace Peak.CodeGeneration
 {
-    class SymbolTable
+    partial class SymbolTable
     {
-        private List<string> loadetFiles = new List<string>();
+        private List<string> loadetFiles = new List<string>(); //only for global scope
         public bool IsGlobalScopeTable { get; set; } = false;
-        public SymbolTable Prev { get; set; }
-        public SymbolTable Next { get; set; }
+        public SymbolTable Prev { get; set; } // only for if-else-while
 
         public List<TableElement> Data = new List<TableElement>();
         public List<RuntimeEnvironment.RuntimeModule.Constant> ConstandData = new List<RuntimeEnvironment.RuntimeModule.Constant>();
         public int MemorySize { get; set; }
 
-        //public int GeneratedMethodAddress { get; set; }
-        public MethodDescription CurrentMethod { get; set; }
 
+        public MethodDescription CurrentMethod { get; set; }
+        public RuntimeModule CurrentRuntimeModule { get; set; }
         public bool IsMethodScope { get; set; } = false;
+        public int MethodContextIndex { get; set; } // to equals refenerences on methods-context 
 
         public SymbolTable()
         {
@@ -74,28 +74,8 @@ namespace Peak.CodeGeneration
             }
         }
 
-        public bool ContainsSymbol(Token name)
-        {
-            foreach (TableElement t in Data)
-            {
-                if (t.Name == name.Content)
-                    return true;
-            }
-            /*if (Prev != null)
-                return Prev.ContainsSymbol(name);
-            else*/
-            return false;
-        }
-
-        public TableElement GetSymbol(Token name)
-        {
-            foreach (TableElement t in Data)
-            {
-                if (t.Name == name.Content)
-                    return t;
-            }
-            throw new Exception();
-        }
+     
+       
         public void RegisterSymbol(TableElement tableElement)
         {
             tableElement.Ref = this;
@@ -141,16 +121,19 @@ namespace Peak.CodeGeneration
             }
             else if (node.Value.Type == type.StrValue)
             {
-                this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
-                {
-                    Type = RuntimeEnvironment.RuntimeModule.ConstantType.Str,
-                    StrValue = node.Value.Content
-                });
-                return ConstandData.Count - 1;
+                return GetConstantAddress(node.Value.Content);
             }
             else
                 throw new Exception();
         }
-
+        public int GetConstantAddress(string S)
+        {
+            this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+            {
+                Type = RuntimeEnvironment.RuntimeModule.ConstantType.Str,
+                StrValue = S
+            });
+            return ConstandData.Count - 1;
+        }
     }
 }

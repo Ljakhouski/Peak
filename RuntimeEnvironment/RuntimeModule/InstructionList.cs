@@ -33,5 +33,6 @@ namespace RuntimeEnvironment.RuntimeModule
 
         Jump,
         Return,
+        CallNative,
     }
 }

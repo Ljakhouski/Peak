@@ -47,6 +47,7 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.PlusMinus, IsBinary = true, Terminals = new List<string> { "+", "-" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.MulDiv, IsBinary = true, Terminals = new List<string> { "*", "/" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Dot, IsBinary = false, Terminals = new List<string> { "." } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.MethodCall, IsBinary = false});
             Preority.Add(new Nonterminal() { Type = NonterminalType.Data, IsBinary = false });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Double, IsBinary = false, Terminals = new List<string> { "." } });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Name, IsBinary = false, Terminals = new List<string> { "," } });
@@ -98,7 +99,7 @@ namespace Peak.PeakC.Parser
         Dot,    // contains array-access-expression // ???
         Data,   // Names (ID) | func calling | array-access-expression
         Double, // <int_const>, ".", <int_const>
-        FuncCall, // <ID>, '(', <args expression>, ')'
+        MethodCall, // <ID>, '(', <args expression>, ')'
     }
     class Nonterminal
     {

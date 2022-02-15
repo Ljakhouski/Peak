@@ -157,12 +157,12 @@ namespace Peak.PeakC
         }
     }
 
-    class FuncCallNode : Node
+    class MethodCallNode : Node
     {
         public Token Id { get; set; }
         public Node Args { get; set; }
         
-        public FuncCallNode(Token id, Node args = null)
+        public MethodCallNode(Token id, Node args = null)
         {
             this.Id = id;
             this.Args = args;

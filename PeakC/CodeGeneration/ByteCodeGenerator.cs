@@ -10,15 +10,46 @@ namespace Peak.CodeGeneration
     class GenerationResult
     {
         public bool Nothing { get; set; }
-        public SymbolType Result { get; set; }
+        public SymbolType ExprResult { get; set; }
 
         public TableElement NameResult { get; set; } // only for analysis data-contains in name from name-table
+
+        //public ByteCodeResult GeneratedByteCode { get; set; }
     }
+
+    /*class ByteCodeResult
+    {
+        public  List<Instruction> ByteCode = new List<Instruction>();
+
+        public void AddByteCode(InstructionName name, int operand)
+        {
+            this.ByteCode.Add(new Instruction()
+            {
+                Name = name,
+                Operands = new int[1] { operand }
+            });
+        }
+
+        public void AddByteCode(InstructionName name, int op1, int op2)
+        {
+            this.ByteCode.Add(new Instruction()
+            {
+                Name = name,
+                Operands = new int[2] { op1, op2 }
+            });
+        }
+
+        public void AddResult(ByteCodeResult result)
+        {
+            this.ByteCode.AddRange(result.ByteCode);
+        }
+
+    }*/
     partial class ByteCodeGenerator
     {
         private RuntimeModule currentModule;
         private SymbolTable globalTable;
-
+        private Stack<MethodDescription> byteCodePointer = new Stack<MethodDescription>();
         public ByteCodeGenerator()
         {
 
@@ -29,7 +60,7 @@ namespace Peak.CodeGeneration
             globalTable = new SymbolTable() { IsGlobalScopeTable = true };
             currentModule = new RuntimeModule();
             currentModule.Methods = new MethodDescription[1] { new MethodDescription() };
-            //globalTable.GeneratedMethodAddress = 0; // reference to "GLOBAL" method
+            byteCodePointer.Push(currentModule.Methods[0]); // add reference to "GLOBAL" method
             globalTable.CurrentMethod = currentModule.Methods[0];
             generateForProgramNode(programNode, globalTable);
             writeConstantSection();
@@ -54,7 +85,7 @@ namespace Peak.CodeGeneration
         }
         private void generateForProgramNode(ProgramNode node, SymbolTable currentSymbolTable)
         {
-            foreach (Node n in ((ProgramNode)node).Node)
+            foreach (Node n in node.Node)
             {
                 if (n is LoadNode)
                 {
@@ -86,9 +117,18 @@ namespace Peak.CodeGeneration
                     else
                         throw new Exception();
                 }
+                else if (n is ProcedureNode)
+                {
+                    generateProcDeclaration(n as ProcedureNode, currentSymbolTable);
+                }
+                else if (n is MethodCallNode)
+                {
+                    generateMethodCall(n as MethodCallNode, currentSymbolTable, currentSymbolTable);
+                }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
         }
+
 
         private GenerationResult generateByteCode(Node node, SymbolTable currentSymbolTable)
         {
@@ -132,7 +172,7 @@ namespace Peak.CodeGeneration
 
         private void generateForVariable(VariableInitNode n, SymbolTable currentSymbolTable)
         {
-            if (currentSymbolTable.ContainsSymbol(n.Name))
+            if (currentSymbolTable.ContainsInAllTables(n.Name))
             {
                 Error.ErrMessage(n.Name, "name already exist");
             }
@@ -145,7 +185,7 @@ namespace Peak.CodeGeneration
                         Error.ErrMessage(n.Name, "expression has no type");
                     else
                     {
-                        currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.Result, InfoNode = n, Name = n.Name.Content });
+                        currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.ExprResult, InfoNode = n, Name = n.Name.Content });
                         var res = generateStoreName(n.Name, currentSymbolTable);
                     }
                 }
@@ -157,7 +197,7 @@ namespace Peak.CodeGeneration
                     {
                         var res = generateByteCode(n.RightExpression, currentSymbolTable);
 
-                        if (res.Result.Equals(type))
+                        if (res.ExprResult.Equals(type))
                         {
                             currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
 
@@ -188,9 +228,11 @@ namespace Peak.CodeGeneration
                         }
                     };
             addByteCode(currentModule.Methods[currentModule.Methods.Length - 1], byteCode);
-            res.Result = new SymbolType(node);
+            res.ExprResult = new SymbolType(node);
             return res;
         }
+
+        [ObsoleteAttribute("This method is obsolete")]
         private void addByteCode(MethodDescription method, List<Instruction> newByteCode)
         {
             if (method.Code == null)
@@ -218,15 +260,20 @@ namespace Peak.CodeGeneration
                 method.Code = code;
             }
         }
-
-        private void addByteCode(MethodDescription method, InstructionName name, int operand)
+      
+        private void addByteCode(InstructionName name, int operand)
         {
-            addByteCode(method, name, new int[] { operand });
+            addByteCode(byteCodePointer.Peek(), name, new int[] { operand });
         }
 
-        private void addByteCode(MethodDescription method, InstructionName name, int op1, int op2)
+        private void addByteCode(InstructionName name, int op1, int op2)
         {
-            addByteCode(method, name, new int[] { op1, op2 });
+            addByteCode(byteCodePointer.Peek(), name, new int[] { op1, op2 });
+        }
+
+        private void addByteCode(InstructionName name)
+        {
+            addByteCode(byteCodePointer.Peek(), name);
         }
 
     }
