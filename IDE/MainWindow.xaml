@@ -29,8 +29,11 @@
         <RichTextBox x:Name="messageTextBox"
                      IsReadOnly="True"
                      Grid.Row="3"
+                     FontSize="15"
+                     FontFamily="consolas"
+                     Padding="10"
                      />
-        <GridSplitter Background="#FF3C436E" Grid.Row="2" Height="10"
+        <GridSplitter Background="#FF3B3D47" Grid.Row="2" Height="10"
          HorizontalAlignment="Stretch" VerticalAlignment="Center" >
         </GridSplitter>
     </Grid>

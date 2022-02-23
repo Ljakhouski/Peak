@@ -29,6 +29,7 @@ namespace IDE
             InitializeComponent();
             makeNewTab("new.p"/*, Directory.GetCurrentDirectory()+"\\"*/);
             insertBaseText();
+            this.messageTextBox.AppendText("IDE started "+DateTime.Now.ToString()+"\n");
         }
 
         private void loadHighlighter(TextEditor editor)
@@ -132,7 +133,15 @@ namespace IDE
                 
                 proc.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
                 proc.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
-                proc.Start();
+                try
+                {
+                    proc.Start();
+                }catch (Exception e_)
+                {
+                    MessageBox.Show(e_.Message);
+                    return;
+                }
+                
                 
                 string output = proc.StandardOutput.ReadToEnd();
                 //proc.WaitForExit();

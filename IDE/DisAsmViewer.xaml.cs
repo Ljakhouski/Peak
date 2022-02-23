@@ -29,24 +29,32 @@ namespace IDE
         public void MakeDisasbInfo(string path)
         {
             RuntimeModule diasmSource;
-            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                diasmSource = (RuntimeModule)formatter.Deserialize(fs);
-            }
 
-            //this.textBox.Text
-            foreach (string S in getDisasmLines(diasmSource))
-                this.textBox.AppendText(S+ "\n");
+            try
+            {
+                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
+                {
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    diasmSource = (RuntimeModule)formatter.Deserialize(fs);
+                }
+                //this.textBox.Text
+                foreach (string S in getDisasmLines(diasmSource))
+                    this.textBox.AppendText(S + "\n");
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                MessageBox.Show(e.Message);
+                return;
+            }
         }
 
         private List<string> getDisasmLines(RuntimeModule module)
         {
             var asm = new List<string>();
             asm.Add(".info\n");
-            asm.Add("   module name:     "   + module.ModuleName);
-            asm.Add("   constant size:   "   + module.Constant.Length);
-            asm.Add("   methods:         "   + module.Methods.Length);
+            asm.Add("   module name:     " + module.ModuleName);
+            asm.Add("   constant size:   " + module.Constant.Length);
+            asm.Add("   methods:         " + module.Methods.Length);
             asm.Add("\n.const\n");
 
             int i_ = 0;
@@ -65,7 +73,7 @@ namespace IDE
                         value = c.DoubleValue.ToString();
                         break;
                     case ConstantType.Str:
-                        value = "\""+c.StrValue.ToString()+"\"";
+                        value = "\"" + c.StrValue.ToString() + "\"";
                         break;
                     default:
                         value = "UNKNOW";
@@ -76,14 +84,14 @@ namespace IDE
                 for (int i_2 = 0; i_2 < i_.ToString().Length; i_2++)
                     if (i_2 < 5)
                         spaces = spaces.Remove(0, 1);
-                asm.Add("   "+i_.ToString()+spaces+" type: " + c.Type.ToString() + "   value: "+value);
+                asm.Add("   " + i_.ToString() + spaces + " type: " + c.Type.ToString() + "   value: " + value);
                 i_++;
             }
             asm.Add("\n");
 
             foreach (MethodDescription method in module.Methods)
             {
-                asm.Add(".method \""+ method.Name+"\"  .size: "+method.LocalVarsArraySize);
+                asm.Add(".method \"" + method.Name + "\"  .size: " + method.LocalVarsArraySize);
                 asm.Add("\n.code");
 
                 int i = 0;
@@ -92,7 +100,7 @@ namespace IDE
                     return asm;
                 foreach (Instruction opCode in method.Code)
                 {
-                    string operands="";
+                    string operands = "";
 
                     if (opCode.Operands != null)
                         foreach (int op in opCode.Operands)
@@ -100,10 +108,10 @@ namespace IDE
 
                     string spaces = "   ";
                     for (int j = 0; j < i.ToString().Length; j++)
-                        if (j<5)
+                        if (j < 5)
                             spaces = spaces.Remove(0, 1);
 
-                    asm.Add("   " + i.ToString() + spaces +"  " + opCode.Name.ToString()+"   "+operands);
+                    asm.Add("   " + i.ToString() + spaces + "  " + opCode.Name.ToString() + "   " + operands);
                     i++;
                 }
                 asm.Add("\n__________________________\n");
