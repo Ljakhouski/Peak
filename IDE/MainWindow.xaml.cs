@@ -125,7 +125,10 @@ namespace IDE
                 compilerProcess.Arguments = file + " -o " + "../Output/";
                 compilerProcess.RedirectStandardOutput = true;
                 compilerProcess.RedirectStandardError = true;
-                
+
+                if (Directory.Exists("Output") == false)
+                    Directory.CreateDirectory("Output");
+
                 //compilerProcess.
                 //Process.Start(compilerProcess);
                 var proc = new Process();

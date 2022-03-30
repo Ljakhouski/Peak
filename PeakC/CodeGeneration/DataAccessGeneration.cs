@@ -108,7 +108,7 @@ namespace Peak.CodeGeneration
             throw new Exception();
         }
 
-        private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable)
+        /*private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable)
         {
             if (currentSymbolTable.ContainsHere(name))
             {
@@ -133,48 +133,323 @@ namespace Peak.CodeGeneration
 
                     return generateStoreName(name, table);
                 }
-                /*else if (currentSymbolTable.IsStructScope)*/
+                /*else if (currentSymbolTable.IsStructScope)
                 else
                 {
                     return generateStoreName(name, currentSymbolTable.Prev);
                 }
             }
-        }
+        }*/
 
-        private GenerationResult generatePushOnStackName(Token name, SymbolTable currentSymbolTable)
+        private GenerationResult generatePushOnStackName(Token name, SymbolTable currentSymbolTable, bool isTopFrameContext = false)
         {
-            if (currentSymbolTable.ContainsHere(name))
+            GenerationResult recursiveRefAccess(TableElement[] refs)
             {
-                var element = currentSymbolTable.GetSymbol(name);
+                foreach (TableElement r in refs)
+                {
+                    if (r.MethodContextTable.ContainsHere(name))
+                    {
+                        var result = new GenerationResult() { Nothing = false };
 
-                if (currentSymbolTable.IsGlobalScopeTable)
-                    addByteCode(InstructionName.PushGlobal, element.OffsetAddress);
-                else
-                    addByteCode(InstructionName.Push, element.OffsetAddress);
-                return new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                        if (isTopFrameContext)
+                            result.GeneratedByteCode.AddByteCode(
+                                InstructionName.Push, 
+                                r.OffsetAddress
+                                ); 
+                        else
+                            result.GeneratedByteCode.AddByteCode(
+                                InstructionName.PushByRef,
+                                r.OffsetAddress); // get ref from ref
+
+                        result.GeneratedByteCode.AddByteCode(
+                            InstructionName.PushByRef,
+                            r.MethodContextTable.GetSymbolInMethodContext(name).OffsetAddress);
+
+                        return result;
+                    }
+                    else
+                    {
+                        var res = recursiveRefAccess(r.MethodContextTable.GetContextRefs());
+                        if (res.Nothing == false)
+                        {
+                            var result = new GenerationResult() { Nothing = false, ExprResult = res.ExprResult };
+
+                            if (isTopFrameContext)
+                                result.GeneratedByteCode.AddByteCode(InstructionName.Push, r.OffsetAddress);
+                            else
+                                result.GeneratedByteCode.AddByteCode(InstructionName.PushByRef, r.OffsetAddress); // get ref from ref
+
+                            result.GeneratedByteCode.AddByteCode(res.GeneratedByteCode);
+
+                            return result;
+                        }
+                    }
+                    
+                }
+                return new GenerationResult() { Nothing = true };
             }
-            else if (currentSymbolTable.IsGlobalScopeTable)
+
+            /* search if is a method context (local method or global scope)*/
+            if (currentSymbolTable.ContainsInMethodContext(name))
             {
-                Error.NameNotExistError(name);
-                throw new Exception();
+                var element = currentSymbolTable.GetSymbolInMethodContext(name);
+                var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                result.ExprResult = element.Type;
+                
+                if (currentSymbolTable.IsGlobalScope)
+                    result.GeneratedByteCode.AddByteCode(InstructionName.PushGlobal, element.OffsetAddress);
+                else
+                    result.GeneratedByteCode.AddByteCode(InstructionName.Push, element.OffsetAddress);
+                return result;
+            }
+            /* search if is a method context (only local scope in method)*/
+            else if (currentSymbolTable.IsGlobalScope)
+            {
+                return new GenerationResult() { Nothing = true };
             }
             else
             {
-                if (currentSymbolTable.IsMethodScope)
+                var refs = currentSymbolTable.GetContextRefs();
+                if (refs.Length>0)
                 {
-                    var table = generatePreviousFrameContextAccess(currentSymbolTable);
+                    var res = recursiveRefAccess(refs);
+                    if (res.Nothing)
+                    {
+                        var t = currentSymbolTable.GetTableGlobalThanMethodTable();
+                        if (t.ContainsInMethodContext(name))
+                        {
+                            var element = t.GetSymbolInMethodContext(name);
+                            var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                            result.GeneratedByteCode.AddByteCode(InstructionName.PushGlobal, element.OffsetAddress);
+                            return result;
+                        }
+                        else
+                            return new GenerationResult() { Nothing = true };
 
-                    return generatePushOnStackName(name, table);
+                    }
+                    else
+                        return res;
                 }
-                /*else if (currentSymbolTable.IsStructScope)*/
                 else
-                {
-                    return generatePushOnStackName(name, currentSymbolTable.Prev);
-                }
+                    return new GenerationResult() { Nothing = true };
             }
 
         }
-        private SymbolTable generatePreviousFrameContextAccess(SymbolTable currentSymbolTable)
+
+
+        private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable, bool isTopFrameContext = false)
+        {
+            GenerationResult recursiveRefAccess(TableElement[] refs)
+            {
+                foreach (TableElement r in refs)
+                {
+                    if (r.MethodContextTable.ContainsHere(name))
+                    {
+                        var result = new GenerationResult() { Nothing = false };
+
+                        if (isTopFrameContext)
+                            result.GeneratedByteCode.AddByteCode(
+                                InstructionName.Push,
+                                r.OffsetAddress
+                                );
+                        else
+                            result.GeneratedByteCode.AddByteCode(
+                                InstructionName.PushByRef,
+                                r.OffsetAddress); // get ref from ref
+
+                        result.GeneratedByteCode.AddByteCode(
+                            InstructionName.StoreByRef,
+                            r.MethodContextTable.GetSymbolInMethodContext(name).OffsetAddress);
+
+                        return result;
+                    }
+                    else
+                    {
+                        var res = recursiveRefAccess(r.MethodContextTable.GetContextRefs());
+                        if (res.Nothing == false)
+                        {
+                            var result = new GenerationResult() { Nothing = false, ExprResult = res.ExprResult };
+
+                            if (isTopFrameContext)
+                                result.GeneratedByteCode.AddByteCode(InstructionName.Push, r.OffsetAddress);
+                            else
+                                result.GeneratedByteCode.AddByteCode(InstructionName.PushByRef, r.OffsetAddress); // get ref from ref
+
+                            result.GeneratedByteCode.AddByteCode(res.GeneratedByteCode);
+
+                            return result;
+                        }
+                    }
+
+                }
+                return new GenerationResult() { Nothing = true };
+            }
+
+            /* search if is a method context (local method or global scope)*/
+            if (currentSymbolTable.ContainsInMethodContext(name))
+            {
+                var element = currentSymbolTable.GetSymbolInMethodContext(name);
+                var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                result.ExprResult = element.Type;
+
+                if (currentSymbolTable.IsGlobalScope)
+                    result.GeneratedByteCode.AddByteCode(InstructionName.StoreGlobal, element.OffsetAddress);
+                else
+                    result.GeneratedByteCode.AddByteCode(InstructionName.Store, element.OffsetAddress);
+                return result;
+            }
+            /* search if is a method context (only local scope in method)*/
+            else if (currentSymbolTable.IsGlobalScope)
+            {
+                return new GenerationResult() { Nothing = true };
+            }
+            else
+            {
+                var refs = currentSymbolTable.GetContextRefs();
+                if (refs.Length > 0)
+                {
+                    var res = recursiveRefAccess(refs);
+                    if (res.Nothing)
+                    {
+                        var t = currentSymbolTable.GetTableGlobalThanMethodTable();
+                        if (t.ContainsInMethodContext(name))
+                        {
+                            var element = t.GetSymbolInMethodContext(name);
+                            var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                            result.GeneratedByteCode.AddByteCode(InstructionName.StoreGlobal, element.OffsetAddress);
+                            return result;
+                        }
+                        else
+                            return new GenerationResult() { Nothing = true };
+                    }
+                    else
+                        return res;
+                }
+                else
+                    return new GenerationResult() { Nothing = true };
+            }
+
+        }
+
+        /*
+                private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable, bool isTopFrameContext = false)
+                {
+                    GenerationResult recursiveRefAccess(TableElement[] refs)
+                    {
+                        foreach (TableElement r in refs)
+                        {
+                            if (r.MethodContextTable.ContainsHere(name))
+                            {
+                                var result = new GenerationResult() { Nothing = false };
+
+                                if (isTopFrameContext)
+                                    result.GeneratedByteCode.AddByteCode(
+                                        InstructionName.Push,
+                                        r.OffsetAddress
+                                        );
+                                else
+                                    result.GeneratedByteCode.AddByteCode(
+                                        InstructionName.PushByRef,
+                                        r.OffsetAddress); // get ref from ref
+
+                                result.GeneratedByteCode.AddByteCode(
+                                    InstructionName.PushByRef,
+                                    r.MethodContextTable.GetSymbolInMethodContext(name).OffsetAddress);
+
+                                return result;
+                            }
+                            else
+                            {
+                                var res = recursiveRefAccess(r.MethodContextTable.GetContextRefs());
+                                if (res.Nothing == false)
+                                {
+                                    var result = new GenerationResult() { Nothing = false, ExprResult = res.ExprResult };
+
+                                    if (isTopFrameContext)
+                                        result.GeneratedByteCode.AddByteCode(InstructionName.Push, r.OffsetAddress);// TODO: write
+                                    else
+                                        result.GeneratedByteCode.AddByteCode(InstructionName.PushByRef, r.OffsetAddress); // get ref from ref
+
+                                    result.GeneratedByteCode.AddByteCode(res.GeneratedByteCode);
+
+                                    return result;
+                                }
+                            }
+
+                        }
+                        return new GenerationResult() { Nothing = true };
+                    }
+
+
+
+                    if (currentSymbolTable.Prev == null) // is global scope
+                    {
+                        if (globalTable.ContainsInMethodContext(name))
+                        {
+                            var element = globalTable.GetSymbolInMethodContext(name);
+                            var res = new GenerationResult() { Nothing = false };
+                            res.ExprResult = element.Type;
+                            res.GeneratedByteCode.AddByteCode(
+                                InstructionName.PushGlobal,
+                                globalTable.GetSymbolInMethodContext(name).OffsetAddress
+                                );
+                            return res;
+                        }
+                        else
+                            Error.NameNotExistError(name);
+                        throw new CompileException();
+                    }
+                    else if (currentSymbolTable.ContainsInMethodContext(name))
+                    {
+                        var element = currentSymbolTable.GetSymbolInMethodContext(name);
+                        var res = new GenerationResult() { Nothing = false };
+                        res.ExprResult = element.Type;
+
+                        if (currentSymbolTable.IsGlobalScope)
+                            res.GeneratedByteCode.AddByteCode(InstructionName.PushGlobal, element.OffsetAddress);
+                        else
+                            res.GeneratedByteCode.AddByteCode(InstructionName.Push, element.OffsetAddress);
+                        return new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                    }
+                    else
+                    {
+                        var refs = currentSymbolTable.GetContextRefs();
+                        if (refs.Length > 0)
+                        {
+                            return recursiveRefAccess(refs);
+                        }
+                        else if (globalTable.ContainsInMethodContext(name))
+                        {
+                            // find first non method scope (gobal - if/while/gobal or other struct)
+                            var table = currentSymbolTable.GetTableGlobalThanMethodTable();
+
+                            if (table == null)
+                            {
+                                Error.NameNotExistError(name);
+                                throw new CompileException();
+                            }
+
+                            var element = table.GetSymbolInMethodContext(name);
+                            var res = new GenerationResult() { Nothing = false };
+                            res.ExprResult = element.Type;
+
+                            if (table.IsGlobalScope)
+                                res.GeneratedByteCode.AddByteCode(
+                                    InstructionName.PushGlobal,
+                                    globalTable.GetSymbolInMethodContext(name).OffsetAddress
+                                    );
+                            else
+                                throw new CompileException();
+
+                            return res;
+                        }
+                        else
+                            Error.NameNotExistError(name);
+                        throw new CompileException();
+                    }
+
+                }*/
+        /*private SymbolTable generatePreviousFrameContextAccess(SymbolTable currentSymbolTable)
         {
             foreach (TableElement element in currentSymbolTable.Data)
             {
@@ -187,6 +462,7 @@ namespace Peak.CodeGeneration
             }
             throw new Exception();
             //Error.ErrMessage();
-        }
+        }*/
+
     }
 }

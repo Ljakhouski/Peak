@@ -50,24 +50,25 @@ namespace Peak.CodeGeneration
              (  right.ExprResult.Value == SymbolType.Type.Int
              || right.ExprResult.Value == SymbolType.Type.Double))
             {
-                var method = currentSymbolTable.CurrentMethod;
+
+                var result = new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
                 switch (n.Operator.Content)
                 {
                     case "+":
-                        addByteCode(method, InstructionName.Add);
+                        result.GeneratedByteCode.AddByteCode(InstructionName.Add);
                         break;
                     case "-":
-                        addByteCode(method, InstructionName.Sub);
+                        result.GeneratedByteCode.AddByteCode(InstructionName.Sub);
                         break;
                     case "*":
-                        addByteCode(method, InstructionName.Mul);
+                        result.GeneratedByteCode.AddByteCode(InstructionName.Mul);
                         break;
                     case "/":
-                        addByteCode(method, InstructionName.Div);
+                        result.GeneratedByteCode.AddByteCode(InstructionName.Div);
                         break;
                 }
-                
-                return new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
+
+                return result;
             }
             else if (left.ExprResult == right.ExprResult &&
                left.ExprResult.Value == SymbolType.Type.Str)

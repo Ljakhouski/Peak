@@ -22,6 +22,16 @@ namespace Peak.CodeGeneration
             return false;
         }
 
+        public bool ContainsInMethodContext(Token name)
+        {
+            if (ContainsHere(name))
+                return true;
+            else if (this.Prev != null && this.IsMethodDefTable == false)
+                return Prev.ContainsInMethodContext(name);
+            else
+                return false;
+        }
+
         public bool ContainsInAllTables(Token name)
         {
             foreach (TableElement t in Data)
@@ -39,8 +49,8 @@ namespace Peak.CodeGeneration
             else
             return false;
         }
-
-        public TableElement GetSymbol(Token name)
+        /*
+        public TableElement GetSymbol(Token name) // search symbol from all contexts
         {
             for (int i = Data.Count - 1; i >= 0; i--)
             {
@@ -58,7 +68,7 @@ namespace Peak.CodeGeneration
                 return null;
             else
                 return Prev.GetSymbol(name);
-        }
+        }*/
 
         public TableElement[] GetSymbols(Token name) // [] - for proc & func
         {
@@ -76,7 +86,7 @@ namespace Peak.CodeGeneration
                 }
             }
 
-            if (IsGlobalScopeTable)
+            if (this.Prev == null)
                 return symbols.ToArray();
             else
             {
@@ -85,5 +95,41 @@ namespace Peak.CodeGeneration
             }
         }
 
+
+        public TableElement[] GetContextRefs()
+        {
+            var refs = new List<TableElement>();
+            for (int i = Data.Count - 1; i >= 0; i--)
+            {
+                if (Data[i].Type.Value == SymbolType.Type.RefOnContext)
+                    refs.Add(Data[i]);
+            }
+
+            return refs.ToArray();
+        }
+
+        public TableElement GetSymbolInMethodContext(Token name)
+        {
+            foreach (var t in Data)
+            {
+                if (t.Name == name.Content)
+                    return t;
+            }
+
+            if (IsMethodDefTable || Prev == null)
+                return null;
+            else
+                return Prev.GetSymbolInMethodContext(name);
+        }
+
+        public SymbolTable GetTableGlobalThanMethodTable()
+        {
+            if (this.IsMethodDefTable)
+                return this.Prev;
+            else if (this.Prev != null)
+                return this.Prev.GetTableGlobalThanMethodTable();
+            else
+                return null;
+        }
     }
 }

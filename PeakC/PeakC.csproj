@@ -9,7 +9,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>C:\Peak\Peak\bin\Compiler</OutputPath>
+    <OutputPath>..\bin\Compiler</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -97,9 +97,9 @@ namespace Peak.CodeGeneration
                     // make call
 
                     // NO NESTED CALLING! TODO: make it
-
-                    addByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(node.Id.Content));
-                    addByteCode(InstructionName.CallNative);
+                    var result = new GenerationResult() { Nothing = true };
+                    result.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(node.Id.Content));
+                    result.GeneratedByteCode.AddByteCode(InstructionName.CallNative);
 
                     return new GenerationResult() { Nothing = true };
                 }

@@ -1,2 +1,3 @@
-load "std.p";
-print("Hello World");
+//load "std.p";
+//print("Hello World");
+//#a << 1;
