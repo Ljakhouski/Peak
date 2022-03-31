@@ -52,6 +52,10 @@ namespace Peak.CodeGeneration
             {
 
                 var result = new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
+                
+                result.GeneratedByteCode.AddByteCode(left);
+                result.GeneratedByteCode.AddByteCode(right);
+
                 switch (n.Operator.Content)
                 {
                     case "+":

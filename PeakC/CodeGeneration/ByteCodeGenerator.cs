@@ -74,9 +74,10 @@ namespace Peak.CodeGeneration
 
                     if (binary.Operator == "<<")
                     {
-                        var res = generateForAssignment(binary, currentSymbolTable);
-                        // TODO: make it
-                        //var method = currentSymbolTable.CurrentMethod.
+                        addByteCode(
+                            generateForAssignment(binary, currentSymbolTable),
+                            currentSymbolTable.CurrentMethod
+                            );
                     }
                     else
                         throw new Exception();
@@ -87,7 +88,10 @@ namespace Peak.CodeGeneration
                 }
                 else if (n is MethodCallNode)
                 {
-                    generateMethodCall(n as MethodCallNode, currentSymbolTable, currentSymbolTable);
+                    var res = generateMethodCall(n as MethodCallNode, currentSymbolTable, currentSymbolTable);
+                    addByteCode(res, currentSymbolTable.CurrentMethod);
+                    if (res.Nothing == false)
+                        addByteCode(InstructionName.Pop, currentSymbolTable.CurrentMethod);
                 }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
@@ -151,7 +155,7 @@ namespace Peak.CodeGeneration
                     {
                         currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.ExprResult, InfoNode = n, Name = n.Name.Content });
                         var res = generateStoreName(n.Name, currentSymbolTable);
-
+                        addByteCode(res, currentSymbolTable.CurrentMethod);
                     }
                 }
                 else
@@ -166,7 +170,8 @@ namespace Peak.CodeGeneration
                         {
                             currentSymbolTable.RegisterSymbol(new TableElement() { Name = n.Name.Content, Type = type });
 
-                            generateStoreName(n.Name, currentSymbolTable);
+                            res.GeneratedByteCode.AddByteCode(generateStoreName(n.Name, currentSymbolTable));
+                            addByteCode(res, currentSymbolTable.CurrentMethod);
                         }
                         else
                             Error.ErrMessage(n.MetaInf, "variable type does not match");
@@ -227,12 +232,31 @@ namespace Peak.CodeGeneration
         private void addByteCode(InstructionName name, int op1, int op2)
         {
             addByteCode(byteCodePointer.Peek(), name, new int[] { op1, op2 });
-        }
-
-        private void addByteCode(InstructionName name)
-        {
-            addByteCode(byteCodePointer.Peek(), name);
         }*/
 
+        private void addByteCode(InstructionName instruction, MethodDescription method)
+        {
+            var code = method.Code;
+
+            if (code == null)
+                code = new Instruction[0];
+
+            Array.Resize(ref code, code.Length + 1);
+            code[code.Length - 1] = new Instruction() { Name = instruction };
+            method.Code = code;
+        }
+
+        private void addByteCode(GenerationResult result, MethodDescription method)
+        {
+            var genCode = result.GeneratedByteCode.ByteCode;
+            var code = method.Code;
+
+            if (code == null)
+                code = new Instruction[0];
+
+            Array.Resize(ref code, code.Length + genCode.Count);
+            genCode.ToArray().CopyTo(code, code.Length - genCode.Count);
+            method.Code = code;
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace Peak.CodeGeneration
 {
     partial class ByteCodeGenerator
     {
-        private GenerationResult generateProcDeclaration(ProcedureNode node, SymbolTable currentSymbolTable)
+        private /*GenerationResult*/ void generateProcDeclaration(ProcedureNode node, SymbolTable currentSymbolTable)
         {
             var type = new SymbolType(node);
             var symbols = currentSymbolTable.GetSymbols(node.Name);
@@ -27,24 +27,23 @@ namespace Peak.CodeGeneration
 
             if (containtNativeModifier(node.Modifiers))
             {
-                currentSymbolTable.Data.Add(new TableElement()
+                currentSymbolTable.Data.Add(new MethodTableElement()
                 {
                     Info = node.MetaInf,
                     InfoNode = node,
                     Type = type,
                     Name = node.Name.Content,
-                    MethodInfo = new MethodElement()
-                    {
-                        IsNative = true,
-                        //MethodAddress = currentSymbolTable.CurrentRuntimeModule.Methods.Length}
-                        NativeMethodName = node.Name.Content
-                    }
+                    
+                    IsNative = true,
+                    //MethodAddress = currentSymbolTable.CurrentRuntimeModule.Methods.Length}
+                    NativeMethodName = node.Name.Content
+                    
                 });
 
                 if (node.Code != null)
                     Error.ErrMessage(node.MetaInf, "native method should't contains code");
 
-                return new GenerationResult() { Nothing = true };
+                //return new GenerationResult() { Nothing = true };
             }
             else
                 throw new Exception();
@@ -80,8 +79,13 @@ namespace Peak.CodeGeneration
 
             var methods = callPlaceSymbolTable.GetSymbols(node.Id);
 
-            foreach (TableElement m in methods)
+            foreach (TableElement method in methods)
             {
+                if (method is MethodTableElement == false)
+                    continue;
+
+                var m = method as MethodTableElement;
+
                 bool isWrong = false;
                 for (int i = 0; i < m.Type.Args.Count - 1; i++)
                 {
@@ -90,25 +94,37 @@ namespace Peak.CodeGeneration
                         isWrong = true;
                         break;
                     }
-                        
+
                 }
                 if (isWrong == false)
                 {
                     // make call
 
                     // NO NESTED CALLING! TODO: make it
-                    var result = new GenerationResult() { Nothing = true };
-                    result.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(node.Id.Content));
-                    result.GeneratedByteCode.AddByteCode(InstructionName.CallNative);
+                    var result = new GenerationResult();
 
-                    return new GenerationResult() { Nothing = true };
+                    result.ExprResult = m.Type.ReturnType;
+                    result.Nothing = m.Type.ReturnType is null ? true : false;
+
+
+                    if (m.IsNative)
+                    {
+                        result.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(m.Name));
+                        result.GeneratedByteCode.AddByteCode(InstructionName.CallNative);
+                    }
+                    else
+                    {
+                        result.GeneratedByteCode.AddByteCode(InstructionName.Call, m.MethodAddress);
+                    }
+
+                    return result;
                 }
 
             }
 
             Error.ErrMessage(node.Id, "method not exist");
             throw new CompileException();
-        } 
+        }
 
         //private bool EqualsMethodAndCall(string name, List<SymbolType> args, )
     }

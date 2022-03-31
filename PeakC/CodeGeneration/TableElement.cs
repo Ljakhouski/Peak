@@ -15,11 +15,11 @@ namespace Peak.CodeGeneration
         public SymbolTable Ref { get; set; }
         public Token Info { get; set; } // meta-data for error sending
         public Node InfoNode { get; set; }
-        public MethodElement MethodInfo { get; set; }
+        //public MethodElement MethodInfo { get; set; }
         public SymbolTable MethodContextTable { get; set; }
         public int MethodNestLevel { get; set; } // for deployment context-references 
     }
-    class MethodElement
+    class MethodTableElement : TableElement
     {
         public int MethodAddress { get; set; }
         public bool IsNative { get; set; }

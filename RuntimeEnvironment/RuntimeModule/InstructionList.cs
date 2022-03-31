@@ -35,5 +35,6 @@ namespace RuntimeEnvironment.RuntimeModule
         Return,
         CallNative,
         Call,
+        Pop,
     }
 }
