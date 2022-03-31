@@ -15,7 +15,7 @@ namespace Peak.CodeGeneration
             if (n.Operator != "<<")
                 throw new Exception();
 
-            
+
             var right = generateByteCode(n.Right, currentSymbolTable);
             var left = generateStoreData(n.Left, currentSymbolTable);
 
@@ -25,9 +25,9 @@ namespace Peak.CodeGeneration
             }
             else
                 Error.ErrMessage(n.Operator,
-                    "assignment " + left.ExprResult.ToString() 
+                    "assignment " + left.ExprResult.ToString()
                     + " and " + right.ExprResult.ToString()
-                    + " not possible" );
+                    + " not possible");
             throw new Exception();
         }
 
@@ -38,21 +38,21 @@ namespace Peak.CodeGeneration
 
             if (left.Nothing)
                 Error.ErrMessage(n.Left.MetaInf, "expression must be return \"int\" or \"double\"");
-            
+
             else if (right.Nothing)
                 Error.ErrMessage(n.Right.MetaInf, "expression must be return \"int\" or \"double\"");
-            
+
 
             if (/*left.Result == right.Result &&*/
                 (left.ExprResult.Value == SymbolType.Type.Int
              || left.ExprResult.Value == SymbolType.Type.Double)
              &&
-             (  right.ExprResult.Value == SymbolType.Type.Int
+             (right.ExprResult.Value == SymbolType.Type.Int
              || right.ExprResult.Value == SymbolType.Type.Double))
             {
 
                 var result = new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
-                
+
                 result.GeneratedByteCode.AddByteCode(left);
                 result.GeneratedByteCode.AddByteCode(right);
 
@@ -84,6 +84,70 @@ namespace Peak.CodeGeneration
                     "operator \"" + n.Operator + "\" does not accept type " + left.ExprResult.ToString()
                     + " and " + right.ExprResult.ToString());
             throw new Exception();
+        }
+
+        private GenerationResult generateComparison(BinaryNode n, SymbolTable currentSymbolTable)
+        {
+            var left = generateByteCode(n.Left, currentSymbolTable);
+            var right = generateByteCode(n.Right, currentSymbolTable);
+
+            if (left.Nothing)
+                Error.ErrMessage(n.Left.MetaInf, "expression must be return value");
+
+            else if (right.Nothing)
+                Error.ErrMessage(n.Right.MetaInf, "expression must be return value");
+
+            var res = new GenerationResult() { Nothing = false, ExprResult = new SymbolType(SymbolType.Type.Bool) };
+            res.GeneratedByteCode.AddByteCode(left);
+            res.GeneratedByteCode.AddByteCode(right);
+            if (n.Operator == "=")
+            {
+                if (left.ExprResult == right.ExprResult)
+                {
+                    res.GeneratedByteCode.AddByteCode(InstructionName.Equals);
+                    return res;
+                }
+                else
+                    Error.ErrMessage(n.Operator, "expressions should be the same");
+
+            }
+            else if (n.Operator == ">")
+            {
+                if (left.ExprResult == right.ExprResult)
+                {
+                    if (left.ExprResult.Value == SymbolType.Type.Int
+                        ||
+                        left.ExprResult.Value == SymbolType.Type.Double)
+                    {
+                        res.GeneratedByteCode.AddByteCode(InstructionName.More);
+                        return res;
+                    }
+                    else
+                        Error.ErrMessage(n.Operator, "expressions must be of type int or double");
+                }
+                else
+                    Error.ErrMessage(n.Operator, "expressions should be the same");
+            }
+            else if (n.Operator == "<")
+            {
+                if (left.ExprResult == right.ExprResult)
+                {
+                    if (left.ExprResult.Value == SymbolType.Type.Int
+                        ||
+                        left.ExprResult.Value == SymbolType.Type.Double)
+                    {
+                        res.GeneratedByteCode.AddByteCode(InstructionName.Less);
+                        return res;
+                    }
+                    else
+                        Error.ErrMessage(n.Operator, "expressions must be of type int or double");
+                }
+                else
+                    Error.ErrMessage(n.Operator, "expressions should be the same");
+            }
+            else
+                throw new CompileException();
+            throw new CompileException();
         }
     }
 }

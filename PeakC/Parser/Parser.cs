@@ -271,6 +271,39 @@ namespace Peak.PeakC.Parser
                     Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
                 
             }
+            else if (getNext() == "if")
+            {
+                var metaInfToken = t;
+                next();
+                var condition = parse(NonterminalType.AndOr);
+                expect("[");
+                var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                expect("]");
+
+                var node = new IfNode() { Condition = condition, IfTrueCode = code, MetaInf = metaInfToken };
+
+                if (getNext() == "else")
+                {
+                    next();
+                    expect("[");
+                    var elseCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                    expect("]");
+
+                    node.ElseCode = elseCode;
+                }
+
+                return node;
+            }
+            else if (getNext() == "while")
+            {
+                var metaInfToken = t;
+                next();
+                var condition = parse(NonterminalType.AndOr);
+                expect("[");
+                var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                expect("]");
+                return new WhileNode() { Condition = condition, Code = code, MetaInf = metaInfToken };
+            }
             else
             {
                 //var modifier = parse(NonterminalType.Modifier);

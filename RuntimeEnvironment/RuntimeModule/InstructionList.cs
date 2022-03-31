@@ -36,5 +36,10 @@ namespace RuntimeEnvironment.RuntimeModule
         CallNative,
         Call,
         Pop,
+        IfNot,
+
+        Equals,
+        More,
+        Less,
     }
 }

@@ -93,6 +93,10 @@ namespace Peak.CodeGeneration
                     if (res.Nothing == false)
                         addByteCode(InstructionName.Pop, currentSymbolTable.CurrentMethod);
                 }
+                else if (n is IfNode)
+                {
+                    generateIf(n as IfNode, currentSymbolTable);
+                }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
         }
@@ -118,6 +122,13 @@ namespace Peak.CodeGeneration
                     case "/":
                         return generateForMathOperators(node as BinaryNode, currentSymbolTable);
                         break;
+                    case "=":
+                    case ">":
+                    case "<":
+                    case ">=":
+                    case "<=":
+                    case "!=":
+                        return generateComparison(node as BinaryNode, currentSymbolTable);
                     default:
                         throw new Exception("does not supported");
                 }

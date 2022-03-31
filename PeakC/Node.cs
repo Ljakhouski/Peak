@@ -206,4 +206,17 @@ namespace Peak.PeakC
             this.Value = t;
         }
     }
+
+    class IfNode : Node
+    {
+        public Node Condition { get; set; }
+        public CodeBlockNode IfTrueCode { get; set; }
+        public CodeBlockNode ElseCode { get; set; }
+    }
+
+    class WhileNode : Node
+    {
+        public Node Condition { get; set; }
+        public CodeBlockNode Code { get; set; }
+    }
 }

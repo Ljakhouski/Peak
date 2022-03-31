@@ -56,5 +56,9 @@ namespace Peak.CodeGeneration
             this.ByteCode.AddRange(result.ByteCode);
         }
 
+        internal void AddByteCode(Func<object, bool> equals)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

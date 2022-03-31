@@ -77,6 +77,11 @@ namespace Peak.CodeGeneration
             }
         }
 
+        public SymbolType(Type type)
+        {
+            this.Value = type;
+        }
+
         public SymbolType(ConstValueNode node)
         {
             makeSymbolTypeForConst(node);
