@@ -20,13 +20,14 @@
             <Button Background="#FF323C59" Content="  [ save ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Button_Click_1"/>
             <Label Content="   ||   " Foreground="White"/>
             <Button Background="#FFEAC210" Content="  [ compile ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="compileButton_Click"/>
-            <Button Background="#FFE69911" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}"/>
+            <Button Background="#FFE69911" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="run"/>
             <Button Background="#FFB6E611" Content="  [ disasm ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="viewDisasm"/>
         </StackPanel>
         <TabControl x:Name="mainTabControl" Grid.Row="1" BorderBrush="{x:Null}" Background="#FF6D7EA0">
         </TabControl>
         
-        <RichTextBox x:Name="messageTextBox"
+        <RichTextBox x:Name="MessageTextBox"
+                     x:FieldModifier="public"
                      IsReadOnly="True"
                      Grid.Row="3"
                      FontSize="15"

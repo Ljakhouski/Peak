@@ -12,7 +12,7 @@ proc summ(int a, int b)
 [
 	return (a+b);
 ]
-
+/*
 struct A
 [
 	str _name 
@@ -26,7 +26,7 @@ struct A
 	A
 ]
 
-func () foo()[ func () bar()[ /* some code...*/]]
+func () foo()[ func () bar()[ /* some code...*//*]]
 struct Foo[ func () foo()[ func () bar() [  ] ]]
 
 if a=b 
@@ -45,4 +45,4 @@ else
 for #t << 1 to 255
 [
 	// some code		
-]
+]*/

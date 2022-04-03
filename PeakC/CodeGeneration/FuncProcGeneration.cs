@@ -87,7 +87,7 @@ namespace Peak.CodeGeneration
                 var m = method as MethodTableElement;
 
                 bool isWrong = false;
-                for (int i = 0; i < m.Type.Args.Count - 1; i++)
+                for (int i = 0; i < m.Type.Args.Count; i++)
                 {
                     if (m.Type.Args[i] != argsType[i])
                     {
@@ -122,7 +122,7 @@ namespace Peak.CodeGeneration
 
             }
 
-            Error.ErrMessage(node.Id, "method not exist");
+            Error.ErrMessage(node.Id, "method with these arguments not exist");
             throw new CompileException();
         }
 

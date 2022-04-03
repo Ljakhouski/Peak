@@ -34,7 +34,14 @@ namespace Peak.CodeGeneration
                 SymbolType t = (SymbolType)obj;
                 if (this.Value == t.Value)
                 {
-                    if (this.Value == Type.Proc) { throw new Exception(); }
+                    if (this.Value == Type.Proc) 
+                    {
+                        if (equalsArgs(this.Args, t.Args))
+                            return true;
+                        else
+                            return false;
+
+                    }
                     return true;
                 }
                 else
@@ -177,6 +184,17 @@ namespace Peak.CodeGeneration
             }
             else
                 throw new Exception();
+        }
+
+        private bool equalsArgs(List<SymbolType> args1, List<SymbolType> args2)
+        {
+            if (args1.Count != args2.Count)
+                return false;
+
+            for (int i = 0; i < args1.Count; i++)
+                if (args1[i] != args2[i])
+                    return false;
+            return true;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace IDE
             InitializeComponent();
             makeNewTab("new.p"/*, Directory.GetCurrentDirectory()+"\\"*/);
             insertBaseText();
-            this.messageTextBox.AppendText("IDE started "+DateTime.Now.ToString()+"\n");
+            this.MessageTextBox.AppendText("IDE started " + DateTime.Now.ToString() + "\n");
         }
 
         private void loadHighlighter(TextEditor editor)
@@ -57,7 +58,7 @@ namespace IDE
             //editor.Background = new SolidColorBrush() { Color = Color.FromArgb(10, 10, 20, 20) };
             loadHighlighter(editor);
 
-            var tabHeader = new CustomTabHeader(mainTabControl.Items.Count, mainTabControl, editor, fileName, path);
+            var tabHeader = new CustomTabHeader(mainTabControl.Items.Count, mainTabControl, editor, this, fileName, path);
 
 
             mainTabControl.Items.Add(new TabItem() { Content = editor, Header = /*"new.p"*/  tabHeader });
@@ -110,12 +111,19 @@ namespace IDE
         private void compileButton_Click(object sender, RoutedEventArgs e)
         {
             var tabItem = mainTabControl.SelectedItem as TabItem;
-            string file = "";
             if (tabItem.Header is CustomTabHeader)
             {
                 var header = tabItem.Header as CustomTabHeader;
-                header.SaveFile();
-                file = header.Path + header.FileName;
+                //header.SaveFile();
+                try
+                {
+                    header.Compile();
+                }catch (Exception e_)
+                {
+                    this.MessageTextBox.AppendText(e_.Message);
+                }
+                
+                /*file = header.Path + header.FileName;
 
 
                 ProcessStartInfo compilerProcess = new ProcessStartInfo();
@@ -149,140 +157,241 @@ namespace IDE
                 string output = proc.StandardOutput.ReadToEnd();
                 //proc.WaitForExit();
 
-                messageTextBox.AppendText(output);
+                MessageTextBox.AppendText(output);*/
             }
 
 
 
         }
 
-        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        public void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            messageTextBox.AppendText(outLine.Data);
-        }
-    }
-
-    public class CustomTabHeader : System.Windows.Controls.UserControl
-    {
-        private int index;
-        private TabControl tabControl;
-        private TextEditor editor;
-        public string FileName;
-        public string Path;
-        private bool notSaved = true;
-        public CustomTabHeader(int index, TabControl tabControl, TextEditor editor, string fileName, string path)
-        {
-            this.index = index;
-            this.tabControl = tabControl;
-            this.editor = editor;
-            this.FileName = fileName;
-            this.Path = path;
-
-            var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
-            tabContent.Children.Add(new Label() { Content = fileName });
-            tabContent.Children.Add(new Button()
-            {
-                Content = "[X]",
-                Height = 20,
-                Width = 20,
-                Background = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
-                BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
-            });
-            (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
-            editor.KeyDown += Editor_KeyDown;
-            this.Content = tabContent;
-            if (path != "")
-            {
-                editor.Text = File.ReadAllText(path + fileName);
-                notSaved = false;
-            }
-            else
-            {
-                this.notSaved = true;
-                CheckNotSavedFlag();
-            }
+            MessageTextBox.AppendText(outLine.Data);
         }
 
-        private void Editor_KeyDown(object sender, KeyEventArgs e)
+        private void run(object sender, RoutedEventArgs e)
         {
-            if (notSaved == false)
+            var tabItem = mainTabControl.SelectedItem as TabItem;
+            if (tabItem.Header is CustomTabHeader)
             {
-                notSaved = true;
-                CheckNotSavedFlag();
-            }
-        }
+                var header = tabItem.Header as CustomTabHeader;
 
-        public void CloseTabClicked(object sender, RoutedEventArgs e)
-        {
-            this.tabControl.Items.RemoveAt(index);
-        }
-
-        public void SaveFile()
-        {
-            var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|*.p" };
-            if (Path.Length == 0)
-                if (dialog.ShowDialog() == true)
+                try
                 {
-                    File.WriteAllText(dialog.FileName, editor.Text);
-                    //this.Path = dialog.FileName.Substring(dialog.FileName.Length - Path.Length - 1);
-                    this.FileName = getFileName(dialog.FileName);
-                    this.Path = getFilePath(dialog.FileName);
+                    header.Run();
+                }
+                catch(Exception e_)
+                {
+                    this.MessageTextBox.AppendText(e_.Message);
+                }
+                
+            }
+        }
 
+        public class CustomTabHeader : System.Windows.Controls.UserControl
+        {
+            private int index;
+            private TabControl tabControl;
+            private TextEditor editor;
+            private MainWindow ideWindow;
+            public string FileName;
+            public string Path;
+            private bool notSaved = true;
+            public CustomTabHeader(int index, TabControl tabControl, TextEditor editor, MainWindow mainWindow, string fileName, string path)
+            {
+                this.index = index;
+                this.tabControl = tabControl;
+                this.editor = editor;
+                this.ideWindow = mainWindow;
+                this.FileName = fileName;
+                this.Path = path;
+
+                var tabContent = new StackPanel() { Orientation = Orientation.Horizontal };
+                tabContent.Children.Add(new Label() { Content = fileName });
+                tabContent.Children.Add(new Button()
+                {
+                    Content = "[X]",
+                    Height = 20,
+                    Width = 20,
+                    Background = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+                    BorderBrush = new SolidColorBrush() { Color = Color.FromArgb(0, 0, 0, 0) },
+                });
+                (tabContent.Children[tabContent.Children.Count - 1] as Button).Click += CloseTabClicked;
+                editor.KeyDown += Editor_KeyDown;
+                this.Content = tabContent;
+                if (path != "")
+                {
+                    editor.Text = File.ReadAllText(path + fileName);
+                    notSaved = false;
                 }
                 else
+                {
+                    this.notSaved = true;
+                    CheckNotSavedFlag();
+                }
+            }
+
+            private void Editor_KeyDown(object sender, KeyEventArgs e)
+            {
+                if (notSaved == false)
+                {
+                    notSaved = true;
+                    CheckNotSavedFlag();
+                }
+            }
+
+            public void CloseTabClicked(object sender, RoutedEventArgs e)
+            {
+                this.tabControl.Items.RemoveAt(index);
+            }
+
+            public void SaveFile()
+            {
+                var dialog = new SaveFileDialog() { Filter = "Peak project (*.p)|*.p" };
+                if (Path.Length == 0)
+                    if (dialog.ShowDialog() == true)
+                    {
+                        File.WriteAllText(dialog.FileName, editor.Text);
+                        //this.Path = dialog.FileName.Substring(dialog.FileName.Length - Path.Length - 1);
+                        this.FileName = getFileName(dialog.FileName);
+                        this.Path = getFilePath(dialog.FileName);
+
+                    }
+                    else
+                        return;
+                else
+                    File.WriteAllText(Path + FileName, editor.Text);
+
+                notSaved = false;
+                CheckNotSavedFlag();
+            }
+
+            public void Compile()
+            {
+                this.SaveFile();
+                var file = this.Path + this.FileName;
+
+
+                ProcessStartInfo compilerProcess = new ProcessStartInfo();
+                compilerProcess.UseShellExecute = false;
+                compilerProcess.WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\Compiler";
+                compilerProcess.FileName = "Compiler/PeakC.exe";
+                compilerProcess.Arguments = file + " -o " + "../Output/";
+                compilerProcess.RedirectStandardOutput = true;
+                compilerProcess.RedirectStandardError = true;
+
+                if (Directory.Exists("Output") == false)
+                    Directory.CreateDirectory("Output");
+
+                //compilerProcess.
+                //Process.Start(compilerProcess);
+                var proc = new Process();
+                proc.StartInfo = compilerProcess;
+
+                proc.OutputDataReceived += new DataReceivedEventHandler(ideWindow.OutputHandler);
+                proc.ErrorDataReceived += new DataReceivedEventHandler(ideWindow.OutputHandler);
+                try
+                {
+                    proc.Start();
+                }
+                catch (Exception e_)
+                {
+                    MessageBox.Show(e_.Message);
                     return;
-            else
-                File.WriteAllText(Path + FileName, editor.Text);
+                }
 
-            notSaved = false;
-            CheckNotSavedFlag();
-        }
 
-        private string getFileName(string fileName)
-        {
-            string S = "";
+                string output = proc.StandardOutput.ReadToEnd();
+                //proc.WaitForExit();
 
-            for (int i = fileName.Length - 1; i > 0; i--)
-            {
-                if (fileName[i] != '\\' && fileName[i] != '/')
-                    S = fileName[i] + S;
-                else return S;
+                ideWindow.MessageTextBox.AppendText(output);
+
+                MakeAssembly();
+                ideWindow.MessageTextBox.AppendText(".exe file placed in "+this.Path+"Output");
             }
-            return S;
-        }
 
-        private string getFilePath(string fileName)
-        {
-            string S = "";
+            public void MakeAssembly()
+            {
+                if (Path[Path.Length - 1] != '/')
+                    Path.Append('/');
 
-            for (int i = fileName.Length - 1; i > 0; i--)
-            {
-                if (fileName[i] == '\\' || fileName[i] == '/')
-                    return fileName.Substring(0, i + 1);
-            }
-            return S;
-        }
-        public void CheckNotSavedFlag()
-        {
-            if (notSaved)
-            {
-                var label = (this.Content as StackPanel).Children[0] as Label;
-                if ((label.Content as string)[(label.Content as string).Length - 1] != '*')
+                if (Directory.Exists(Path + "Output") == false)
+                    Directory.CreateDirectory(Path + "Output");
+
+                var fileName = removeFileExtention(FileName);
+
+                FileSystem.CopyDirectory("Output", Path + "Output", true);
+                FileSystem.CopyDirectory("Runtime", Path + "Output", true);
+
+                try
                 {
-                    label.Content += "*";
+                    FileSystem.RenameFile(Path + "Output/" + "RuntimeEnvironment.exe", fileName + ".exe");
+                }
+                catch (Exception e_) { }
+                
+            }
+            private string getFileName(string fileName)
+            {
+                string S = "";
+
+                for (int i = fileName.Length - 1; i > 0; i--)
+                {
+                    if (fileName[i] != '\\' && fileName[i] != '/')
+                        S = fileName[i] + S;
+                    else return S;
+                }
+                return S;
+            }
+
+            private string removeFileExtention(string fileName)
+            {
+                for (int i = fileName.Length - 1; i>0; i--)
+                {
+                    if (fileName[i] == '.')
+                    {
+                        return fileName.Substring(0, i);
+                    }
+                }
+                return fileName;
+                //throw new Exception();
+            }
+            private string getFilePath(string fileName)
+            {
+                string S = "";
+
+                for (int i = fileName.Length - 1; i > 0; i--)
+                {
+                    if (fileName[i] == '\\' || fileName[i] == '/')
+                        return fileName.Substring(0, i + 1);
+                }
+                return S;
+            }
+            public void CheckNotSavedFlag()
+            {
+                if (notSaved)
+                {
+                    var label = (this.Content as StackPanel).Children[0] as Label;
+                    if ((label.Content as string)[(label.Content as string).Length - 1] != '*')
+                    {
+                        label.Content += "*";
+                    }
+                }
+                else
+                {
+                    var label = (this.Content as StackPanel).Children[0] as Label;
+                    if ((label.Content as string)[(label.Content as string).Length - 1] == '*')
+                    {
+                        string S = label.Content.ToString();
+                        label.Content = S.Remove(S.Length - 1);
+                    }
                 }
             }
-            else
+
+            public void Run()
             {
-                var label = (this.Content as StackPanel).Children[0] as Label;
-                if ((label.Content as string)[(label.Content as string).Length - 1] == '*')
-                {
-                    string S = label.Content.ToString();
-                    label.Content = S.Remove(S.Length - 1);
-                }
+                Process.Start(Path + "Output/" + removeFileExtention(FileName) + ".exe");
             }
         }
-
     }
 
     public class DisasmTabHeader : System.Windows.Controls.UserControl

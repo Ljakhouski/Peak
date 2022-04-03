@@ -27,7 +27,13 @@ namespace Peak.CodeGeneration
             generateForProgramNode(programNode, globalTable);
             writeConstantSection();
             writeGlobalMemoryInfo();
+            writeCompletion(globalTable);
             return currentModule;
+        }
+
+        private void writeCompletion(SymbolTable globalTable)
+        {
+            //addByteCode(InstructionName.CallNative, )
         }
 
         private void writeConstantSection()
