@@ -171,6 +171,7 @@ namespace Peak.CodeGeneration
                     else
                     {
                         currentSymbolTable.RegisterSymbol(new TableElement() { Type = type.ExprResult, InfoNode = n, Name = n.Name.Content });
+                        addByteCode(type, currentSymbolTable.CurrentMethod);
                         var res = generateStoreName(n.Name, currentSymbolTable);
                         addByteCode(res, currentSymbolTable.CurrentMethod);
                     }
