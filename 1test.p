@@ -1,4 +1,5 @@
 int a << 3;
+#a1 << 345345;
 int b << a;
 int c << b;
 int d << c;

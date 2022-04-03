@@ -2,19 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static RuntimeEnvironment.NativeMethods.NativeMethods;
 
 namespace RuntimeEnvironment
 {
-    class RuntimeThread
+    public class RuntimeThread
     {
         private RuntimeModule.RuntimeModule runtimeModule;
 
-        private int frameStackPointer;
-        private int stackPointer;
+        private int frameStackPointer = -1;
+        private int stackPointer = -1;
 
         private PeakObject[] stack;
         private PeakObject[][] frameStack;
 
+        private Dictionary<string, NativeMethodDelegate> nativeMethods;
         public void Execute(MethodDescription method)
         {
             makeMethodProlog(method);
@@ -40,8 +42,7 @@ namespace RuntimeEnvironment
                     case InstructionName.CallNative:
                         var name = stack[stackPointer];
                         stackPointer--;
-
-
+                        nativeMethods[name.StringValue](null, this);
                         break;
                     case InstructionName.Push:
                         stackPointer++;
@@ -139,6 +140,8 @@ namespace RuntimeEnvironment
         public RuntimeThread(RuntimeModule.RuntimeModule module)
         {
             this.runtimeModule = module;
+            this.frameStack = new PeakObject[1][];
+            this.nativeMethods = NativeMethods.NativeMethods.GetNativeMethods();
         }
     }
 }

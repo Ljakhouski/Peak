@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RuntimeEnvironment.NativeMethods
 {
-    static partial class NativeMethods
+    public static partial class NativeMethods
     {
         public delegate void NativeMethodDelegate(PeakObject[] args, RuntimeThread rt);
         public static Dictionary<string, NativeMethodDelegate> GetNativeMethods()

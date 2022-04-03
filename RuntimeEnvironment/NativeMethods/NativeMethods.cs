@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RuntimeEnvironment.NativeMethods
 {
-    static partial class NativeMethods
+    public static partial class NativeMethods
     {
         public static void PrintInteger(PeakObject[] args, RuntimeThread rt)
         {

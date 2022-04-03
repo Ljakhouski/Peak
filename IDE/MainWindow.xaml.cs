@@ -318,6 +318,8 @@ namespace IDE
                 if (Directory.Exists(Path + "Output") == false)
                     Directory.CreateDirectory(Path + "Output");
 
+                clearFolder(Path + "Output");
+
                 var fileName = removeFileExtention(FileName);
 
                 FileSystem.CopyDirectory("Output", Path + "Output", true);
@@ -355,6 +357,21 @@ namespace IDE
                 return fileName;
                 //throw new Exception();
             }
+
+            private void clearFolder(string path)
+            {
+                DirectoryInfo dir = new DirectoryInfo(path);
+
+                foreach (FileInfo fi in dir.GetFiles())
+                    fi.Delete();
+                
+                /*
+                foreach (DirectoryInfo di in dir.GetDirectories())
+                {
+                    clearFolder(di.FullName);
+                    di.Delete();
+                }*/
+            }
             private string getFilePath(string fileName)
             {
                 string S = "";
@@ -389,7 +406,14 @@ namespace IDE
 
             public void Run()
             {
-                Process.Start(Path + "Output/" + removeFileExtention(FileName) + ".exe");
+                //Process.Start(Path + "Output/" + removeFileExtention(FileName) + ".exe");
+
+                Process proc = new Process();
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.WorkingDirectory = Path + "Output";
+                info.FileName = Path + "Output/" + removeFileExtention(FileName) + ".exe";
+                proc.StartInfo = info;
+                proc.Start();
             }
         }
     }

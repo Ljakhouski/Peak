@@ -12,7 +12,7 @@ namespace RuntimeEnvironment
         String,
         Struct,
     }
-    class PeakObject
+    public class PeakObject
     {
         // standart values:
         public    int IntValue    { get; set; }
