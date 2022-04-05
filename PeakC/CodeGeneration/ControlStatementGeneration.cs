@@ -15,6 +15,8 @@ namespace Peak.CodeGeneration
 
             int getCurrentPosition()
             {
+                if (currentSymbolTable.CurrentMethod.Code.Length == 0)
+                    return 0;
                 return currentSymbolTable.CurrentMethod.Code.Length - 1;
             }
             void setOperand(int positionPointer, int operand)
@@ -68,6 +70,49 @@ namespace Peak.CodeGeneration
                     setOperand(endOfIfTruePointer, endElsePosition);
                     return;
                 }
+            }
+            else
+                Error.ErrMessage(n.Condition.MetaInf, "boolean expression expected");
+            throw new CompileException();
+        }
+
+        private void generateWhile(WhileNode n, SymbolTable currentSymbolTable)
+        {
+            int getCurrentPosition()
+            {
+                if (currentSymbolTable.CurrentMethod.Code.Length == 0)
+                    return 0;
+                return currentSymbolTable.CurrentMethod.Code.Length - 1;
+            }
+            void setOperand(int positionPointer, int operand)
+            {
+                currentSymbolTable.CurrentMethod.Code[positionPointer].Operands = new int[1] { operand };
+            }
+
+            var condition = generateByteCode(n.Condition, currentSymbolTable);
+
+            if (condition.ExprResult.Value == SymbolType.Type.Bool)
+            {
+                var cyclePointer = getCurrentPosition();
+                addByteCode(condition, currentSymbolTable.CurrentMethod);
+                addByteCode(InstructionName.IfNot, currentSymbolTable.CurrentMethod);
+                var ifNotPointer = getCurrentPosition();
+                generateForCodeBlock(n.Code, new SymbolTable()
+                {
+                    Prev = currentSymbolTable,
+                    IsGlobalScope = currentSymbolTable.IsGlobalScope,
+                    IsMethodDefTable = false,
+                    CurrentMethod = currentSymbolTable.CurrentMethod
+                });
+
+                // jump to cycle pointer
+                addByteCode(InstructionName.Jump, currentSymbolTable.CurrentMethod);
+                setOperand(getCurrentPosition(), cyclePointer);
+
+                // set break;
+                var breakFromCyclePointer = getCurrentPosition() + 1;
+                setOperand(ifNotPointer, breakFromCyclePointer);
+                return;
             }
             else
                 Error.ErrMessage(n.Condition.MetaInf, "boolean expression expected");

@@ -17,19 +17,27 @@
 			</RuleSet>
 		</Span>
 
+		<Span color="String">
+			<Begin>'</Begin>
+			<End>'</End>
+		</Span>
+
 		<Keywords fontWeight="bold" foreground="Blue">
 			<Word>load</Word>
 			<Word>proc</Word>
 			<Word>func</Word>
+			<Word>struct</Word>
 			<Word>#</Word>
 			<Word>if</Word>
 			<Word>else</Word>
+			<Word>while</Word>
 			<!-- ... -->
 		</Keywords>
 		<Keywords fontWeight="bold" foreground="Orange">
 			<Word>int</Word>
 			<Word>double</Word>
 			<Word>str</Word>
+			<Word>array</Word>
 			<!-- ... -->
 		</Keywords>
 

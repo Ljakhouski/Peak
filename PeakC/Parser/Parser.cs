@@ -273,8 +273,9 @@ namespace Peak.PeakC.Parser
             }
             else if (getNext() == "if")
             {
-                var metaInfToken = t;
                 next();
+                var metaInfToken = t;
+                
                 var condition = parse(NonterminalType.AndOr);
                 expect("[");
                 var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
@@ -296,8 +297,9 @@ namespace Peak.PeakC.Parser
             }
             else if (getNext() == "while")
             {
-                var metaInfToken = t;
                 next();
+                var metaInfToken = t;
+                
                 var condition = parse(NonterminalType.AndOr);
                 expect("[");
                 var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;

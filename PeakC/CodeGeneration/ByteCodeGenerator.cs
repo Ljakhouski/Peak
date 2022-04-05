@@ -21,7 +21,7 @@ namespace Peak.CodeGeneration
         {
             globalTable = new SymbolTable() { IsGlobalScope = true };
             currentModule = new RuntimeModule();
-            currentModule.Methods = new MethodDescription[1] { new MethodDescription() };
+            currentModule.Methods = new MethodDescription[1] { new MethodDescription() { Code = new Instruction[0]} };
             byteCodePointer.Push(currentModule.Methods[0]); // add reference to "GLOBAL" method
             globalTable.CurrentMethod = currentModule.Methods[0];
             generateForProgramNode(programNode, globalTable);
@@ -33,7 +33,7 @@ namespace Peak.CodeGeneration
 
         private void writeCompletion(SymbolTable globalTable)
         {
-            //addByteCode(InstructionName.CallNative, )
+            addByteCode(InstructionName.Return, globalTable.CurrentMethod);
         }
 
         private void writeConstantSection()
@@ -102,6 +102,10 @@ namespace Peak.CodeGeneration
                 else if (n is IfNode)
                 {
                     generateIf(n as IfNode, currentSymbolTable);
+                }
+                else if (n is WhileNode)
+                {
+                    generateWhile(n as WhileNode, currentSymbolTable);
                 }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
