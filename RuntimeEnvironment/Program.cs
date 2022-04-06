@@ -43,7 +43,7 @@ namespace RuntimeEnvironment
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            var thread = new RuntimeThread(module);
+            var thread = new RuntimeThread(module, ConstantBuilder.GetConstant(module));
             thread.Execute(module.Methods[0]);
 
             stopWatch.Stop();

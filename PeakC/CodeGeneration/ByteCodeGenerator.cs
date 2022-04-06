@@ -35,7 +35,11 @@ namespace Peak.CodeGeneration
         {
             addByteCode(InstructionName.Return, globalTable.CurrentMethod);
         }
-
+        private void addBoolConstantsInSymbolTable()
+        {
+            globalTable.ConstandData.Add(new Constant { Type = ConstantType.Bool, BoolValue = false });
+            globalTable.ConstandData.Add(new Constant { Type = ConstantType.Bool, BoolValue = true });
+        }
         private void writeConstantSection()
         {
             currentModule.Constant = new Constant[globalTable.ConstandData.Count];

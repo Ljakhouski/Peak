@@ -14,7 +14,9 @@ namespace RuntimeEnvironment
         private int stackPointer = -1;
 
         private PeakObject[] stack;
-        private PeakObject[][] frameStack;
+        private PeakObject[] frameStack;
+
+        private PeakObject[] constants;
 
         private Dictionary<string, NativeMethodDelegate> nativeMethods;
         public void Execute(MethodDescription method)
@@ -44,9 +46,24 @@ namespace RuntimeEnvironment
                         stackPointer--;
                         nativeMethods[name.StringValue](null, this);
                         break;
+                    case InstructionName.PushConst:
+                        stackPointer++;
+                        if (stackPointer > constants.Length)
+                        {
+                            if (stackPointer > 4096)
+                            {
+                                Console.WriteLine("STACK OVERFLOW");
+                                Console.ReadKey();
+                                Environment.Exit(-1);
+                            }
+                            else
+                                Array.Resize(ref stack, stack.Length + 1024);
+                        }
+                        stack[stackPointer] = constants[currentInstruction.Operands[0]];
+                        break;
                     case InstructionName.Push:
                         stackPointer++;
-                        stack[stackPointer] = frameStack[frameStackPointer][currentInstruction.Operands[0]];
+                        stack[stackPointer] = frameStack[frameStackPointer].StructValue[currentInstruction.Operands[0]];
                         break;
                     case InstructionName.PushByRef:
                         var reference = stack[instructionPointer];
@@ -54,10 +71,10 @@ namespace RuntimeEnvironment
                         break;
                     case InstructionName.PushGlobal:
                         stackPointer++;
-                        stack[stackPointer] = frameStack[0][currentInstruction.Operands[0]];
+                        stack[stackPointer] = frameStack[0].StructValue[currentInstruction.Operands[0]];
                         break;
                     case InstructionName.Store:
-                        frameStack[frameStackPointer][currentInstruction.Operands[0]] = stack[stackPointer];
+                        frameStack[frameStackPointer].StructValue[currentInstruction.Operands[0]] = stack[stackPointer];
                         stackPointer--;
                         break;
                     case InstructionName.StoreByRef: // reference on the top
@@ -65,7 +82,7 @@ namespace RuntimeEnvironment
                         stackPointer--;
                         break;
                     case InstructionName.StoreGlobal:
-                        frameStack[0][currentInstruction.Operands[0]] = stack[stackPointer];
+                        frameStack[0].StructValue[currentInstruction.Operands[0]] = stack[stackPointer];
                         stackPointer--;
                         break;
                     case InstructionName.Add:
@@ -120,7 +137,46 @@ namespace RuntimeEnvironment
                         };
                         break;
                     }
+                    case InstructionName.EqualsBool:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
                         
+                        stack[stackPointer] = v1.BoolValue == v2.BoolValue ? constants[1] : constants[0];
+                            
+                        break;
+                    }
+                    case InstructionName.EqualsInt:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
+
+                        stack[stackPointer] = v1.IntValue == v2.IntValue ? constants[1] : constants[0];
+
+                        break;
+                    }
+                    case InstructionName.EqualsDouble:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
+
+                        stack[stackPointer] = v1.DoubleValue == v2.DoubleValue ? constants[1] : constants[0];
+
+                        break;
+                    }
+                    case InstructionName.EqualsString:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
+
+                        stack[stackPointer] = v1.StringValue == v2.StringValue ? constants[1] : constants[0];
+
+                        break;
+                    }
                 }
             }
         }
@@ -134,13 +190,16 @@ namespace RuntimeEnvironment
 
             frameStackPointer++;
 
-            frameStack[frameStackPointer] = new PeakObject[method.LocalVarsArraySize];
+            //frameStack[frameStackPointer].StructValue = new PeakObject[method.LocalVarsArraySize];
+            stack = new PeakObject[1024];
+            frameStack[frameStackPointer]= new PeakObject() { StructValue = new PeakObject[method.LocalVarsArraySize] };
         }
         
-        public RuntimeThread(RuntimeModule.RuntimeModule module)
+        public RuntimeThread(RuntimeModule.RuntimeModule module, PeakObject[] constants)
         {
             this.runtimeModule = module;
-            this.frameStack = new PeakObject[1][];
+            this.constants = constants;
+            this.frameStack = new PeakObject[256];
             this.nativeMethods = NativeMethods.NativeMethods.GetNativeMethods();
         }
     }

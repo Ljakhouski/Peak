@@ -38,8 +38,15 @@ namespace RuntimeEnvironment.RuntimeModule
         Pop,
         IfNot,
 
-        Equals,
-        More,
-        Less,
+        MoreInt,
+        MoreDouble,
+
+        EqualsBool,
+        EqualsInt,
+        EqualsDouble,
+        EqualsString,
+        MoreOrEqualsInt,
+        MoreOrEqualsDouble,
+        PushCopy,
     }
 }

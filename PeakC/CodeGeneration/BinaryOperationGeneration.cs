@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using Peak.PeakC;
 using Peak.PeakC.Parser;
-using RuntimeEnvironment;
 using RuntimeEnvironment.RuntimeModule;
 
 namespace Peak.CodeGeneration
@@ -100,35 +99,72 @@ namespace Peak.CodeGeneration
             var res = new GenerationResult() { Nothing = false, ExprResult = new SymbolType(SymbolType.Type.Bool) };
             res.GeneratedByteCode.AddByteCode(left);
             res.GeneratedByteCode.AddByteCode(right);
+
             if (n.Operator == "=")
             {
                 if (left.ExprResult == right.ExprResult)
                 {
-                    res.GeneratedByteCode.AddByteCode(InstructionName.Equals);
+                    switch (left.ExprResult.Value)
+                    {
+                        case SymbolType.Type.Bool:
+                            res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
+                            break;
+                        case SymbolType.Type.Int:
+                            res.GeneratedByteCode.AddByteCode(InstructionName.EqualsInt);
+                            break;
+                        case SymbolType.Type.Double:
+                            res.GeneratedByteCode.AddByteCode(InstructionName.EqualsDouble);
+                            break;
+                        case SymbolType.Type.Str:
+                            res.GeneratedByteCode.AddByteCode(InstructionName.EqualsString);
+                            break;
+                        default:
+                            Error.ErrMessage(null, "");
+                            break;
+                    }
                     return res;
                 }
                 else
                     Error.ErrMessage(n.Operator, "expressions should be the same");
 
             }
-            else if (n.Operator == ">")
+            else if (n.Operator == ">" || n.Operator == "<" || n.Operator == ">=" || n.Operator == "=<")
             {
-                if (left.ExprResult == right.ExprResult)
+                if (left.ExprResult != right.ExprResult)
+                    Error.ErrMessage(n.Operator, "expressions should be the same");
+
+                // copy two comparison values to equals defore '<' or '>'
+
+                if (n.Operator == ">=" || n.Operator == "<=")
                 {
-                    if (left.ExprResult.Value == SymbolType.Type.Int
-                        ||
-                        left.ExprResult.Value == SymbolType.Type.Double)
-                    {
-                        res.GeneratedByteCode.AddByteCode(InstructionName.More);
-                        return res;
-                    }
-                    else
-                        Error.ErrMessage(n.Operator, "expressions must be of type int or double");
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PushCopy, 2);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PushCopy, 2);
+                }
+
+                if (left.ExprResult.Value == SymbolType.Type.Int)
+                {
+                    res.GeneratedByteCode.AddByteCode(InstructionName.MoreInt);
+                }
+                else if (left.ExprResult.Value == SymbolType.Type.Double)
+                {
+                    res.GeneratedByteCode.AddByteCode(InstructionName.MoreDouble);
                 }
                 else
-                    Error.ErrMessage(n.Operator, "expressions should be the same");
+                    Error.ErrMessage(n.Operator, "expressions must be of type int or double");
+
+                if (n.Operator == "<" || n.Operator == "<=")
+                {
+                    /*    INVERSION    */
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PushConst, 0);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
+                }
+
+                
+
+
+
             }
-            else if (n.Operator == "<")
+            else if (true)
             {
                 if (left.ExprResult == right.ExprResult)
                 {
@@ -136,7 +172,7 @@ namespace Peak.CodeGeneration
                         ||
                         left.ExprResult.Value == SymbolType.Type.Double)
                     {
-                        res.GeneratedByteCode.AddByteCode(InstructionName.Less);
+                        //res.GeneratedByteCode.AddByteCode(InstructionName.Less);
                         return res;
                     }
                     else
