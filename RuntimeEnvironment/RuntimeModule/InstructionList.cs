@@ -48,5 +48,7 @@ namespace RuntimeEnvironment.RuntimeModule
         MoreOrEqualsInt,
         MoreOrEqualsDouble,
         PushCopy,
+        OrEqualsBool,
+        PopCopy,
     }
 }

@@ -177,10 +177,11 @@ namespace Peak.PeakC.Parser
         {
             if (t == "load")
             {
+                var metaInf = t;
                 expect(type.StrValue);
                 var s = t; 
                 expect(";"); 
-                return new LoadNode(s);
+                return new LoadNode(s) { MetaInf = metaInf};
             }
             else
                 throw new Exception();

@@ -11,9 +11,13 @@ namespace Peak.CodeGeneration
 {
     partial class SymbolTable
     {
+        public int Id { get; set; } // for equals 
+
         private List<string> loadetFiles = new List<string>(); //only for global scope
         public bool IsGlobalScope { get; set; } = false; // global memory-scope, not var-definition scope 
         public bool IsMethodDefTable { get; set; } = false;
+        public bool IsStructDefTable { get; set; } = false;
+
         public SymbolTable Prev { get; set; } // only for if-else-while
 
         public List<TableElement> Data = new List<TableElement>();
@@ -28,9 +32,25 @@ namespace Peak.CodeGeneration
 
         public SymbolTable()
         {
-
+            this.Id = IDGenerator.GetRefId();
         }
 
+        public int GetMemoryContextId()
+        {
+            if (this.IsGlobalScope)
+                return 0;
+            
+            SymbolTable t = this;
+
+            while (t.Prev != null)
+            {
+                t = t.Prev;
+                if (t.IsMethodDefTable || t.IsStructDefTable)
+                    return t.Id;
+            }
+
+            return 0;
+        }
         public bool IsNewFile(string file)
         {
 

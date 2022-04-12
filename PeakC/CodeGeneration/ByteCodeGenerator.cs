@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Peak.PeakC;
 using Peak.PeakC.Parser;
@@ -20,8 +21,9 @@ namespace Peak.CodeGeneration
         public RuntimeModule GetProgramRuntimeModule(ProgramNode programNode)
         {
             globalTable = new SymbolTable() { IsGlobalScope = true };
+            addBoolConstantsInSymbolTable();
             currentModule = new RuntimeModule();
-            currentModule.Methods = new MethodDescription[1] { new MethodDescription() { Code = new Instruction[0]} };
+            currentModule.Methods = new MethodDescription[1] { new MethodDescription() { Code = new Instruction[0] } };
             byteCodePointer.Push(currentModule.Methods[0]); // add reference to "GLOBAL" method
             globalTable.CurrentMethod = currentModule.Methods[0];
             generateForProgramNode(programNode, globalTable);
@@ -94,7 +96,7 @@ namespace Peak.CodeGeneration
                 }
                 else if (n is ProcedureNode)
                 {
-                    generateProcDeclaration(n as ProcedureNode, currentSymbolTable);
+                    generateMethodDeclaration(n as ProcedureNode, currentSymbolTable);
                 }
                 else if (n is MethodCallNode)
                 {
@@ -153,13 +155,31 @@ namespace Peak.CodeGeneration
         private void applyLoadNode(LoadNode node, SymbolTable currentSymbolTable)
         {
             string fileName = (node as LoadNode).LoadFileName.Content;
-            if (currentSymbolTable.IsNewFile(fileName))
-            {
-                currentSymbolTable.RegisterFile(fileName);
-                var p = new Parser();
-                this.generateForProgramNode(p.GetNode(fileName), currentSymbolTable);
 
+            if (Directory.Exists(Directory.GetCurrentDirectory() + "/" + fileName)
+                ||
+                Directory.Exists(Directory.GetCurrentDirectory() + "/" + fileName + ".p")
+                ||
+                Directory.Exists(Directory.GetCurrentDirectory() + "/lib/" + fileName)
+                ||
+                Directory.Exists(Directory.GetCurrentDirectory() + "/lib/" + fileName + ".p")
+                ||
+                Directory.Exists(node.MetaInf.File + "/" + fileName)
+                ||
+                Directory.Exists(node.MetaInf.File + "/" + fileName + ".p")
+                )
+            {
+                if (currentSymbolTable.IsNewFile(fileName))
+                {
+                    currentSymbolTable.RegisterFile(fileName);
+                    var p = new Parser();
+                    this.generateForProgramNode(p.GetNode(fileName), currentSymbolTable);
+
+                }
+                else
+                    Error.WarningMessage(node.MetaInf, "file already loadet");
             }
+
 
         }
 
@@ -269,6 +289,18 @@ namespace Peak.CodeGeneration
 
             Array.Resize(ref code, code.Length + 1);
             code[code.Length - 1] = new Instruction() { Name = instruction };
+            method.Code = code;
+        }
+
+        private void addByteCode(InstructionName instruction, int operand, MethodDescription method)
+        {
+            var code = method.Code;
+
+            if (code == null)
+                code = new Instruction[0];
+
+            Array.Resize(ref code, code.Length + 1);
+            code[code.Length - 1] = new Instruction() { Name = instruction, Operands = new int[1] { operand } };
             method.Code = code;
         }
 

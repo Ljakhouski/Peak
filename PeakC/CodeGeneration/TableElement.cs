@@ -12,12 +12,15 @@ namespace Peak.CodeGeneration
         
         public SymbolType Type { get; set; }
 
-        public SymbolTable Ref { get; set; }
+        public SymbolTable Ref { get; set; } // authomatically
+        public int ReferingContextId { get; internal set; } // id for equalling method and struct references (id from method memory context or id from struct memory context)
+
         public Token Info { get; set; } // meta-data for error sending
         public Node InfoNode { get; set; }
         //public MethodElement MethodInfo { get; set; }
         public SymbolTable MethodContextTable { get; set; }
-        public int MethodNestLevel { get; set; } // for deployment context-references 
+
+        
     }
     class MethodTableElement : TableElement
     {

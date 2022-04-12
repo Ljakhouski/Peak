@@ -100,7 +100,7 @@ namespace Peak.CodeGeneration
             res.GeneratedByteCode.AddByteCode(left);
             res.GeneratedByteCode.AddByteCode(right);
 
-            if (n.Operator == "=")
+            if (n.Operator == "=" || n.Operator == "!=")
             {
                 if (left.ExprResult == right.ExprResult)
                 {
@@ -119,8 +119,14 @@ namespace Peak.CodeGeneration
                             res.GeneratedByteCode.AddByteCode(InstructionName.EqualsString);
                             break;
                         default:
-                            Error.ErrMessage(null, "");
+                            Error.ErrMessage(n.Operator, "incomparable types");
                             break;
+                    }
+                    if (n.Operator == "!=")
+                    {
+                        /*    INVERSION    */
+                        res.GeneratedByteCode.AddByteCode(InstructionName.PushConst, 0);
+                        res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
                     }
                     return res;
                 }
@@ -159,30 +165,33 @@ namespace Peak.CodeGeneration
                     res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
                 }
 
-                
-
-
-
-            }
-            else if (true)
-            {
-                if (left.ExprResult == right.ExprResult)
+                if (n.Operator == ">=" || n.Operator == "<=")
                 {
-                    if (left.ExprResult.Value == SymbolType.Type.Int
-                        ||
-                        left.ExprResult.Value == SymbolType.Type.Double)
-                    {
-                        //res.GeneratedByteCode.AddByteCode(InstructionName.Less);
-                        return res;
-                    }
-                    else
-                        Error.ErrMessage(n.Operator, "expressions must be of type int or double");
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PushCopy, 2);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PushCopy, 2);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
+
+                    // on stack bool,bool. Compare "OR" now
+                    res.GeneratedByteCode.AddByteCode(InstructionName.OrEqualsBool);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.PopCopy, 3);
+                    res.GeneratedByteCode.AddByteCode(InstructionName.Pop, 3);
                 }
-                else
-                    Error.ErrMessage(n.Operator, "expressions should be the same");
+
+                return res;
+
             }
-            else
-                throw new CompileException();
+            else if (n.Operator == "and" || n.Operator == "or")
+            {
+                if (left.ExprResult == right.ExprResult && left.ExprResult.Value == SymbolType.Type.Bool)
+                    Error.ErrMessage(n.Operator, "expressions should be the bool types");
+
+                if (n.Operator == "and")
+                    res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
+                else
+                    res.GeneratedByteCode.AddByteCode(InstructionName.OrEqualsBool);
+
+                return res;
+            }
             throw new CompileException();
         }
     }

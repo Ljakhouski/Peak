@@ -7,7 +7,10 @@
 #c<<a+b;
 #f << c+c;
 
+proc F ()
+[
 
+]
 
 while c = a+b
 [

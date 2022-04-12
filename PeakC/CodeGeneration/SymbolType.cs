@@ -25,7 +25,7 @@ namespace Peak.CodeGeneration
         public SymbolType SecondValue { get; set; } // only for define type of array/struct/stack/dict...
         public List<SymbolType> Args { get; set; }
         public SymbolType ReturnType { get; set; } // only for procedure
-
+        public SymbolTable ContextTable { get; internal set; }
 
         public override bool Equals(object obj)
         {
