@@ -20,7 +20,10 @@ namespace Peak.CodeGeneration
 
             if (left.ExprResult.Equals(right.ExprResult))
             {
-                return new GenerationResult() { Nothing = true };
+                var res = new GenerationResult() { Nothing = true };
+                res.GeneratedByteCode.AddByteCode(right);
+                res.GeneratedByteCode.AddByteCode(left);
+                return res;
             }
             else
                 Error.ErrMessage(n.Operator,

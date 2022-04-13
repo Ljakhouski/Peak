@@ -165,7 +165,7 @@ namespace Peak.PeakC.Parser
                     return parseData();
                 default:
                     if (nt.IsBinary)
-                        return parseBinry(nt);
+                        return parseBinary(nt);
                     break;
                     
             }
@@ -396,24 +396,14 @@ namespace Peak.PeakC.Parser
         
         private Node parseSequence()
         {
-            var sequence = new SequenceNode() { Sequence = new List<Node>() };
             Node n = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
 
             if (getNext() == ",") // if expression contains at least one comma, then <dotExpr> -> <expr> <,> <expr> ... ? 
             {
-                next();
+                var sequence = new SequenceNode() { MetaInf = t };
                 sequence.Sequence.Add(n);
-                var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
-                if (expr is EmptyNode)
-                    Error.ErrMessage(t, "expression expected");
-                else
-                    sequence.Sequence.Add(expr);
-            }
-            return n;
 
-            while (true) // if expression contains two and more comma. <sequence> -> <expr> { <,> <expr> }
-            {
-                if (getNext() == ",")
+                while (getNext() == ",") // if expression contains two and more comma. <sequence> -> <expr> { <,> <expr> }
                 {
                     next();
                     var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
@@ -421,12 +411,17 @@ namespace Peak.PeakC.Parser
                         Error.ErrMessage(t, "expression expected");
                     else
                         sequence.Sequence.Add(expr);
+                    
                 }
-                else
-                    return n;
+                return sequence;
+
             }
+            else
+                return n;
+
+            
         }
-        private Node parseBinry(Nonterminal nonterm) // <binaryEpxr> -> <binaryEpxr> operator <expr> | <expr> 
+        private Node parseBinary(Nonterminal nonterm) // <binaryEpxr> -> <binaryEpxr> operator <expr> | <expr> 
         {
             Node n;
             

@@ -70,7 +70,7 @@ namespace Peak.CodeGeneration
                     IsStructDefTable = false,
 
                     Prev = currentSymbolTable,
-                    MethodContextIndex = currentSymbolTable.CurrentRuntimeModule.Methods.Length
+                   // MethodContextIndex = currentSymbolTable.CurrentRuntimeModule.Methods.Length
 
                 };
                 
@@ -89,26 +89,28 @@ namespace Peak.CodeGeneration
                 }
                     
                 // args
-                
-                if (node.Args is VariableInitNode)
-                {
-
-                }
-                else if (node.Args is SequenceNode)
-                    foreach (Node arg__ in (node.Args as SequenceNode).Sequence)
+                if (node.Args is null == false && node.Args is EmptyNode == false)
+                    if (node.Args is VariableInitNode)
                     {
-                        if (arg__ is VariableInitNode)
-                        {
-                            var arg = arg__ as VariableInitNode;
-                            procTable.RegisterSymbol(new TableElement() { Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
-                            addByteCode(generateStoreName(arg.Name, procTable, isTopFrameContext: true), method);
-                        }
-                        else
-                            Error.ErrMessage(arg__.MetaInf, "variable init expected");
-
+                        var arg = node.Args as VariableInitNode;
+                        procTable.RegisterSymbol(new TableElement() { Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
+                        addByteCode(generateStoreName(arg.Name, procTable, isTopFrameContext: true), method);
                     }
-                else
-                    Error.ErrMessage(node.MetaInf, "variable init expected");
+                    else if (node.Args is SequenceNode)
+                        foreach (Node arg__ in (node.Args as SequenceNode).Sequence)
+                        {
+                            if (arg__ is VariableInitNode)
+                            {
+                                var arg = arg__ as VariableInitNode;
+                                procTable.RegisterSymbol(new TableElement() { Name = arg.Name.Content, Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
+                                addByteCode(generateStoreName(arg.Name, procTable, isTopFrameContext: true), method);
+                            }
+                            else
+                                Error.ErrMessage(arg__.MetaInf, "variable init expected");
+
+                        }
+                    else
+                        Error.ErrMessage(node.MetaInf, "variable init expected");
 
 
                 var procElement = new MethodTableElement()
@@ -118,28 +120,31 @@ namespace Peak.CodeGeneration
                     Type = type,
                     Name = node.Name.Content,
                     MethodContextTable = procTable,
-                    IsNative = true,
-                    MethodAddress = currentSymbolTable.CurrentRuntimeModule.Methods.Length,
+                    IsNative = false,
+                    MethodAddress = currentModule.Methods.Length,
                     NativeMethodName = node.Name.Content
                 };
+                currentSymbolTable.RegisterSymbol(procElement);
 
                 generateForCodeBlock(node.Code, procTable);
                 addByteCode(InstructionName.Return, method);
                 //if (proc) delete from stack
 
-                currentSymbolTable.RegisterSymbol(procElement);
+                
 
                 var methods = currentModule.Methods;
+                method.LocalVarsArraySize = procTable.MemorySize;
+                method.Name = procElement.Name;
                 Array.Resize(ref methods, methods.Length + 1);
                 currentModule.Methods = methods; // !!!!!!
-                currentModule.Methods[currentModule.Methods.Length - 1] = procTable.CurrentMethod;
+                currentModule.Methods[currentModule.Methods.Length - 1] = method;
             }
         }
 
         private TableElement getStructReferenceDefinition(SymbolTable table)
         {
-            if (table.IsMethodDefTable == false)
-                throw new CompileException();
+            //if (table.IsMethodDefTable == false)
+            //    throw new CompileException();
             if (table.IsGlobalScope)
                 return null;
 
@@ -158,25 +163,29 @@ namespace Peak.CodeGeneration
 
         private TableElement getMethodReferenceDefinition(SymbolTable table)
         {
-            if (table.IsMethodDefTable == false)
-                throw new CompileException();
+            //if (table.IsMethodDefTable == false)
+            //    throw new CompileException();
             if (table.IsGlobalScope)
                 return null;
 
             SymbolTable t = table;
             while (t.Prev != null)
             {
-                t = t.Prev;
+                
                 if (t.IsMethodDefTable)
                 {
                     return new TableElement() { Type = new SymbolType(SymbolType.Type.RefOnContext) { ContextTable = table.Prev }, MethodContextTable = table.Prev, ReferingContextId = t.Id };
                 }
+                t = t.Prev;
             }
 
             return null;
         }
         private bool containsNativeModifier(ModifierNode node)
         {
+            if (node is null)
+                return false;
+
             foreach (Token t in node.Modifiers)
                 if (t == "native")
                     return true;
@@ -188,6 +197,7 @@ namespace Peak.CodeGeneration
         {
             var callArgs = new List<Node>();
 
+            if (node.Args is null == false && node.Args is EmptyNode == false)
             if (node.Args is SequenceNode)
                 callArgs.AddRange((node.Args as SequenceNode).Sequence);
             else
@@ -197,9 +207,13 @@ namespace Peak.CodeGeneration
 
 
             var argsType = new List<SymbolType>();
+            var argsByteCode = new List<GenerationResult>();
+
             foreach (Node n in callArgs)
             {
-                argsType.Add(generateByteCode(n, argsCallPlaceSymbolTable).ExprResult);
+                var gen = generateByteCode(n, argsCallPlaceSymbolTable);
+                argsByteCode.Add(gen);
+                argsType.Add(gen.ExprResult);
             }
             argsType.Reverse();
 
@@ -215,7 +229,9 @@ namespace Peak.CodeGeneration
                 bool isWrong = false;
                 for (int i = 0; i < m.Type.Args.Count; i++)
                 {
-                    if (m.Type.Args[i] != argsType[i])
+                    if (m.Type.Args.Count != argsType.Count
+                        ||
+                    m.Type.Args[i] != argsType[i])
                     {
                         isWrong = true;
                         break;
@@ -232,6 +248,9 @@ namespace Peak.CodeGeneration
                     result.ExprResult = m.Type.ReturnType;
                     result.Nothing = m.Type.ReturnType is null ? true : false;
 
+                    // add args on stack
+                    foreach (GenerationResult r in argsByteCode)
+                        result.GeneratedByteCode.AddByteCode(r);
 
                     if (m.IsNative)
                     {
