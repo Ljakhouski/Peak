@@ -113,7 +113,7 @@ namespace Peak.PeakC
 
                 else
                 {
-                    if (ch == ' ')
+                    if (ch == ' ' || ch == '\t')
                     {
                         if (!spaceMode && buffer.Length > 0)  // if it's the first space-char, then we pack everything that was before it
                             return MakeToken(buffer);

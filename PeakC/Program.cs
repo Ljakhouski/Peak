@@ -59,7 +59,7 @@ namespace Peak.PeakC
 
                 module = new ByteCodeGenerator().GetProgramRuntimeModule((ProgramNode)n);
             }
-            catch (CompileException e) { Console.WriteLine(e.Message); return; }
+            catch (CompileException e) { Console.WriteLine("Compile error:" + e.Message); return; }
             /*catch (Exception e)
             {
                 Console.WriteLine(e.Message);

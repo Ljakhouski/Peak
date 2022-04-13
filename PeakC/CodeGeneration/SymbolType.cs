@@ -182,6 +182,10 @@ namespace Peak.CodeGeneration
             {
                 this.Value = Type.Str;
             }
+            else if (node.Value.Type == type.BoolValue)
+            {
+                this.Value = Type.Bool;
+            }
             else
                 throw new Exception();
         }

@@ -152,8 +152,9 @@ namespace Peak.PeakC
             //     this.Type = type.NextLine;
             // else if (Content == ";")
             //     this.Type = type.NextExpression;
-
-            if (terms.Contains(this.Content))
+            if (this.Content == "true" || this.Content == "false")
+                this.Type = type.BoolValue;
+            else if (terms.Contains(this.Content))
                 this.Type = type.Term;
             else if (modifiers.Contains(this.Content))
                 this.Type = type.Modifier;

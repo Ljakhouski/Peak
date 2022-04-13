@@ -205,12 +205,14 @@ namespace Peak.CodeGeneration
             /* search if is a method context (only local scope in method)*/
             else if (currentSymbolTable.IsGlobalScope)
             {
-                return new GenerationResult() { Nothing = true };
+                Error.NameNotExistError(name);
+                throw new CompileException();
+                //return new GenerationResult() { Nothing = true };
             }
             else
             {
                 var refs = currentSymbolTable.GetContextRefs();
-                if (refs.Length>0)
+                if (refs.Length > 0)
                 {
                     var res = recursiveRefAccess(refs);
                     if (res.Nothing)
@@ -224,14 +226,20 @@ namespace Peak.CodeGeneration
                             return result;
                         }
                         else
-                            return new GenerationResult() { Nothing = true };
+                        {
+                            Error.NameNotExistError(name);
+                            throw new CompileException();
+                        }
 
                     }
                     else
                         return res;
                 }
                 else
-                    return new GenerationResult() { Nothing = true };
+                { 
+                    Error.NameNotExistError(name);
+                    throw new CompileException();
+                }
             }
 
         }

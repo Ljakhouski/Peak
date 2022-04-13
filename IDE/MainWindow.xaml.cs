@@ -164,9 +164,16 @@ namespace IDE
 
         }
 
+        public  bool Compiled = false;
         public void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
+            Compiled = true;
             MessageTextBox.AppendText(outLine.Data);
+            if (outLine.Data.Contains("Error") ||
+                outLine.Data.Contains("error") == false)
+            {
+                Compiled = true;
+            }
         }
 
         private void run(object sender, RoutedEventArgs e)
@@ -306,8 +313,12 @@ namespace IDE
 
                 ideWindow.MessageTextBox.AppendText(output);
 
-                MakeAssembly();
-                ideWindow.MessageTextBox.AppendText(".exe file placed in "+this.Path+"Output");
+                if (ideWindow.Compiled)
+                {
+                    MakeAssembly();
+                    ideWindow.MessageTextBox.AppendText("\n.exe file placed in "+this.Path+"Output");
+                }
+                    
             }
 
             public void MakeAssembly()
