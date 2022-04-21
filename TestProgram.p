@@ -1,3 +1,5 @@
+load "std.p";
+
 #a << 1;
 #d << 3.5;
 #s << "sdgsdfsdf";
@@ -16,3 +18,8 @@ while a=a
 		]
 	]
 ]
+/*
+proc summ (int a1, int b1)
+[
+    a << a+b;
+]*/

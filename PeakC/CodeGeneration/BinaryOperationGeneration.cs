@@ -18,7 +18,7 @@ namespace Peak.CodeGeneration
             var right = generateByteCode(n.Right, currentSymbolTable);
             var left = generateStoreData(n.Left, currentSymbolTable);
 
-            if (left.ExprResult.Equals(right.ExprResult))
+            if (left.Nothing == false && left.ExprResult.Equals(right.ExprResult))
             {
                 var res = new GenerationResult() { Nothing = true };
                 res.GeneratedByteCode.AddByteCode(right);

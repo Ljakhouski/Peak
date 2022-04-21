@@ -55,8 +55,8 @@ namespace Peak.CodeGeneration
         {
 
             if (this.loadetFiles.Contains(Path.GetFullPath(file)))
-                return true;
-            return false;
+                return false;
+            return true;
         }
 
         public void RegisterFile(string file)

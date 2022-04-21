@@ -212,42 +212,42 @@ namespace Peak.CodeGeneration
             else
             {
                 var refs = currentSymbolTable.GetContextRefs();
+
                 if (refs.Length > 0)
                 {
                     var res = recursiveRefAccess(refs);
-                    if (res.Nothing)
-                    {
-                        var t = currentSymbolTable.GetTableGlobalThanMethodTable();
-                        if (t.ContainsInMethodContext(name))
-                        {
-                            var element = t.GetSymbolInMethodContext(name);
-                            var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
-                            result.GeneratedByteCode.AddByteCode(InstructionName.PushGlobal, element.OffsetAddress);
-                            return result;
-                        }
-                        else
-                        {
-                            Error.NameNotExistError(name);
-                            throw new CompileException();
-                        }
 
-                    }
-                    else
+                    if (res.Nothing == false)
                         return res;
                 }
+
+                // nothing in global function or nothing global function than this
+
+                            /*** search in global ***/
+
+                var t = currentSymbolTable.GetTableGlobalThanMethodTable();
+
+                if (t.ContainsInMethodContext(name))
+                {
+                    var element = t.GetSymbolInMethodContext(name);
+                    var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                    result.GeneratedByteCode.AddByteCode(InstructionName.PushGlobal, element.OffsetAddress);
+                    return result;
+                }
                 else
-                { 
+                {
                     Error.NameNotExistError(name);
                     throw new CompileException();
                 }
+                
             }
 
         }
 
 
-        private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable, bool isTopFrameContext = false)
+        private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable)
         {
-            GenerationResult recursiveRefAccess(TableElement[] refs)
+            GenerationResult recursiveRefAccess(TableElement[] refs, bool isTopFrameContext = false)
             {
                 foreach (TableElement r in refs)
                 {
@@ -314,27 +314,33 @@ namespace Peak.CodeGeneration
             else
             {
                 var refs = currentSymbolTable.GetContextRefs();
+
                 if (refs.Length > 0)
                 {
-                    var res = recursiveRefAccess(refs);
-                    if (res.Nothing)
-                    {
-                        var t = currentSymbolTable.GetTableGlobalThanMethodTable();
-                        if (t.ContainsInMethodContext(name))
-                        {
-                            var element = t.GetSymbolInMethodContext(name);
-                            var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
-                            result.GeneratedByteCode.AddByteCode(InstructionName.StoreGlobal, element.OffsetAddress);
-                            return result;
-                        }
-                        else
-                            return new GenerationResult() { Nothing = true };
-                    }
-                    else
+                    var res = recursiveRefAccess(refs, isTopFrameContext: true);
+
+                    if (res.Nothing == false)
                         return res;
                 }
+                // nothing in global function or nothing global function than this
+
+                /*** search in global ***/
+
+                var t = currentSymbolTable.GetTableGlobalThanMethodTable();
+
+                if (t.ContainsInMethodContext(name))
+                {
+                    var element = t.GetSymbolInMethodContext(name);
+                    var result = new GenerationResult() { NameResult = element, Nothing = false, ExprResult = element.Type };
+                    result.GeneratedByteCode.AddByteCode(InstructionName.StoreGlobal, element.OffsetAddress);
+                    return result;
+                }
                 else
+                {
                     return new GenerationResult() { Nothing = true };
+                    //Error.NameNotExistError(name);
+                    //throw new CompileException();
+                }
             }
 
         }

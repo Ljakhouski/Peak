@@ -156,6 +156,17 @@ namespace Peak.CodeGeneration
         {
             string fileName = (node as LoadNode).LoadFileName.Content;
 
+            var paths = new string[6]
+            {
+                Directory.GetCurrentDirectory() + "\\" + fileName,
+                Directory.GetCurrentDirectory() + "\\" + fileName + ".p",
+                Directory.GetCurrentDirectory() + "\\lib\\" + fileName,
+                Directory.GetCurrentDirectory() + "\\lib\\" + fileName + ".p",
+                node.MetaInf.File + "\\" + fileName,
+                node.MetaInf.File + "\\" + fileName + ".p"
+            };
+            /*
+            
             if (Directory.Exists(Directory.GetCurrentDirectory() + "/" + fileName)
                 ||
                 Directory.Exists(Directory.GetCurrentDirectory() + "/" + fileName + ".p")
@@ -167,19 +178,21 @@ namespace Peak.CodeGeneration
                 Directory.Exists(node.MetaInf.File + "/" + fileName)
                 ||
                 Directory.Exists(node.MetaInf.File + "/" + fileName + ".p")
-                )
-            {
-                if (currentSymbolTable.IsNewFile(fileName))
-                {
-                    currentSymbolTable.RegisterFile(fileName);
-                    var p = new Parser();
-                    this.generateForProgramNode(p.GetNode(fileName), currentSymbolTable);
+                )*/
 
-                }
-                else
-                    Error.WarningMessage(node.MetaInf, "file already loadet");
-            }
+            foreach (string path in paths)
+                if (File.Exists(path))
+                    if (currentSymbolTable.IsNewFile(fileName))
+                    {
+                        currentSymbolTable.RegisterFile(fileName);
+                        var p = new Parser();
+                        this.generateForProgramNode(p.GetNode(path), currentSymbolTable);
+                        return;
+                    }
+                    else
+                        Error.WarningMessage(node.MetaInf, "file already loadet");
 
+            Error.FileNotFoundErrMessage(node.LoadFileName);
 
         }
 

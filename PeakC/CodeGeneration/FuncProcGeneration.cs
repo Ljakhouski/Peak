@@ -94,7 +94,7 @@ namespace Peak.CodeGeneration
                     {
                         var arg = node.Args as VariableInitNode;
                         procTable.RegisterSymbol(new TableElement() { Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
-                        addByteCode(generateStoreName(arg.Name, procTable, isTopFrameContext: true), method);
+                        addByteCode(generateStoreName(arg.Name, procTable), method);
                     }
                     else if (node.Args is SequenceNode)
                         foreach (Node arg__ in (node.Args as SequenceNode).Sequence)
@@ -103,7 +103,7 @@ namespace Peak.CodeGeneration
                             {
                                 var arg = arg__ as VariableInitNode;
                                 procTable.RegisterSymbol(new TableElement() { Name = arg.Name.Content, Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
-                                addByteCode(generateStoreName(arg.Name, procTable, isTopFrameContext: true), method);
+                                addByteCode(generateStoreName(arg.Name, procTable), method);
                             }
                             else
                                 Error.ErrMessage(arg__.MetaInf, "variable init expected");

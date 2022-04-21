@@ -13,6 +13,7 @@ namespace Peak.PeakC
         static string inputPath;
         static string outputPath = "";
         static string name = "";
+        static bool showInfo = false;
         static void Main(string[] args)
         {
             if (args.Length > 0)
@@ -37,6 +38,11 @@ namespace Peak.PeakC
                         name = args[i + 1];
                         i++;
                     }
+                    else if (args[i] == "-i")
+                    {
+                        showInfo = true;
+                        i++;
+                    }
 
                 }
             }
@@ -45,6 +51,8 @@ namespace Peak.PeakC
                 Console.WriteLine("missing argument");
                 return;
             }
+
+            if (showInfo) Console.WriteLine("compiling " + inputPath + "  |  current directory: " + Directory.GetCurrentDirectory());
 
             Stopwatch timer = new Stopwatch();
             timer.Start();

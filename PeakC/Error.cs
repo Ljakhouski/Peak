@@ -24,10 +24,14 @@ namespace Peak.PeakC
             Console.WriteLine("Warning in file \"{0}\" in line \"{1}\" (token: {3}): {2}.).", t.File, t.Line, message, t.Content);
         }
         
+        public static void FileNotFoundErrMessage(Token fileName)
+        {
+            Error.ErrMessage(fileName, "file \""+fileName.Content+"\" not found");
+            throw new CompileException();
+        }
         public static void FileNotFoundErrMessage(string fileName)
         {
             Console.WriteLine("Error: file " + fileName + " not found");
-            throw new CompileException();
         }
 
         public static void NameNotExistError(IdentifierNode id)
