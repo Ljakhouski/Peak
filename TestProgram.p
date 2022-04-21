@@ -1,5 +1,11 @@
 load "std.p";
 
+
+proc F()
+[
+    print("dfgdg");
+]
+
 #a << 1;
 #d << 3.5;
 #s << "sdgsdfsdf";
