@@ -16,4 +16,4 @@ proc print(double d)
     print_d(d);
 ]
 
-//native func (str) read();
+native func (str) read();

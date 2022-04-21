@@ -94,9 +94,9 @@ namespace Peak.CodeGeneration
                     else
                         throw new Exception();
                 }
-                else if (n is ProcedureNode)
+                else if (n is MethodNode)
                 {
-                    generateMethodDeclaration(n as ProcedureNode, currentSymbolTable);
+                    generateMethodDeclaration(n as MethodNode, currentSymbolTable);
                 }
                 else if (n is MethodCallNode)
                 {

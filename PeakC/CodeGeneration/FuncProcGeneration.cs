@@ -10,7 +10,7 @@ namespace Peak.CodeGeneration
 {
     partial class ByteCodeGenerator
     {
-        private /*GenerationResult*/ void generateMethodDeclaration(ProcedureNode node, SymbolTable currentSymbolTable)
+        private /*GenerationResult*/ void generateMethodDeclaration(MethodNode node, SymbolTable currentSymbolTable)
         {
             var type = new SymbolType(node);
             var symbols = currentSymbolTable.GetSymbols(node.Name);
@@ -33,7 +33,7 @@ namespace Peak.CodeGeneration
                     InfoNode = node,
                     Type = type,
                     Name = node.Name.Content,
-
+                    
                     IsNative = true,
                     //MethodAddress = currentSymbolTable.CurrentRuntimeModule.Methods.Length}
                     NativeMethodName = node.Name.Content

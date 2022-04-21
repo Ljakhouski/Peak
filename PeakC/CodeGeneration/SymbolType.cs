@@ -102,16 +102,17 @@ namespace Peak.CodeGeneration
                 makeSymbolTypeForConstantNode((ConstantNode)node);
             else if (node is IdentifierNode)
                 makeSymbolTypeForIdentifier((IdentifierNode)node);
-            else if (node is ProcedureNode)
-                makeSymbolTypeForProcedure((ProcedureNode)node);
+            else if (node is MethodNode)
+                makeSymbolTypeForMethod((MethodNode)node);
             else
                 throw new Exception();
         }
 
-        private void makeSymbolTypeForProcedure(ProcedureNode node)
+        private void makeSymbolTypeForMethod(MethodNode node)
         {
             this.Value = Type.Proc;
             this.Args = new List<SymbolType>();
+            this.ReturnType = new SymbolType(node.RetType);
             if (node.Args is VariableInitNode)
             {
                 this.Args.Add(new SymbolType(node.Args));

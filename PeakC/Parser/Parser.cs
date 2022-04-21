@@ -259,18 +259,46 @@ namespace Peak.PeakC.Parser
                 if (getNext() == ";")
                 {
                     next();
-                    return new ProcedureNode(getModifier(), name, args);
+                    return new MethodNode(getModifier(), name, args, retType: null);
                 }
                 else if (getNext() == "[")
                 {
                     next();
                     var bn = parse(NonterminalType.CodeBlock);
                     expect("]");
-                    return new ProcedureNode(getModifier(), name, args, (CodeBlockNode)bn);
+                    return new MethodNode(getModifier(), name, args, retType: null, (CodeBlockNode)bn);
                 }
                 else
                     Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
                 
+            }
+            else if (getNext() == "func")
+            {
+                next();
+                expect("(");
+                var retType = parse(NonterminalType.Data);
+                expect(")");
+
+                var name = expectName();
+
+                expect("(");
+                var args = parse(NonterminalType.Args);
+                expect(")");
+
+                if (getNext() == ";")
+                {
+                    next();
+                    return new MethodNode(getModifier(), name, args, retType);
+                }
+                else if (getNext() == "[")
+                {
+                    next();
+                    var block = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                    expect("]");
+                    return new MethodNode(getModifier(), name, args, retType, block);
+                }
+                else
+                    Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
             }
             else if (getNext() == "if")
             {

@@ -111,11 +111,12 @@ namespace Peak.PeakC
             
         }
     }
+    /*
     class ProcedureNode : Node
     {
         public ModifierNode Modifiers { get; set; }
         public Node Args { get; set; }
-        public Token Name { get; set; } 
+        public Token Name { get; set; }
         public CodeBlockNode Code { get; set; }
         public ProcedureNode(ModifierNode modifiers, Token name, Node args, CodeBlockNode code = null)
         {
@@ -124,7 +125,36 @@ namespace Peak.PeakC
             this.Args = args;
             this.Code = code;
         }
+    }*/
+
+    class MethodNode : Node
+    {
+        public ModifierNode Modifiers { get; set; }
+        public Node Args { get; set; }
+        public Node RetType { get; set; }
+        public Token Name { get; set; }
+        public CodeBlockNode Code { get; set; }
+
+        public MethodNode(ModifierNode modifiers, Token name, Node args, Node retType, CodeBlockNode code = null)
+        {
+            this.Modifiers = modifiers;
+            this.Name = name;
+            this.Args = args;
+            this.RetType = retType;
+            this.Code = code;
+        }
+
+        public bool IsFunc()
+        {
+            return RetType is null ? false : true;
+        }
+
+        public bool IsProc()
+        {
+            return !IsFunc();
+        }
     }
+
     class SequenceNode : Node
     {
         public List<Node> Sequence { get; set; } = new List<Node>();
