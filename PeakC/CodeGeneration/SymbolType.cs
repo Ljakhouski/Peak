@@ -104,6 +104,7 @@ namespace Peak.CodeGeneration
                 makeSymbolTypeForIdentifier((IdentifierNode)node);
             else if (node is MethodNode)
                 makeSymbolTypeForMethod((MethodNode)node);
+            //else if (node is null)
             else
                 throw new Exception();
         }
@@ -112,7 +113,8 @@ namespace Peak.CodeGeneration
         {
             this.Value = Type.Proc;
             this.Args = new List<SymbolType>();
-            this.ReturnType = new SymbolType(node.RetType);
+
+            this.ReturnType = node.RetType is null? null : new SymbolType(node.RetType);
             if (node.Args is VariableInitNode)
             {
                 this.Args.Add(new SymbolType(node.Args));
