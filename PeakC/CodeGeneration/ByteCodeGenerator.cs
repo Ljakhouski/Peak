@@ -92,7 +92,7 @@ namespace Peak.CodeGeneration
                             );
                     }
                     else
-                        throw new Exception();
+                        throw new CompileException();
                 }
                 else if (n is MethodNode)
                 {
@@ -112,6 +112,10 @@ namespace Peak.CodeGeneration
                 else if (n is WhileNode)
                 {
                     generateWhile(n as WhileNode, currentSymbolTable);
+                }
+                else if (n is WordOperatorNode)
+                {
+                    generateWordOperator(n as WordOperatorNode, currentSymbolTable);
                 }
                 else
                     Error.ErrMessage(n.MetaInf, "expression is not supported in current context");
@@ -146,11 +150,15 @@ namespace Peak.CodeGeneration
                     case "!=":
                         return generateComparison(node as BinaryNode, currentSymbolTable);
                     default:
-                        throw new Exception("does not supported");
+                        throw new CompileException("does not supported");
                 }
             }
+            else if (node is MethodCallNode)
+            {
+                return generateMethodCall(node as MethodCallNode, currentSymbolTable, currentSymbolTable);
+            }
             else
-                throw new Exception();
+                throw new CompileException();
         }
         private void applyLoadNode(LoadNode node, SymbolTable currentSymbolTable)
         {

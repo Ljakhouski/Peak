@@ -2,7 +2,7 @@
   "profiles": {
     "PeakC": {
       "commandName": "Project",
-      "commandLineArgs": "test.p -o ..\\Output\\"
+      "commandLineArgs": "calc.p -o ..\\Output\\"
     }
   }
 }

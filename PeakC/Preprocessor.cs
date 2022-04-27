@@ -23,9 +23,9 @@ namespace Peak
                 return t;
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
-       
+      
         public bool NextTokenExist()
         {
             if (currentToken == null)

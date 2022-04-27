@@ -12,6 +12,8 @@ namespace Peak.CodeGeneration
 {
     partial class SymbolTable
     {
+        public MethodTableElement MethodElement { get;  set; } // only if is the method symbol table
+
         public bool ContainsHere(Token name) // only for visitor (access-code-generator)
         {
             foreach (TableElement t in Data)

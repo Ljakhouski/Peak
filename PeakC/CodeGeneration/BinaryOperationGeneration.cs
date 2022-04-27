@@ -12,7 +12,7 @@ namespace Peak.CodeGeneration
         private GenerationResult generateForAssignment(BinaryNode n, SymbolTable currentSymbolTable)
         {
             if (n.Operator != "<<")
-                throw new Exception();
+                throw new CompileException();
 
 
             var right = generateByteCode(n.Right, currentSymbolTable);
@@ -30,7 +30,7 @@ namespace Peak.CodeGeneration
                     "assignment " + left.ExprResult.ToString()
                     + " and " + right.ExprResult.ToString()
                     + " not possible");
-            throw new Exception();
+            throw new CompileException();
         }
 
         private GenerationResult generateForMathOperators(BinaryNode n, SymbolTable currentSymbolTable)
@@ -79,13 +79,13 @@ namespace Peak.CodeGeneration
             else if (left.ExprResult == right.ExprResult &&
                left.ExprResult.Value == SymbolType.Type.Str)
             {
-                throw new Exception("temporarily unsupported");
+                throw new CompileException("temporarily unsupported");
             }
             else
                 Error.ErrMessage(n.Operator,
                     "operator \"" + n.Operator + "\" does not accept type " + left.ExprResult.ToString()
                     + " and " + right.ExprResult.ToString());
-            throw new Exception();
+            throw new CompileException();
         }
 
         private GenerationResult generateComparison(BinaryNode n, SymbolTable currentSymbolTable)

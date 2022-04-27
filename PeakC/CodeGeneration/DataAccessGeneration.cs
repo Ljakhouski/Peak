@@ -69,7 +69,7 @@ namespace Peak.CodeGeneration
                     generate bytecode from right to left, last right node is store/push bytecode, all everything - data access (push)
                     
                  */
-                throw new Exception();
+                throw new CompileException();
             }
             /*else if (node is ArrayAccessNode)
             {
@@ -79,7 +79,7 @@ namespace Peak.CodeGeneration
             }*/
             else
                 Error.ErrMessage(node.MetaInf, "wrong expression");
-            throw new Exception();
+            throw new CompileException();
         }
 
         private GenerationResult generatePushOnStackData(Node node, SymbolTable currentSymbolTable)
@@ -95,7 +95,7 @@ namespace Peak.CodeGeneration
                     
                  */
 
-                throw new Exception();
+                throw new CompileException();
             }
             /*else if (node is ArrayAccessNode)
             {
@@ -105,7 +105,7 @@ namespace Peak.CodeGeneration
             }*/
             else
                 Error.ErrMessage(node.MetaInf, "wrong expression");
-            throw new Exception();
+            throw new CompileException();
         }
 
         /*private GenerationResult generateStoreName(Token name, SymbolTable currentSymbolTable)

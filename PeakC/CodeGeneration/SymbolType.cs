@@ -80,7 +80,7 @@ namespace Peak.CodeGeneration
                 case Type.Bool:
                     return "bool";
                 default:
-                    throw new Exception();
+                    throw new CompileException();
             }
         }
 
@@ -106,7 +106,7 @@ namespace Peak.CodeGeneration
                 makeSymbolTypeForMethod((MethodNode)node);
             //else if (node is null)
             else
-                throw new Exception();
+                throw new CompileException();
         }
 
         private void makeSymbolTypeForMethod(MethodNode node)
@@ -168,7 +168,7 @@ namespace Peak.CodeGeneration
                 this.Value = Type.Str;
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
 
         private void makeSymbolTypeForConst(ConstValueNode node)
@@ -190,7 +190,7 @@ namespace Peak.CodeGeneration
                 this.Value = Type.Bool;
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
 
         private bool equalsArgs(List<SymbolType> args1, List<SymbolType> args2)

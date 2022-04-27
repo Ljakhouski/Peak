@@ -113,7 +113,7 @@ namespace Peak.CodeGeneration
                         Error.ErrMessage(node.MetaInf, "variable init expected");
 
 
-                var procElement = new MethodTableElement()
+                var methodElement = new MethodTableElement()
                 {
                     Info = node.MetaInf,
                     InfoNode = node,
@@ -124,7 +124,8 @@ namespace Peak.CodeGeneration
                     MethodAddress = currentModule.Methods.Length,
                     NativeMethodName = node.Name.Content
                 };
-                currentSymbolTable.RegisterSymbol(procElement);
+                currentSymbolTable.RegisterSymbol(methodElement);
+                procTable.MethodElement = methodElement;
 
                 generateForCodeBlock(node.Code, procTable);
                 addByteCode(InstructionName.Return, method);
@@ -134,7 +135,7 @@ namespace Peak.CodeGeneration
 
                 var methods = currentModule.Methods;
                 method.LocalVarsArraySize = procTable.MemorySize;
-                method.Name = procElement.Name;
+                method.Name = methodElement.Name;
                 Array.Resize(ref methods, methods.Length + 1);
                 currentModule.Methods = methods; // !!!!!!
                 currentModule.Methods[currentModule.Methods.Length - 1] = method;

@@ -135,6 +135,12 @@ namespace Peak.PeakC
                 "export"   ,
             };
 
+            string[] wordOperators =
+            {
+                "return",
+                "break",
+                "continue"
+            };
 
             // if (isIntConst())
             //     this.Type = type.IntConst; 
@@ -154,6 +160,8 @@ namespace Peak.PeakC
             //     this.Type = type.NextExpression;
             if (this.Content == "true" || this.Content == "false")
                 this.Type = type.BoolValue;
+            else if (wordOperators.Contains(this.Content))
+                this.Type = type.WordOperator;
             else if (terms.Contains(this.Content))
                 this.Type = type.Term;
             else if (modifiers.Contains(this.Content))
@@ -189,6 +197,7 @@ namespace Peak.PeakC
         //
         //GroupToken
         FileEnd, // for comparison if the next token is requested
+        WordOperator,
     }
 
   /*  enum constType

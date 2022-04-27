@@ -17,7 +17,7 @@ namespace Peak.CodeGeneration
         public bool IsGlobalScope { get; set; } = false; // global memory-scope, not var-definition scope 
         public bool IsMethodDefTable { get; set; } = false;
         public bool IsStructDefTable { get; set; } = false;
-
+        public bool IsCycleDefTable { get; set; } = false;
         public SymbolTable Prev { get; set; } // only for if-else-while
 
         public List<TableElement> Data = new List<TableElement>();
@@ -28,6 +28,9 @@ namespace Peak.CodeGeneration
         public MethodDescription CurrentMethod { get; set; }
         public RuntimeModule CurrentRuntimeModule { get; set; }
         
+        public int StartOfCycleAddress { get; set; }
+        public int EndOfCycleAddress { get; set; }
+
         public int MethodContextIndex { get; set; } // to equals refenerences on methods-context 
 
         public SymbolTable()
@@ -140,7 +143,7 @@ namespace Peak.CodeGeneration
                 return GetConstantAddress(node.Value.Content);
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
         public int GetConstantAddress(string S)
         {

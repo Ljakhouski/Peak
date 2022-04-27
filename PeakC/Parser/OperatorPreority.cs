@@ -38,6 +38,7 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.Args, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Modifier, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Sequence, IsBinary = false, Terminals = new List<string> { "," } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.WordOperator, IsBinary = false, Terminals = new List<string>() { "return", "break", "continue"} });
             Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Assignment, IsBinary = true, Terminals = new List<string> { "<<" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.IncrementOrDecrement, IsBinary = false, Terminals = new List<string> { "++", "--" } });
@@ -77,7 +78,7 @@ namespace Peak.PeakC.Parser
             foreach (Nonterminal n in NonterminalPreority.Preority)
                 if (n.Type == type)
                     return n;
-            throw new Exception();
+            throw new CompileException();
         }
     }
     enum NonterminalType
@@ -100,6 +101,7 @@ namespace Peak.PeakC.Parser
         Data,   // Names (ID) | func calling | array-access-expression
         Double, // <int_const>, ".", <int_const>
         MethodCall, // <ID>, '(', <args expression>, ')'
+        WordOperator, // return <expr> | break <expr> | continue <expr> | <expr> 
     }
     class Nonterminal
     {

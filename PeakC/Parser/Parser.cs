@@ -52,7 +52,7 @@ namespace Peak.PeakC.Parser
                 return true;
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
 
         // set next Token and return it
@@ -161,6 +161,8 @@ namespace Peak.PeakC.Parser
                     return parseArgs();
                 case NonterminalType.MethodCall:
                     return parseMethodCall();
+                case NonterminalType.WordOperator:
+                    return parseWordOperator();
                 case NonterminalType.Data:
                     return parseData();
                 default:
@@ -170,9 +172,9 @@ namespace Peak.PeakC.Parser
                     
             }
             
-            throw new Exception();
+            throw new CompileException();
         }
-          
+
         private LoadNode parseLoad()
         {
             if (t == "load")
@@ -184,7 +186,7 @@ namespace Peak.PeakC.Parser
                 return new LoadNode(s) { MetaInf = metaInf};
             }
             else
-                throw new Exception();
+                throw new CompileException();
         }
 
         private CodeBlockNode parseCodeBlock()
@@ -228,7 +230,7 @@ namespace Peak.PeakC.Parser
                 else if (modifier is EmptyNode)
                     return null;
                 else
-                    throw new Exception();
+                    throw new CompileException();
             }
 
             if (getNext() == "#")
@@ -335,6 +337,10 @@ namespace Peak.PeakC.Parser
                 expect("]");
                 return new WhileNode() { Condition = condition, Code = code, MetaInf = metaInfToken };
             }
+            else if (getNext().Type == type.WordOperator)
+            {
+                return parseWordOperator();
+            }
             else
             {
                 //var modifier = parse(NonterminalType.Modifier);
@@ -374,7 +380,7 @@ namespace Peak.PeakC.Parser
                     return expr;
                 }
             }
-            throw new Exception();
+            throw new CompileException();
         }
 
         private Node parseModifier()
@@ -530,10 +536,21 @@ namespace Peak.PeakC.Parser
             else
                 Error.ErrMessage(t, "identifier expected");
 
-            throw new Exception();           
+            throw new CompileException();           
         }
-       
-       
+
+        private Node parseWordOperator()
+        {
+            next();
+
+            var node = new WordOperatorNode(t);
+            node.MetaInf = t;
+
+            node.Expression = parse(NonterminalType.AndOr);
+            expect(";");
+            return node;
+        }
+
         private Node parseArgs()
         {
             if (getNext() == ")")
@@ -587,5 +604,6 @@ namespace Peak.PeakC.Parser
                 }
             return false;
         }
+
     }
 }

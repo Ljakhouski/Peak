@@ -249,4 +249,14 @@ namespace Peak.PeakC
         public Node Condition { get; set; }
         public CodeBlockNode Code { get; set; }
     }
+
+    class WordOperatorNode : Node
+    {
+        public Node Expression { get; set; }
+        public string Operator { get; set; }
+        public WordOperatorNode(Token op)
+        {
+            this.Operator = op.Content;
+        }
+    }
 }

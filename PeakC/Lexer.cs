@@ -23,7 +23,7 @@ namespace Peak.PeakC
         private readonly string[] sequence = new string[]
         {
             "+=", "-=", "*=", "/=", "!=",
-            "++", "--", "**", "//", "/*", "*/",
+            "++", "--", /*"**",*/ "//", "/*", "*/",
             "<=", ">=", "<<", ">>" 
             // add your tokens only in increasing length!
             // "alpha+=1"  <=>  alpha, +=, 1

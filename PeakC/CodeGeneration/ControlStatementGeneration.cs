@@ -94,6 +94,7 @@ namespace Peak.CodeGeneration
             if (condition.ExprResult.Value == SymbolType.Type.Bool)
             {
                 var cyclePointer = getCurrentPosition();
+                currentSymbolTable.StartOfCycleAddress = cyclePointer;
                 addByteCode(condition, currentSymbolTable.CurrentMethod);
                 addByteCode(InstructionName.IfNot, currentSymbolTable.CurrentMethod);
                 var ifNotPointer = getCurrentPosition();
@@ -111,12 +112,95 @@ namespace Peak.CodeGeneration
 
                 // set break;
                 var breakFromCyclePointer = getCurrentPosition() + 1;
+                currentSymbolTable.EndOfCycleAddress = breakFromCyclePointer;
                 setOperand(ifNotPointer, breakFromCyclePointer);
                 return;
             }
             else
                 Error.ErrMessage(n.Condition.MetaInf, "boolean expression expected");
             throw new CompileException();
+        }
+
+        private void generateWordOperator(WordOperatorNode node, SymbolTable currentSymbolTable)
+        {
+            switch (node.Operator)
+            {
+                case "return":
+                    addByteCode(generateReturn(node, currentSymbolTable), currentSymbolTable.CurrentMethod);
+                    break;
+                case "break":
+                    addByteCode(generateBreak(node, currentSymbolTable), currentSymbolTable.CurrentMethod);
+                    break;
+                default:
+                    throw new CompileException();
+            }
+        }
+
+        private GenerationResult generateReturn(WordOperatorNode node, SymbolTable currentSymbolTable)
+        {
+            var retResult = generateByteCode(node.Expression, currentSymbolTable);
+
+            retResult.GeneratedByteCode.AddByteCode(InstructionName.Return);
+
+            var table = currentSymbolTable;
+
+            if (table.IsMethodDefTable)
+            {
+                var type = table.MethodElement.Type.ReturnType;
+                if (type == retResult.ExprResult)
+                    return retResult;
+                else
+                    Error.ErrMessage(node.Expression.MetaInf, "wrong expression type for \"return\"");
+            }
+
+            while (table.Prev is null == false)
+            {
+                table = table.Prev;
+
+                if (table.IsMethodDefTable && table.IsGlobalScope == false)
+                {
+                    var type = table.MethodElement.Type.ReturnType;
+                    if (type == retResult.ExprResult)
+                        return retResult;
+                    else
+                        Error.ErrMessage(node.Expression.MetaInf, "wrong expression type for \"return\"");
+                }
+                else if (table.IsStructDefTable)
+                    Error.ErrMessage(node.MetaInf, "missing function or procedure to return");
+                else
+                    continue;
+            }
+            Error.ErrMessage(node.MetaInf, "missing function or procedure to return");
+            //var result = new GenerationResult() { }
+            return null;
+        }
+        private GenerationResult generateBreak (WordOperatorNode node, SymbolTable currentSymbolTable)
+        {
+            var res = new GenerationResult() { Nothing = true };
+
+            var table = currentSymbolTable;
+            if (table.IsCycleDefTable)
+            {
+                res.GeneratedByteCode.AddByteCode(InstructionName.Jump, table.EndOfCycleAddress);
+                return res;
+            }
+
+            while (table.Prev is null == false)
+            {
+                table = table.Prev;
+
+                if (table.IsCycleDefTable == false)
+                    continue;
+                else if (table.IsMethodDefTable || table.IsStructDefTable)
+                    Error.ErrMessage(node.MetaInf, "missing cycle");
+                else
+                {
+                    res.GeneratedByteCode.AddByteCode(InstructionName.Jump, table.EndOfCycleAddress);
+                    return res;
+                }
+            }
+            Error.ErrMessage(node.MetaInf, "missing cycle");
+            return null;
         }
     }
 }
