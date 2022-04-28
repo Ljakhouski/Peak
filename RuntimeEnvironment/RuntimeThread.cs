@@ -38,16 +38,28 @@ namespace RuntimeEnvironment
                     case InstructionName.Jump:
                         instructionPointer = currentInstruction.Operands[0];
                         break;
+                    case InstructionName.IfNot:
+                        if (stack[stackPointer].BoolValue == false)
+                            instructionPointer = currentInstruction.Operands[0];
+                        stackPointer--;
+                        break;
                     case InstructionName.Call:
                         Execute(runtimeModule.Methods[currentInstruction.Operands[0]]);
                         break;
                     case InstructionName.CallNative:
                         var name = stack[stackPointer];
                         stackPointer--;
-                        nativeMethods[name.StringValue](null, this);
+                        var argsCount = stack[stackPointer].IntValue;
+                        stackPointer--;
+                        var args = new PeakObject[argsCount];
+                        for (int i = stackPointer, y = 0; i> stackPointer - argsCount; i--, y++)
+                        {
+                            args[y] = stack[i];
+                        }
+                        nativeMethods[name.StringValue](args, this);
                         break;
                     case InstructionName.PushConst:
-                        stackPointer++;
+                        /*stackPointer++;
                         if (stackPointer > constants.Length)
                         {
                             if (stackPointer > 4096)
@@ -58,8 +70,8 @@ namespace RuntimeEnvironment
                             }
                             else
                                 Array.Resize(ref stack, stack.Length + 1024);
-                        }
-                        stack[stackPointer] = constants[currentInstruction.Operands[0]];
+                        }*/
+                        PushOnStack(constants[currentInstruction.Operands[0]]);
                         break;
                     case InstructionName.Push:
                         stackPointer++;
@@ -181,6 +193,23 @@ namespace RuntimeEnvironment
             }
         }
 
+        public void PushOnStack(PeakObject obj)
+        {
+            stackPointer++;
+            if (stackPointer > constants.Length)
+            {
+                if (stackPointer > 4096)
+                {
+                    Console.WriteLine("STACK OVERFLOW");
+                    Console.ReadKey();
+                    Environment.Exit(-1);
+                }
+                else
+                    Array.Resize(ref stack, stack.Length + 1024);
+            }
+            stack[stackPointer] = obj;
+        }
+
         void makeMethodProlog(MethodDescription method)
         {
             if (this.frameStack.Length <= frameStackPointer)
@@ -191,7 +220,7 @@ namespace RuntimeEnvironment
             frameStackPointer++;
 
             //frameStack[frameStackPointer].StructValue = new PeakObject[method.LocalVarsArraySize];
-            stack = new PeakObject[1024];
+            //stack = new PeakObject[1024];
             frameStack[frameStackPointer]= new PeakObject() { StructValue = new PeakObject[method.LocalVarsArraySize] };
         }
         
@@ -199,6 +228,7 @@ namespace RuntimeEnvironment
         {
             this.runtimeModule = module;
             this.constants = constants;
+            this.stack = new PeakObject[1024];
             this.frameStack = new PeakObject[256];
             this.nativeMethods = NativeMethods.NativeMethods.GetNativeMethods();
         }

@@ -300,10 +300,12 @@ namespace IDE
                 try
                 {
                     proc.Start();
+                    ideWindow.Compiled = true;
                 }
                 catch (Exception e_)
                 {
                     MessageBox.Show(e_.Message);
+                    ideWindow.Compiled = false;
                     return;
                 }
 

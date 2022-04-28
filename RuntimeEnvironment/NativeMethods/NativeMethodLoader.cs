@@ -14,9 +14,18 @@ namespace RuntimeEnvironment.NativeMethods
                 { "print_i", PrintInteger},
                 { "print_d", PrintDouble},
                 { "print_s", PrintString},
+                { "read", Read},
+                { "readInt", ReadInt},
+                { "readDouble", ReadDouble},
+                { "double_to_int", DoubleToInt},
+                { "str_to_double", StrToDouble},
+                { "int_to_double", IntToDouble},
+                { "str_to_int", StrToInt},
             };
 
             return methods;
         }
+
+       
     }
 }

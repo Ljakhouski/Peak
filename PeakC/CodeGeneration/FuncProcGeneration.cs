@@ -255,6 +255,12 @@ namespace Peak.CodeGeneration
 
                     if (m.IsNative)
                     {
+                        int argsCount = 1;
+                        if (node.Args is SequenceNode)
+                            argsCount = (node.Args as SequenceNode).Sequence.Count;
+
+
+                        result.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(argsCount));
                         result.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(m.Name));
                         result.GeneratedByteCode.AddByteCode(InstructionName.CallNative);
                     }

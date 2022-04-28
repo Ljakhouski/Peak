@@ -154,5 +154,14 @@ namespace Peak.CodeGeneration
             });
             return ConstandData.Count - 1;
         }
+        public int GetConstantAddress(int argsCount)
+        {
+            this.ConstandData.Add(new RuntimeEnvironment.RuntimeModule.Constant()
+            {
+                IntValue = argsCount,
+                Type = ConstantType.Int
+            });
+            return ConstandData.Count - 1;
+        }
     }
 }
