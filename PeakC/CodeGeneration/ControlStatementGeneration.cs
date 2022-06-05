@@ -93,9 +93,15 @@ namespace Peak.CodeGeneration
 
             if (condition.ExprResult.Value == SymbolType.Type.Bool)
             {
-                var cyclePointer = getCurrentPosition();
-                currentSymbolTable.StartOfCycleAddress = cyclePointer;
+                int nextInstruction = 0;
+                if (getCurrentPosition() > 0)
+                    nextInstruction = 1;
+
+                var cyclePointer = getCurrentPosition() + nextInstruction;
+
                 addByteCode(condition, currentSymbolTable.CurrentMethod);
+
+                currentSymbolTable.StartOfCycleAddress = cyclePointer;
                 addByteCode(InstructionName.IfNot, currentSymbolTable.CurrentMethod);
                 var ifNotPointer = getCurrentPosition();
                 generateForCodeBlock(n.Code, new SymbolTable()

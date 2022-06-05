@@ -26,7 +26,7 @@ namespace IDE
             InitializeComponent();
         }
 
-        public void MakeDisasbInfo(string path)
+        public void MakeDisasmInfo(string path)
         {
             RuntimeModule diasmSource;
 

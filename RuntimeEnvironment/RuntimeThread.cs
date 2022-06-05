@@ -52,9 +52,9 @@ namespace RuntimeEnvironment
                         var argsCount = stack[stackPointer].IntValue;
                         stackPointer--;
                         var args = new PeakObject[argsCount];
-                        for (int i = stackPointer, y = 0; i> stackPointer - argsCount; i--, y++)
+                        for (int i = 0; argsCount > 0; argsCount--, stackPointer--)
                         {
-                            args[y] = stack[i];
+                            args[i] = stack[stackPointer];
                         }
                         nativeMethods[name.StringValue](args, this);
                         break;
@@ -189,6 +189,27 @@ namespace RuntimeEnvironment
 
                         break;
                     }
+                    case InstructionName.MoreInt:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
+
+                        stack[stackPointer] = v2.IntValue > v1.IntValue ? constants[1] : constants[0];
+                        break;
+                    }
+                    case InstructionName.MoreDouble:
+                    {
+                        var v1 = stack[stackPointer];
+                        stackPointer--;
+                        var v2 = stack[stackPointer];
+
+                        stack[stackPointer] = v2.DoubleValue > v1.DoubleValue ? constants[1] : constants[0];
+                        break;
+                    }
+                    default:
+                        while (true)
+                            Console.WriteLine("unknow operation");
                 }
             }
         }

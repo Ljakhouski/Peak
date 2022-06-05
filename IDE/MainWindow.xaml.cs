@@ -101,7 +101,7 @@ namespace IDE
         private void viewDisasm(object sender, RoutedEventArgs e)
         {
             var viewer = new DisAsmViewer();
-            viewer.MakeDisasbInfo("Output/module.pem");
+            viewer.MakeDisasmInfo("Output/module.pem");
 
             mainTabControl.Items.Add(new TabItem() { Header = new DisasmTabHeader(viewer, mainTabControl), Content = viewer });
             mainTabControl.SelectedIndex = mainTabControl.Items.Count - 1;
@@ -334,10 +334,10 @@ namespace IDE
                 clearFolder(Path + "Output");
 
                 var fileName = removeFileExtention(FileName);
-
-                FileSystem.CopyDirectory("Output", Path + "Output", true);
+                
                 FileSystem.CopyDirectory("Runtime", Path + "Output", true);
-
+                FileSystem.CopyDirectory("Output", Path + "Output", true); // copy "module.pem" last with replace
+                
                 try
                 {
                     FileSystem.RenameFile(Path + "Output/" + "RuntimeEnvironment.exe", fileName + ".exe");
