@@ -9,8 +9,5 @@ while j<9
 		print(i);
 		i<<i+1;
 	]
-	print("______________________");
-	print(j);
-	#s << read();
 ]
 //print("Hello World");
