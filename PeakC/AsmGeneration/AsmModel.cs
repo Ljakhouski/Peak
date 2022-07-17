@@ -176,12 +176,12 @@ namespace Peak.AsmGeneration
 
         public string GetFasmListing()
         {
-            string output = "format PE64 Console \n entry start  ";
+            string output = "format PE64 Console \n entry start  \n";
 
             foreach (string heads in Head)
                 output += heads + '\n';
 
-            output += "\nsection '.text' code readable executable  ";
+            output += "\nsection '.text' code readable executable  \n";
 
             // code adding
 
@@ -196,12 +196,12 @@ namespace Peak.AsmGeneration
                 }
             }
 
-            output += "\nsection '.rdata' data readable\n";
+            output += "\nsection '.rdata' data readable \n";
 
             foreach (string S in RData)
                 output += S;
 
-            output += "\nsection '.idata' data readable import\n";
+            output += "\nsection '.idata' data readable import \n";
             foreach (string S in IData)
                 output += S;
 

@@ -14,7 +14,7 @@ namespace Peak.AsmGeneration
 
           Place-prefix --- is the placing new data to <?>, witch not consist in the stack or in registers 
 
-
+               Set-prefix --- is the manual writing MemoryDataId to the register map ot stack
      */
 
     class MemoryDataId // object with info about memory-field in stack or in registers (or in heap-memory)
@@ -491,7 +491,7 @@ namespace Peak.AsmGeneration
             return frameOffset - st.MemoryAllocator.BasePointsAddress;
         }
 
-        public void WriteToFreeRegister(MemoryDataId id, RegisterName outputRegister)
+        public void SetIdToFreeRegister(MemoryDataId id, RegisterName outputRegister)
         {
             foreach (RegisterMapElement e in RegisterMap)
             {

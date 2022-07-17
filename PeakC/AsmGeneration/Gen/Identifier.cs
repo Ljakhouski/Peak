@@ -99,7 +99,7 @@ namespace Peak.AsmGeneration
                                 Offset = st.MemoryAllocator.CalculateLocalOffset(mRef)
                             });
 
-                        st.MemoryAllocator.WriteToFreeRegister((e as VariableTableElement).Id, outputRegister);
+                        st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputRegister);
                         //var outputRegisterId =  st.MemoryAllocator.ReserveFreeRegister(framePointer, st);
                         return new GenResult() { ResultType = e.Type, ReturnDataId = (e as VariableTableElement).Id };
                     }
