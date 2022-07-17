@@ -38,6 +38,12 @@ namespace Peak.PeakC
             Environment.Exit(0);
         }
 
+        public static void ErrMessage(string message)
+        {
+            Console.WriteLine(message);
+            Environment.Exit(0);
+        }
+
         public static void NameNotExistError(IdentifierNode id)
         {
             Console.WriteLine("name \"" + id.Id.Content + "\" does not exist");

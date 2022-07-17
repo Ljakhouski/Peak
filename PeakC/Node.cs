@@ -21,7 +21,7 @@ namespace Peak.PeakC
         public EmptyNode()
         { }
     }
-
+    /*
     class ConstantNode : Node
     {
         public Token Content { get; set; }
@@ -29,7 +29,7 @@ namespace Peak.PeakC
         {
             this.Content = content;
         }
-    }
+    }*/
 
     class ConstantInitNode: Node
     {

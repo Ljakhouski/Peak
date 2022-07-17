@@ -98,8 +98,8 @@ namespace Peak.CodeGeneration
         {
             if (node is ConstValueNode)
                 makeSymbolTypeForConst((ConstValueNode)node);
-            else if (node is ConstantNode)
-                makeSymbolTypeForConstantNode((ConstantNode)node);
+           // else if (node is ConstantNode)
+           //     makeSymbolTypeForConstantNode((ConstantNode)node);
             else if (node is IdentifierNode)
                 makeSymbolTypeForIdentifier((IdentifierNode)node);
             else if (node is MethodNode)
@@ -153,7 +153,7 @@ namespace Peak.CodeGeneration
                 Error.ErrMessage(node.Id, "currently not supported");
         }
 
-        private void makeSymbolTypeForConstantNode(ConstantNode node)
+      /*  private void makeSymbolTypeForConstantNode(ConstantNode node)
         {
             if (node.Content == "int")
             {
@@ -169,7 +169,7 @@ namespace Peak.CodeGeneration
             }
             else
                 throw new CompileException();
-        }
+        }*/
 
         private void makeSymbolTypeForConst(ConstValueNode node)
         {
