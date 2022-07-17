@@ -1,114 +1,100 @@
 # Peak
-My new test programming language
+
+Peak - is the my new test programming language
+
+It is the x86_64 compiler now, but long time he was the interpreter (*.p files were translating into byte-code for my own runtime)
+compiler translates peak-code to the FASM code and makes .exe or .dll file
+only for x86_64 architecture (intel & AMD)
+
+build project and run IDE.exe to open sample-projects and try 
 
 
-    ***********
-    * GRAMMAR *
-    ***********
-
-// - comment
-/*  comment  */
-
-load "std"              // loading libraries
-define CLEAR c : 0      // preprocessor definition
-
-? S: "random string"   // create a new variable & set value (auto type)
-? i: 12345  
-
-str data: "09.08.20"   // create a new variable with static type
-int year: 2020
-
-#Pi : 3.14159          // create constant
+##  SYNTAX  
 
 
-                       //  function declaration:
+    // - comment
+    /*  comment  */
 
-i2 : i1                // set variable
+    load "std"              // loading libraries
+    define Pi 3.14159       // preprocessor definition
 
-if a=b 
-[
-    /*...*/
-]
+    #S <- "random string"      // create a new variable & set value (auto type)
+    str S <- "random string";  // explicit type specification
 
-while a=b
-[
-    /*...*/
-]
+    S <- "new random string";
+    Pi <- 3.1;                  // fuu how rude
 
-                        // function and procedure declaration:
-func (int) add (int a, int b)
-[
-    << a+b      // return value
-]
+    $Pi <- 3.14159;          // create constant
+    int Pi <- 3.14159;
 
-proc increment
-[
-    i++;
-]
 
-                        // native function declaration:
-                        // (& overloading)
+    func (int) summ (int a, int b); //  function declaration:
+    proc add(int i);
 
-native proc print (int integer) print_i
-native proc print (str string) print_s
-native proc next_line
+    import func (str) scan from "stdrl.dll";
+    import func (int) scanInt from "stdrl.dll";
 
-native func (int) read read_i
-native func (str) read read_s
-print ("Hello world!")
 
-                        // structures
-struct Person
-[
-    ?age : 0
-    ?name : ""
-
-    proc run
+    if a = b 
     [
-        /*....*/
+        /*...*/
     ]
-]
 
-?Mike : new Person
-?Mike.age = 24
-?Mike.run()
-
-
-/****CALC*****/
-
-?a int
-?b int
-
-? op str
-
-while true
-[
-    print("operation? (+-*/): "); op : read()   // operator ";"
-    print("a: ")
-    a : read()
-    print("b: ")
-    b : read()
-
-    if op = "+"
+    while a = b
     [
-        print( a+b )
+        /*...*/
     ]
-    else if op = "-"
+
+    // function and procedure declaration:
+    func (int) add (int a, int b)
     [
-        print ( a-b )
+        return a+b      // return value
     ]
-    else if op = "*"
+
+    proc increment
     [
-        print ( a*b )
+        i <- i + 1;
     ]
-    else if op = "/"
+
+
+## console calc
+
+    int a;
+    int b;
+    str op;
+
+    while true
     [
-        if b = 0 [print ("error! division on null")]
-        else
+        print("operation? (+-*/): ");
+        op <- read();
+        print("a: ");
+        a <- readInt();
+        print("b: ");
+        b <- readInt();
+
+        if op = "+"
         [
-            print (a/b)
-        ] 
+            print( a+b );
+        ]
+        else if op = "-"
+        [
+            print ( a-b );
+        ]
+        else if op = "*"
+        [
+            print ( a*b );
+        ]
+        else if op = "/"
+        [
+            if b = 0
+            [
+                print ("error! division on null");
+            ]
+            else
+            [
+                print (a/b);
+            ] 
+        ]
     ]
-]
 
 
