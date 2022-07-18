@@ -9,11 +9,22 @@ namespace Peak.AsmGeneration
     {
         public static GenResult Generate(ConstValueNode node, SymbolTable st)
         {
-            var result = new SymbolType(node);
+            return new ConstantResult()
+            {
+                ConstValue = node.Value,
+                ResultType = new SymbolType(node),
+                ReturnDataId = null
+            };
+        }
+
+        public static GenResult GenerateConstInRegister(ConstantResult constant, SymbolTable st)
+        {
+            var result = constant.ResultType;
+
             if (result.Type == Type.Int || result.Type == Type.Bool)
             {
                 var reg = st.MemoryAllocator.GetFreeRegister();
-                var labelContent = node.Value.Content;
+                var labelContent = constant.ConstValue.Content;
                 var size = result.Type == Type.Int ? 8 : 1;
 
                 if (labelContent == "true")
@@ -40,16 +51,6 @@ namespace Peak.AsmGeneration
                 throw new CompileException("other types not support now");
             
         }
-        /*public static GenResult Generate(ConstValueNode node, SymbolTable st)
-        {
-            return new ConstantResult()
-            {
-                /* = int.Parse(node.Value.Content),
-                DoubleValue = double.Parse(node.Value.Content),
-                BoolValue = bool.Parse(node.Value.Content),*//*
-                ResultType = new SymbolType(node),
-                ReturnDataId = null
-            };
-        }*/
+        
     }
 }

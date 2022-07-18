@@ -10,6 +10,11 @@ namespace Peak.AsmGeneration
         public static GenResult Generate(Node from, Node to, SymbolTable st)
         {
             var rightExpr = Expression.Generate(from, st);
+
+            if (rightExpr is ConstantResult)
+            {
+                rightExpr = Constant.GenerateConstInRegister(rightExpr as ConstantResult, st);
+            }
             //var leftExpr = Expression.Generate(node.Left, st);
 
             if (to is IdentifierNode)
@@ -24,16 +29,16 @@ namespace Peak.AsmGeneration
                 {
                     if (identifier.Type == rightExpr.ResultType)
                     {
-                        return GenerateForVariableAccess(id, st, rightExpr.ReturnDataId);
+                        return GenerateAssignmentForVariable(id, st, rightExpr.ReturnDataId);
                     }
                         
                 }
             }
-            throw new CompileException();
+            throw new CompileException("can only be assigment to variable");
             
         }
 
-        public static GenResult GenerateForVariableAccess(Token name, SymbolTable st, MemoryDataId assignmentData)
+        public static GenResult GenerateAssignmentForVariable(Token name, SymbolTable st, MemoryDataId assignmentData)
         {
             var localResult = st.GetFromMethodContext(name) as VariableTableElement;
             if (localResult is null == false)
