@@ -19,6 +19,12 @@ namespace Peak.AsmGeneration
                 if (node.Type == null)  // #varName <- <expression>; 
                 {
                     var type = Expression.Generate(node.RightExpression, st);
+
+                    if (type is ConstantResult)
+                    {
+                        type = Constant.GenerateConstInRegister(type as ConstantResult, st);
+                    }
+
                     var rightExprDataId = type.ReturnDataId;
 
                     if (type is EmptyGenResult)
@@ -33,8 +39,7 @@ namespace Peak.AsmGeneration
                        
                         st.MemoryAllocator.MoveToRegister(rightExprDataId);
 
-                        Assignment.GenerateForVariableAccess(node.Name, st, rightExprDataId);
-
+                        Assignment.GenerateAssignmentForVariable(node.Name, st, rightExprDataId);
                         //st.MemoryAllocator.MoveRegisterToStack(rightExprDataId, e.Id, st);
                         /*
                         st.MethodCode.Emit(InstructionName.Mov, 
@@ -64,7 +69,7 @@ namespace Peak.AsmGeneration
                             st.RegisterVariable(e);
                             st.MemoryAllocator.MoveToRegister(rightExpr.ReturnDataId);
 
-                            Assignment.GenerateForVariableAccess(node.Name, st, rightExpr.ReturnDataId);
+                            Assignment.GenerateAssignmentForVariable(node.Name, st, rightExpr.ReturnDataId);
                             return new EmptyGenResult();
                         }
                         else

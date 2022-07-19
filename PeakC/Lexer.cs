@@ -24,7 +24,7 @@ namespace Peak.PeakC
         {
             "+=", "-=", "*=", "/=", "!=",
             "++", "--", /*"**",*/ "//", "/*", "*/",
-            "<=", ">=", "<<", ">>" 
+            "<=", ">=", "<<", ">>", "<-", "->" 
             // add your tokens only in increasing length!
             // "alpha+=1"  <=>  alpha, +=, 1
         };

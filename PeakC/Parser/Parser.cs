@@ -237,7 +237,7 @@ namespace Peak.PeakC.Parser
             {
                 next();
                 var name = expectName();
-                if (getNext() == "<<")
+                if (getNext() == "<-")
                 {
                     next();
                     var rightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Assignment));
@@ -355,7 +355,7 @@ namespace Peak.PeakC.Parser
 
                     varInitNode.Modifiers = modifier.Modifiers;
 
-                    if (getNext() == "<<")
+                    if (getNext() == "<-")
                     {
                         next();
                         varInitNode.RightExpression = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Sequence));
@@ -562,7 +562,7 @@ namespace Peak.PeakC.Parser
             if (maybeTypeExpression(expr))
             {
                 var name = expectName();
-                if (getNext() == "<<")
+                if (getNext() == "<-")
                 {
                     // var varInit = parse(NonterminalType.)
                     Error.ErrMessage(nextToken(), "assigment is not support for argument");

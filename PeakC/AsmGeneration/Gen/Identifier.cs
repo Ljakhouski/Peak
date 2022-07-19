@@ -81,7 +81,7 @@ namespace Peak.AsmGeneration
                         {
                             IsGettingAddress = true,
                             RegisterName = framePointer,
-                            Offset = st.MemoryAllocator.CalculateLocalOffset(mRef) 
+                            Offset = mRef.Id.Rbp_Offset 
                         });
 
                     var e = mRef.Context.GetFromMethodContext(node.Id);
@@ -96,7 +96,7 @@ namespace Peak.AsmGeneration
                             {
                                 IsGettingAddress = true,
                                 RegisterName = outputRegister,
-                                Offset = st.MemoryAllocator.CalculateLocalOffset(mRef)
+                                Offset = mRef.Id.Rbp_Offset
                             });
 
                         st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputRegister);

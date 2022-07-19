@@ -89,7 +89,7 @@ namespace Peak.AsmGeneration
                 {
                     IsGettingAddress = true,
                     RegisterName = stackAddressingRegister,
-                    Offset = st.MemoryAllocator.CalculateLocalOffset(contextRef)
+                    Offset =contextRef.Id.Rbp_Offset
                 }
             });
 
@@ -114,7 +114,7 @@ namespace Peak.AsmGeneration
                     {
                         IsGettingAddress = true,
                         RegisterName = newRefRegister,
-                        Offset = st.MemoryAllocator.CalculateLocalOffset(variable)
+                        Offset = variable.Id.Rbp_Offset
                     },
 
                     SecondOperand = new Operand()

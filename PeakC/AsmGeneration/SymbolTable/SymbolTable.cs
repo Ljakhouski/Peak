@@ -193,11 +193,7 @@ namespace Peak.AsmGeneration
 
         public MethodSymbolTable()
         {
-            this.MemoryAllocator = new MemoryAllocator()
-            {
-                BasePointsAddress = 0 // RBP pointes on begin on the stack
-            };
-
+            this.MemoryAllocator = new MemoryAllocator();
             this.MethodCode = new AsmMethod();
 
         }

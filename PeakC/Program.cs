@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Peak.AsmGeneration;
 using Peak.CodeGeneration;
 using Peak.PeakC.Parser;
 using RuntimeEnvironment.RuntimeModule;
@@ -10,10 +11,11 @@ namespace Peak.PeakC
 {
     class Program
     {
-        static string inputPath;
-        static string outputPath = "";
-        static string name = "";
-        static bool showInfo = false;
+        public static string inputPath;
+        public static string outputPath = "";
+        public static string name = "";
+        public static bool   showInfo = false;
+        public static bool   genByteCodeForInterpreter = false;
         static void Main(string[] args)
         {
             if (args.Length > 0)
@@ -43,7 +45,11 @@ namespace Peak.PeakC
                         showInfo = true;
                         i++;
                     }
-
+                    else if (args[i] == "-bc")
+                    {
+                        genByteCodeForInterpreter = true;
+                        i++;
+                    }
                 }
             }
             catch (IndexOutOfRangeException e)
@@ -59,15 +65,57 @@ namespace Peak.PeakC
 
             NonterminalPreority.MakePriorityList();
 
-            RuntimeModule module;
+            if (genByteCodeForInterpreter)
+                GenForInterpreter();
+            else
+                Gen_x86_64_PE();
+            
+
+            timer.Stop();
+            Console.WriteLine("Compiled time: " + timer.ElapsedMilliseconds + " ms");
+            //Console.ReadKey();
+        }
+
+        public static void Gen_x86_64_PE()
+        {
+            var pars = new Parser.Parser();
+            var n = pars.GetNode(inputPath);
             try
             {
-                Parser.Parser pars = new Parser.Parser();
-                Node n = pars.GetNode(inputPath);
+                var assembly = AsmGeneration.CodeGeneration.GetAsmAssembly(n);
+                var listing = assembly.GetFasmListing();
 
-                module = new ByteCodeGenerator().GetProgramRuntimeModule((ProgramNode)n);
+                using (StreamWriter writer = new StreamWriter(outputPath))
+                {
+                    writer.WriteLine(listing);
+                }
             }
-            catch (CompileException e) { Console.WriteLine("Compile error:" + e.Message); return; }
+            catch(CompileException e)
+            {
+                Console.WriteLine("Compile error: " + e.Message); return;
+            }
+            catch(DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public static void GenForInterpreter()
+        {
+
+            RuntimeModule module = null;
+            try
+            {
+                var pars = new Parser.Parser();
+                var n = pars.GetNode(inputPath);
+
+                if (genByteCodeForInterpreter)
+
+                    module = new ByteCodeGenerator().GetProgramRuntimeModule(n);
+
+
+            }
+            catch (CompileException e) { Console.WriteLine("Compile error: " + e.Message); return; }
             /*catch (Exception e)
             {
                 Console.WriteLine(e.Message);
@@ -90,10 +138,6 @@ namespace Peak.PeakC
             {
                 Console.WriteLine(e.Message);
             }
-
-            timer.Stop();
-            Console.WriteLine("Compiled time: " + timer.ElapsedMilliseconds + " ms");
-            //Console.ReadKey();
         }
     }
 }

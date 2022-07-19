@@ -23,6 +23,7 @@ namespace Peak.AsmGeneration
 
         private static void generateForProgramNode(ProgramNode node, GlobalSymbolTable st)
         {
+            var rbpSizeOperand = GenMethodPrologueAndGet_rbp(st);
             foreach (Node n in node.Node)
             {
                 if (n is LoadNode)
@@ -32,6 +33,18 @@ namespace Peak.AsmGeneration
                 else
                     CodeBlock.Generate((CodeBlockNode)n, st);
             }
+            int frameSize = MemoryAllocator.AlignUpAbsolute(st.MemoryAllocator.GetFrameSize(), 16);
+            rbpSizeOperand.Offset = st.MemoryAllocator.GetFrameSize();
+        }
+
+        public static Operand GenMethodPrologueAndGet_rbp(GlobalSymbolTable st)
+        {
+            var frameSizeOperand = new Operand() { Offset = 0 };
+            st.MethodCode.Emit(InstructionName.Push, RegisterName.RBP);
+            st.MethodCode.Emit(InstructionName.Mov, RegisterName.RBP, RegisterName.RSP);
+            st.MethodCode.Emit(InstructionName.Sub, RegisterName.RSP, frameSizeOperand);
+
+            return frameSizeOperand;
         }
 
         private static void applyLoadNode(LoadNode node, GlobalSymbolTable st)

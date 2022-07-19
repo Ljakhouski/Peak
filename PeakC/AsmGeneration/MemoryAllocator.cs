@@ -92,6 +92,25 @@ namespace Peak.AsmGeneration
             }
         }
 
+        public int Rbp_Offset
+        {
+            get
+            {
+                int absoluteOffset = 0;
+                foreach (var e in this.allocator.StackModel)
+                {
+                    absoluteOffset += e.Size;
+
+                    if (e.ContainedData == this)
+                    {
+
+                        return this.allocator.Rbp_Address-absoluteOffset;
+                    }
+                }
+
+                throw new CompileException();
+            }
+        }
         public int StackOffset
         {
             get
@@ -174,7 +193,15 @@ namespace Peak.AsmGeneration
     {
         public MemoryDataId ContainedData { get; set; }
         public int Size { get; set; } // actual size in memory (data-size + alligment)
-        public int Offset
+
+        /*public int RbpOffset
+        {
+            get
+            {
+                
+            }
+        }*/
+        public int Offset /* rbp +- Offset */
         {
             get
             {
@@ -212,11 +239,10 @@ namespace Peak.AsmGeneration
     class MemoryAllocator
     {
         public SymbolTable NativeSymbolTable { get; set; }
-        public int BasePointsAddress { get; set; } // in bytes, is the address to witch bp/ref point
+        public int Rbp_Address { get; set; } // in bytes, is the address to witch bp/ref point
 
         public List<MemoryAreaElement> StackModel = new List<MemoryAreaElement>();
 
-        //public int RSP_frameOffset { get; set; }
         public List<RegisterMapElement> RegisterMap = new List<RegisterMapElement>() // element can be null if he is not exist in stack now
         {
             new RegisterMapElement(RegisterName.RAX),
@@ -455,8 +481,8 @@ namespace Peak.AsmGeneration
         }
 
         
-
-        public int CalculateLocalOffset(TableElement id)
+        /*
+        public int NO_CalculateLocalOffset(TableElement id)
         {
             var bpOffset = this.NativeSymbolTable.MemoryAllocator.BasePointsAddress;
 
@@ -485,10 +511,10 @@ namespace Peak.AsmGeneration
             }
             else
                 throw new CompileException();
-        }
+        }*/
         public int CalculateLocalOffset(int frameOffset, SymbolTable st)
         {
-            return frameOffset - st.MemoryAllocator.BasePointsAddress;
+            return st.MemoryAllocator.Rbp_Address - frameOffset;
         }
 
         public void SetIdToFreeRegister(MemoryDataId id, RegisterName outputRegister)
@@ -614,6 +640,16 @@ namespace Peak.AsmGeneration
                 default:
                     throw new CompileException();
             }
+        }
+
+        public static int AlignUpAbsolute(int i, int alignment)
+        {
+            int input = Math.Abs(i);
+            
+            while (input % alignment != 0)
+                input++;
+
+            return i < 0 ? (-1) * input : input;
         }
     }
 }
