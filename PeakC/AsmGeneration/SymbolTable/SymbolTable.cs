@@ -57,7 +57,7 @@ namespace Peak.AsmGeneration
                 throw new CompileException();
 
             this.Data.Add(e);
-            this.MemoryAllocator.PlaceInStack(e.Id, e.Id.Size);
+            this.MemoryAllocator.AllocateInStack(e.Id, e.Id.Size);
         }
 
         public TableElement GetFromMethodContext(Token name)
@@ -193,7 +193,7 @@ namespace Peak.AsmGeneration
 
         public MethodSymbolTable()
         {
-            this.MemoryAllocator = new MemoryAllocator();
+            this.MemoryAllocator = new MemoryAllocator(this);
             this.MethodCode = new AsmMethod();
 
         }

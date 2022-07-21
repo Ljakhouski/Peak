@@ -12,7 +12,7 @@ namespace Peak.AsmGeneration
                         
                       Move-prefix --- is the moving CONSIST data from <?> to <?>
 
-          Place-prefix --- is the placing new data to <?>, witch not consist in the stack or in registers 
+          Allocate-prefix --- is the placing new data to <?>, witch not consist in the stack or in registers 
 
                Set-prefix --- is the manual writing MemoryDataId to the register map ot stack
      */
@@ -35,7 +35,7 @@ namespace Peak.AsmGeneration
 
                 foreach (RegisterMapElement e in regMap)
                 {
-                    if (e.ContainedData == this)
+                    if (this == e.ContainedData)
                         return true;
                 }
                 return false;
@@ -91,44 +91,27 @@ namespace Peak.AsmGeneration
                 return false;
             }
         }
-
+        
         public int Rbp_Offset
         {
             get
             {
-                int absoluteOffset = 0;
-                foreach (var e in this.allocator.StackModel)
-                {
-                    absoluteOffset += e.Size;
-
-                    if (e.ContainedData == this)
-                    {
-
-                        return this.allocator.Rbp_Address-absoluteOffset;
-                    }
-                }
-
-                throw new CompileException();
+                return this.StackOffset - this.allocator.RBP_dataId.StackOffset;
             }
         }
+
         public int StackOffset
         {
             get
             {
-                var stack = this.allocator.StackModel;
+                foreach(var e in this.allocator.StackModel)
+                    if (e.ContainedData == this)
+                        return e.StackOffset;
 
-                int offset = 0;
-
-                for (int i = 0; i < stack.Count; i++)
-                {
-                    if (stack[i].IsFree() == false && this == stack[i].ContainedData)
-                        return offset;
-                    
-                    offset += stack[i].Offset;
-                }
                 throw new CompileException();
             }
-        } // offset regarding highest of frame address // NOT NOW: *offset regarding EBP address*
+        }
+    
         public MemoryDataId(SymbolTable st)
         {
             this.Id = IdGenerator.GenerateId();
@@ -201,7 +184,10 @@ namespace Peak.AsmGeneration
                 
             }
         }*/
-        public int Offset /* rbp +- Offset */
+
+        //3
+        /* 
+        public int Offset rbp +- Offset 
         {
             get
             {
@@ -216,6 +202,33 @@ namespace Peak.AsmGeneration
                         offset += Allocator.StackModel[i].Size;
                 }
 
+                throw new CompileException();
+            }
+        }*/
+
+        public int Rbp_Offset
+        {
+             get
+             {
+                 return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
+             }
+        }
+
+        public int StackOffset
+        {
+            get
+            {
+                int absoluteOffset = 0;
+
+                foreach (var e in this.Allocator.StackModel)
+                {
+                    absoluteOffset += e.Size;
+
+                    if (this == e)
+                    {
+                        return absoluteOffset;
+                    }
+                }
                 throw new CompileException();
             }
         }
@@ -239,7 +252,7 @@ namespace Peak.AsmGeneration
     class MemoryAllocator
     {
         public SymbolTable NativeSymbolTable { get; set; }
-        public int Rbp_Address { get; set; } // in bytes, is the address to witch bp/ref point
+        public MemoryDataId RBP_dataId { get; set; } // in bytes, is the address to witch bp/ref point
 
         public List<MemoryAreaElement> StackModel = new List<MemoryAreaElement>();
 
@@ -275,6 +288,11 @@ namespace Peak.AsmGeneration
             new RegisterMapElement(RegisterName.XMM7)
         };
 
+        public MemoryAllocator(SymbolTable table)
+        {
+            this.NativeSymbolTable = table;
+        }
+
         /*public void PlaceInRegister(MemoryDataId memory, AsmMethod method)
         {
             foreach (RegisterMapElement e in RegisterMap)
@@ -306,8 +324,10 @@ namespace Peak.AsmGeneration
             }
 
             var register = getOldestRegister();
-
             var freeElement = getFreeStackArea(register.ContainedData.Size, register.ContainedData.Alignment);
+
+            freeElement.ContainedData = register.ContainedData;
+
 
             // mov [rbp + offset], r?x
 
@@ -319,7 +339,7 @@ namespace Peak.AsmGeneration
                     RegisterName = register.Register,
                     DataSizeExist = true,
                     Size = GetDataSizeName(register.ContainedData.Size),
-                    Offset = CalculateLocalOffset(freeElement.Offset, NativeSymbolTable)
+                    Offset = freeElement.Rbp_Offset
                 },
                 register.Register);
 
@@ -405,13 +425,13 @@ namespace Peak.AsmGeneration
         {
             for (int i = 0; i<StackModel.Count; i++)
             {
-                if (StackModel[i].Offset >= offset && StackModel[i].Offset <= offset+size)
+                if (StackModel[i].StackOffset >= offset && StackModel[i].StackOffset <= offset+size)
                 {
-                    int firstSize = StackModel[i].Offset - offset;
+                    int firstSize = StackModel[i].StackOffset - offset;
                     int secondSize = size;
-                    int thirdSize = (StackModel[i].Offset + StackModel[i].Size) - (offset+size);
+                    int thirdSize = (StackModel[i].StackOffset + StackModel[i].Size) - (offset+size);
 
-                    int firstOffset = StackModel[i].Offset;
+                    int firstOffset = StackModel[i].StackOffset;
                     int secondOffset = offset;
                     int thirdOffset = secondOffset+secondSize;
 
@@ -512,10 +532,6 @@ namespace Peak.AsmGeneration
             else
                 throw new CompileException();
         }*/
-        public int CalculateLocalOffset(int frameOffset, SymbolTable st)
-        {
-            return st.MemoryAllocator.Rbp_Address - frameOffset;
-        }
 
         public void SetIdToFreeRegister(MemoryDataId id, RegisterName outputRegister)
         {
@@ -535,11 +551,11 @@ namespace Peak.AsmGeneration
             throw new CompileException();
         }
 
-        public void PlaceInStack(MemoryDataId idInRegister, int alligment = 8)
+        public void AllocateInStack(MemoryDataId id, int alligment = 8)
         {
-            var area = getFreeStackArea(idInRegister.Size, alligment);
+            var area = getFreeStackArea(id.Size, alligment);
 
-            this.NativeSymbolTable.MethodCode.Emit(
+            /*this.NativeSymbolTable.MethodCode.Emit(
                 InstructionName.Mov,
                 new Operand()
                 {
@@ -547,11 +563,13 @@ namespace Peak.AsmGeneration
                     DataSizeExist = true,
                     Size = GetDataSizeName(idInRegister.Size),
                     IsGettingAddress = true,
-                    Offset = area.Offset
+                    Offset = area.Rbp_Offset 
                 }
                 ,
                 idInRegister.Register
-            );
+            );*/
+
+            area.ContainedData = id;
         }
         
         public void MoveToRegister(MemoryDataId data)   

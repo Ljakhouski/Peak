@@ -14,8 +14,9 @@ namespace Peak.AsmGeneration
         {
             // TODO: make asm builder
             var table = new GlobalSymbolTable();
+            table.MemoryAllocator = new MemoryAllocator(table);
             generateForProgramNode(node, table);
-
+            table.MainAssembly.Code.Add(table.MethodCode);
             return table.MainAssembly;
         }
 
@@ -24,6 +25,7 @@ namespace Peak.AsmGeneration
         private static void generateForProgramNode(ProgramNode node, GlobalSymbolTable st)
         {
             var rbpSizeOperand = GenMethodPrologueAndGet_rbp(st);
+
             foreach (Node n in node.Node)
             {
                 if (n is LoadNode)
@@ -44,6 +46,10 @@ namespace Peak.AsmGeneration
             st.MethodCode.Emit(InstructionName.Mov, RegisterName.RBP, RegisterName.RSP);
             st.MethodCode.Emit(InstructionName.Sub, RegisterName.RSP, frameSizeOperand);
 
+            var rbp = new MemoryDataId(st);
+            var rbpInStack = new MemoryAreaElement(st.MemoryAllocator) { Size = 8, ContainedData = rbp};
+            st.MemoryAllocator.StackModel.Add(rbpInStack);
+            st.MemoryAllocator.RBP_dataId = rbp;
             return frameSizeOperand;
         }
 

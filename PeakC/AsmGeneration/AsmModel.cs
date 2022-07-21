@@ -24,6 +24,7 @@ namespace Peak.AsmGeneration
 
     public enum DataSize
     {
+        None,
         Byte,
         Dword,
         QWord,
@@ -58,8 +59,8 @@ namespace Peak.AsmGeneration
         XMM4,
         XMM5,
         XMM6,
-        XMM7
-
+        XMM7,
+        NONE
     }
     class AsmInstruction
     {
@@ -80,8 +81,8 @@ namespace Peak.AsmGeneration
         public bool DataSizeExist { get; set; } = false;
         public int Offset { get; set; } = 0;
         public bool IsLabelOperand { get; set; } = false;
-        public RegisterName RegisterName { get; set; }
-        public DataSize Size { get; set; }
+        public RegisterName RegisterName { get; set; } = RegisterName.NONE;
+        public DataSize Size { get; set; } = DataSize.None;
         public string Label { get; set; }
     }
 
@@ -191,8 +192,8 @@ namespace Peak.AsmGeneration
                 
                 foreach(AsmInstruction instruction in method.Code)
                 {
-                    string line = "   ";
-                    line += getInstructionListing(instruction);
+                    string line = "   " + getInstructionListing(instruction) + '\n';
+                    output += line;
                 }
             }
 
@@ -215,25 +216,27 @@ namespace Peak.AsmGeneration
             if (instruction.InstructionName == InstructionName.LABEL)
                 return instruction.Label;
             output+=instruction.InstructionName.ToString();
-            
+
             if (instruction.FirstOperand is null == false)
                 output += getOperandListing(instruction.FirstOperand);
-            
             if (instruction.SecondOperand is null == false)
-                output += getOperandListing(instruction.SecondOperand);
-
+                output += ", " + getOperandListing(instruction.SecondOperand);
             if (instruction.ThirdOperand is null == false)
-                output += getOperandListing(instruction.ThirdOperand);
+                output += ", " + getOperandListing(instruction.ThirdOperand);
+
 
             if (instruction.Comment != null)
-                output += " ; " + instruction.Comment;
+                output += "       ; " + instruction.Comment;
 
             string getOperandListing(Operand o)
             {
                 string operandOutput = " ";
 
-                if (o.DataSizeExist) // byte/word/dword/qword
+                if (o.Size != DataSize.None) // byte/word/dword/qword
+                {
                     operandOutput += o.Size.ToString();
+                }
+                    
                 if (o.IsGettingAddress)
                 {
                     operandOutput += " [";
@@ -242,6 +245,9 @@ namespace Peak.AsmGeneration
                 if (o.IsLabelOperand)
                     operandOutput += o.Label;
                 
+                if (o.RegisterName != RegisterName.NONE)
+                    operandOutput += o.RegisterName.ToString();
+
                 if (o.Size != 0) // [rbp +- 8]
                 {
                     if (o.Size>0)
