@@ -74,6 +74,10 @@ namespace Peak.AsmGeneration
                 {
                     var outputRegister = st.MemoryAllocator.GetFreeRegister(); // this register will be free after finding
 
+                    var offset = mRef.Id.Rbp_Offset.ToString();
+
+                    st.Emit(string.Format("mov {0}, [{1} {2}]", outputRegister.ToString(), framePointer.ToString(), offset));
+                    /*
                     st.MethodCode.Emit(
                         InstructionName.Mov,
                         outputRegister,
@@ -83,12 +87,16 @@ namespace Peak.AsmGeneration
                             RegisterName = framePointer,
                             Offset = mRef.Id.Rbp_Offset 
                         });
-
+                    */
                     var e = mRef.Context.GetFromMethodContext(node.Id);
 
                     if (e is null == false && e is VariableTableElement) // if variable found
                     {
                         // mov r?x, [output + offset_2]
+                        var offset_ = mRef.Id.Rbp_Offset;
+                        st.Emit(string.Format("mov {0}, [{1} {2}]", outputRegister.ToString(), outputRegister, offset_));
+
+                        /*
                         st.MethodCode.Emit(
                             InstructionName.Mov,
                             outputRegister, // if it is the error, alloc new free register and then using it
@@ -97,7 +105,7 @@ namespace Peak.AsmGeneration
                                 IsGettingAddress = true,
                                 RegisterName = outputRegister,
                                 Offset = mRef.Id.Rbp_Offset
-                            });
+                            });*/
 
                         st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputRegister);
                         //var outputRegisterId =  st.MemoryAllocator.ReserveFreeRegister(framePointer, st);

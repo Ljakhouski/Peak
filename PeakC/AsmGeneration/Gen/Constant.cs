@@ -32,6 +32,9 @@ namespace Peak.AsmGeneration
                 else if (labelContent == "false")
                     labelContent = "0";
 
+                st.Emit(string.Format("mov {0}, {1}", reg.ToString(), labelContent));
+
+                /*
                 st.MethodCode.Emit(
                         InstructionName.Mov,
                         reg,
@@ -40,7 +43,7 @@ namespace Peak.AsmGeneration
                             IsLabelOperand = true,
                             Label = labelContent
                         }
-                    );
+                    );*/
 
                 var id = new MemoryDataId(st) { Size = size };
                 st.MemoryAllocator.SetIdToFreeRegister(id, reg);

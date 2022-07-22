@@ -36,15 +36,16 @@ namespace Peak.AsmGeneration
                     CodeBlock.Generate((CodeBlockNode)n, st);
             }
             int frameSize = MemoryAllocator.AlignUpAbsolute(st.MemoryAllocator.GetFrameSize(), 16);
-            rbpSizeOperand.Offset = st.MemoryAllocator.GetFrameSize();
+            rbpSizeOperand.content = "sub rsp, " + st.MemoryAllocator.GetFrameSize().ToString();
         }
 
-        public static Operand GenMethodPrologueAndGet_rbp(GlobalSymbolTable st)
+        public static AsmInstruction GenMethodPrologueAndGet_rbp(GlobalSymbolTable st)
         {
-            var frameSizeOperand = new Operand() { Offset = 0 };
-            st.MethodCode.Emit(InstructionName.Push, RegisterName.RBP);
-            st.MethodCode.Emit(InstructionName.Mov, RegisterName.RBP, RegisterName.RSP);
-            st.MethodCode.Emit(InstructionName.Sub, RegisterName.RSP, frameSizeOperand);
+            st.MethodCode.Emit("push rbp");
+            st.MethodCode.Emit("mov rbp, rsp");
+            st.MethodCode.Emit("sub rsp, ...");
+
+            var frameSizeOperand = st.MethodCode.Code[st.MethodCode.Code.Count - 1];
 
             var rbp = new MemoryDataId(st);
             var rbpInStack = new MemoryAreaElement(st.MemoryAllocator) { Size = 8, ContainedData = rbp};

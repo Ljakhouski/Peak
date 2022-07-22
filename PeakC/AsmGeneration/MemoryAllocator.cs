@@ -330,8 +330,8 @@ namespace Peak.AsmGeneration
 
 
             // mov [rbp + offset], r?x
-
-            this.NativeSymbolTable.MethodCode.Emit
+            this.NativeSymbolTable.Emit(string.Format("mov {0} [{1} {2}], {3}", GetDataSizeName(register.ContainedData.Size), register.Register.ToString(), freeElement.Rbp_Offset, register.Register.ToString()));
+            /*this.NativeSymbolTable.MethodCode.Emit
                 (InstructionName.Mov,
                 new Operand()
                 {
@@ -341,7 +341,7 @@ namespace Peak.AsmGeneration
                     Size = GetDataSizeName(register.ContainedData.Size),
                     Offset = freeElement.Rbp_Offset
                 },
-                register.Register);
+                register.Register);*/
 
             register.Free(); // it is free now!
 
@@ -579,7 +579,9 @@ namespace Peak.AsmGeneration
 
             var freeReg = this.GetFreeRegister();
 
-            this.NativeSymbolTable.MethodCode.Emit(
+            this.NativeSymbolTable.Emit(string.Format("mov {0}, [rbp {1}]", freeReg.ToString(), data.StackOffset.ToString()));
+
+           /* this.NativeSymbolTable.MethodCode.Emit(
                 InstructionName.Mov,
                 freeReg,
                 new Operand()
@@ -590,7 +592,7 @@ namespace Peak.AsmGeneration
                     Size = GetDataSizeName(data.Size),
                     Offset = data.StackOffset
                 }
-                );
+                );*/
 
             foreach (var e in StackModel)
                 if (e.ContainedData == data)

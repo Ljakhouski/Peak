@@ -60,6 +60,15 @@ namespace Peak.AsmGeneration
             this.MemoryAllocator.AllocateInStack(e.Id, e.Id.Size);
         }
 
+        public void Emit(string instruction)
+        {
+            this.MethodCode.Emit(instruction);
+        }
+
+        public void Emit(string instruction, string comment)
+        {
+            this.MethodCode.Emit(instruction, comment);
+        }
         public TableElement GetFromMethodContext(Token name)
         {
             foreach (TableElement e in Data)
@@ -188,6 +197,7 @@ namespace Peak.AsmGeneration
         //public Token TokenName { get; set; }
         //public MethodNode MethodNode { get; set; }
 
+
         public override MemoryAllocator MemoryAllocator { get; set; }
         public override AsmMethod MethodCode { get; set; }
 
@@ -196,6 +206,10 @@ namespace Peak.AsmGeneration
             this.MemoryAllocator = new MemoryAllocator(this);
             this.MethodCode = new AsmMethod();
 
+        }
+        public void Emit(string instruction)
+        {
+            this.MethodCode.Emit(instruction);
         }
     }
 }

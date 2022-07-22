@@ -45,6 +45,11 @@ namespace Peak.AsmGeneration
             {
                 st.MemoryAllocator.MoveToRegister(assignmentData);
 
+                var offset = localResult.Id.StackOffset;
+                var register = assignmentData.Register.ToString();
+
+                st.Emit(string.Format("mov [rbp {0}], {1}", offset, register));
+                /*
                 st.MethodCode.Emit(
                     new AsmInstruction()
                     {
@@ -62,7 +67,7 @@ namespace Peak.AsmGeneration
                         {
                             RegisterName = assignmentData.Register
                         }
-                    });
+                    });*/
 
                 return new EmptyGenResult();
             }
@@ -78,6 +83,13 @@ namespace Peak.AsmGeneration
             var newRefRegister = st.MemoryAllocator.GetFreeRegister();
             st.MemoryAllocator.MoveToRegister(contextRef.Id);
 
+
+            var reg1 = newRefRegister.ToString();
+            var reg2 = stackAddressingRegister.ToString();
+            var offset = contextRef.Id.Rbp_Offset;
+            st.Emit(string.Format("mov {0}, [{1} {2}]", reg1, reg2, offset));
+
+            /*
             st.MethodCode.Emit(new AsmInstruction()
             {
                 InstructionName = InstructionName.Mov,
@@ -91,7 +103,7 @@ namespace Peak.AsmGeneration
                     RegisterName = stackAddressingRegister,
                     Offset =contextRef.Id.Rbp_Offset
                 }
-            });
+            });*/
 
             var variable = contextRef.Context.GetFromMethodContext(name) as VariableTableElement;
 
@@ -106,7 +118,12 @@ namespace Peak.AsmGeneration
             {
                 st.MemoryAllocator.MoveToRegister(variable.Id);
 
-                st.MethodCode.Emit(new AsmInstruction()
+                var reg1_ = newRefRegister.ToString();
+                var offset_ = variable.Id.Rbp_Offset;
+                var reg2_ = variable.Id.Register.ToString();
+
+                st.Emit(string.Format("mov [{0} {1}], {2}", reg1, offset, reg2));
+                /*st.MethodCode.Emit(new AsmInstruction()
                 {
                     InstructionName = InstructionName.Mov,
                    
@@ -121,7 +138,7 @@ namespace Peak.AsmGeneration
                     {
                         RegisterName = variable.Id.Register
                     }
-                });
+                });*/
 
                 return new EmptyGenResult();
             }
