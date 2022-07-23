@@ -258,34 +258,34 @@ namespace Peak.AsmGeneration
 
         public List<RegisterMapElement> RegisterMap = new List<RegisterMapElement>() // element can be null if he is not exist in stack now
         {
-            new RegisterMapElement(RegisterName.RAX),
-            new RegisterMapElement(RegisterName.RBX),
-            new RegisterMapElement(RegisterName.RCX),
-            new RegisterMapElement(RegisterName.RDX),
-            new RegisterMapElement(RegisterName.RSI),
-            new RegisterMapElement(RegisterName.RDI),
+            new RegisterMapElement(RegisterName.rax),
+            new RegisterMapElement(RegisterName.rbx),
+            new RegisterMapElement(RegisterName.rcx),
+            new RegisterMapElement(RegisterName.rdx),
+            new RegisterMapElement(RegisterName.rsi),
+            new RegisterMapElement(RegisterName.rdi),
                                   
-            new RegisterMapElement(RegisterName.R8 ),
-            new RegisterMapElement(RegisterName.R9 ),
-            new RegisterMapElement(RegisterName.R10),
-            new RegisterMapElement(RegisterName.R11),
-            new RegisterMapElement(RegisterName.R12),
-            new RegisterMapElement(RegisterName.R13),
-            new RegisterMapElement(RegisterName.R14),
-            new RegisterMapElement(RegisterName.R15),
+            new RegisterMapElement(RegisterName.r8 ),
+            new RegisterMapElement(RegisterName.r9 ),
+            new RegisterMapElement(RegisterName.r10),
+            new RegisterMapElement(RegisterName.r11),
+            new RegisterMapElement(RegisterName.r12),
+            new RegisterMapElement(RegisterName.r13),
+            new RegisterMapElement(RegisterName.r14),
+            new RegisterMapElement(RegisterName.r15),
 
         };
 
         public List<RegisterMapElement> SSERegisterMap = new List<RegisterMapElement>()
         {
-            new RegisterMapElement(RegisterName.XMM0),
-            new RegisterMapElement(RegisterName.XMM1),
-            new RegisterMapElement(RegisterName.XMM2),
-            new RegisterMapElement(RegisterName.XMM3),
-            new RegisterMapElement(RegisterName.XMM4),
-            new RegisterMapElement(RegisterName.XMM5),
-            new RegisterMapElement(RegisterName.XMM6),
-            new RegisterMapElement(RegisterName.XMM7)
+            new RegisterMapElement(RegisterName.xmm0),
+            new RegisterMapElement(RegisterName.xmm1),
+            new RegisterMapElement(RegisterName.xmm2),
+            new RegisterMapElement(RegisterName.xmm3),
+            new RegisterMapElement(RegisterName.xmm4),
+            new RegisterMapElement(RegisterName.xmm5),
+            new RegisterMapElement(RegisterName.xmm6),
+            new RegisterMapElement(RegisterName.xmm7)
         };
 
         public MemoryAllocator(SymbolTable table)

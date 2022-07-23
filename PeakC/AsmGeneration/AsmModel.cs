@@ -7,19 +7,19 @@ namespace Peak.AsmGeneration
 {
     public enum InstructionName
     {
-        Mov,
-        Push,
-        Pop,
+        mov,
+        push,
+        pop,
         
-        Add,
-        Sub,
-        Mul,
-        Div,
+        add,
+        sub,
+        mul,
+        div,
 
-        Jmp,
-        Call,
-        Ret,
-        LABEL,
+        jmp,
+        call,
+        ret,
+        label,
     }
 
     public enum DataSize
@@ -33,33 +33,33 @@ namespace Peak.AsmGeneration
     }
     public enum RegisterName
     {
-        RSP,
-        RBP,
+        rsp,
+        rbp,
 
-        RAX,
-        RBX,
-        RCX,
-        RDX,
-        RSI,
-        RDI,
+        rax,
+        rbx,
+        rcx,
+        rdx,
+        rsi,
+        rdi,
 
-        R8,
-        R9,
-        R10,
-        R11,
-        R12,
-        R13,
-        R14,
-        R15,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
 
-        XMM0,
-        XMM1,
-        XMM2,
-        XMM3,
-        XMM4,
-        XMM5,
-        XMM6,
-        XMM7,
+        xmm0,
+        xmm1,
+        xmm2,
+        xmm3,
+        xmm4,
+        xmm5,
+        xmm6,
+        xmm7,
         NONE
     }
     class AsmInstruction

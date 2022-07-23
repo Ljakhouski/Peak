@@ -33,7 +33,7 @@ namespace Peak.AsmGeneration
                 if (v is null)
                 {
                     // search in other method-frames
-                    return getVarRecursive(node, st, st, RegisterName.RBP);
+                    return getVarRecursive(node, st, st, RegisterName.rbp);
 
                 }
                 else if (v is VariableTableElement) // if is variable in the top-local-frame

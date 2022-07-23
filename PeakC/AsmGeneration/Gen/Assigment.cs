@@ -73,7 +73,7 @@ namespace Peak.AsmGeneration
             }
             else
             {
-                return recursiveAccessGenerate(name, st, st, assignmentData, RegisterName.RBP);
+                return recursiveAccessGenerate(name, st, st, assignmentData, RegisterName.rbp);
             }
         }
 
