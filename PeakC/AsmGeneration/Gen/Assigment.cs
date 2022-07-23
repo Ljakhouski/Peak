@@ -45,7 +45,7 @@ namespace Peak.AsmGeneration
             {
                 st.MemoryAllocator.MoveToRegister(assignmentData);
 
-                var offset = localResult.Id.StackOffset;
+                var offset = localResult.Id.Rbp_Offset;
                 var register = assignmentData.Register.ToString();
 
                 st.Emit(string.Format("mov [rbp {0}], {1}", offset, register));

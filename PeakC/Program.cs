@@ -11,7 +11,7 @@ namespace Peak.PeakC
 {
     class Program
     {
-        public static string inputPath;
+        public static string inputPath = "";
         public static string outputPath = "";
         public static string name = "";
         public static bool   showInfo = false;
@@ -85,10 +85,15 @@ namespace Peak.PeakC
                 var assembly = AsmGeneration.CodeGeneration.GetAsmAssembly(n);
                 var listing = assembly.GetFasmListing();
 
-                using (StreamWriter writer = new StreamWriter(outputPath))
+                string currentDir = Directory.GetCurrentDirectory();
+                string fullPath = Path.GetFullPath(outputPath);
+
+                using (StreamWriter writer = new StreamWriter("fasm\\output.ASM", false))
                 {
                     writer.WriteLine(listing);
                 }
+
+                runFasm();
             }
             catch(CompileException e)
             {
@@ -100,6 +105,78 @@ namespace Peak.PeakC
             }
         }
 
+        private static void runFasm()
+        {
+            var arg1 = "output.ASM";
+            var arg2 = outputPath.Length == 0 ? "-o " + getStandartOutputDir() +"\\"+getName(inputPath) + ".exe" : " -o " + outputPath;
+
+            var s = "-o " + getStandartOutputDir() + "\\" + getName(inputPath) + ".exe";
+            string fullFasmDirectory = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\fasm";
+
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.WorkingDirectory = fullFasmDirectory;
+            startInfo.FileName = "fasm\\FASM.exe";
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.Arguments = arg1 + arg2;
+           
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                using (Process exeProcess = Process.Start(startInfo))
+                {
+                    var reader = exeProcess.StandardOutput;
+                    var output = reader.ReadToEnd();
+                    exeProcess.WaitForExit();
+                    Console.WriteLine(output);
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(".exe-PE build faild: " + e.Message);
+            }
+        }
+
+        private static string getName(string fullName)
+        {
+            for (int i = fullName.Length - 1; i>=0; i--)
+            {
+                if (fullName[i] == '.')
+                {
+                    string name = "";
+                    for (int j = i-1; j>=0; j--)
+                    {
+                        if (fullName[j] == '/' || fullName[j] == '\\')
+                            return name;
+                        else
+                        name = fullName[j] + name;
+                    }
+                }
+            }
+            throw new CompileException("separating error");
+        }
+
+        private static string getStandartOutputDir()
+        {
+            string currentPath = Path.GetFullPath(Directory.GetCurrentDirectory());
+
+            var result = currentPath.Split('\\');
+
+            while (result.Length != 0 && result[result.Length - 1] != "Output")
+                Array.Resize(ref result, result.Length - 1);
+
+
+            var standartOutputDir = "";
+            foreach (var item in result)
+                standartOutputDir += item + '\\';
+
+            if (standartOutputDir[standartOutputDir.Length - 1] == '\\')
+                standartOutputDir.Remove(standartOutputDir.Length - 1);
+
+            return standartOutputDir;
+        }
         public static void GenForInterpreter()
         {
 

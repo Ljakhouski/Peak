@@ -112,15 +112,20 @@ namespace Peak.AsmGeneration
                     output += line;
                 }
             }
+            if (RData.Count > 0)
+            {
+                output += "\nsection '.rdata' data readable \n";
 
-            output += "\nsection '.rdata' data readable \n";
+                foreach (string S in RData)
+                    output += S;
 
-            foreach (string S in RData)
-                output += S;
-
-            output += "\nsection '.idata' data readable import \n";
-            foreach (string S in IData)
-                output += S;
+            }
+            if (IData.Count > 0)
+            {
+                output += "\nsection '.idata' data readable import \n";
+                foreach (string S in IData)
+                    output += S;
+            }
 
             return output;
         }

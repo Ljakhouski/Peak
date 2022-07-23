@@ -96,7 +96,13 @@ namespace Peak.AsmGeneration
         {
             get
             {
-                return this.StackOffset - this.allocator.RBP_dataId.StackOffset;
+                foreach (var e in this.allocator.StackModel)
+                    if (e.ContainedData == this)
+                        return e.Rbp_Offset;
+
+                throw new CompileException();
+
+                //return this.StackOffset - this.allocator.RBP_dataId.StackOffset;
             }
         }
 
@@ -210,7 +216,7 @@ namespace Peak.AsmGeneration
         {
              get
              {
-                 return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
+                 return this.Allocator.RBP_dataId.StackOffset - this.StackOffset;
              }
         }
 
@@ -579,7 +585,7 @@ namespace Peak.AsmGeneration
 
             var freeReg = this.GetFreeRegister();
 
-            this.NativeSymbolTable.Emit(string.Format("mov {0}, [rbp {1}]", freeReg.ToString(), data.StackOffset.ToString()));
+            this.NativeSymbolTable.Emit(string.Format("mov {0}, [rbp {1}]", freeReg.ToString(), data.Rbp_Offset.ToString()));
 
            /* this.NativeSymbolTable.MethodCode.Emit(
                 InstructionName.Mov,
