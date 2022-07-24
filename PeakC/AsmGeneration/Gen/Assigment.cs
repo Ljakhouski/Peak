@@ -69,26 +69,30 @@ namespace Peak.AsmGeneration
                         }
                     });*/
 
+                assignmentData.Free();
                 return new EmptyGenResult();
             }
             else
             {
-                return recursiveAccessGenerate(name, st, st, assignmentData, RegisterName.rbp);
+                return recursiveAccessGenerate(name, st, st, assignmentData, null /* send rbp */);
             }
         }
 
-        private static GenResult recursiveAccessGenerate(Token name, SymbolTable currentMethodScope, SymbolTable st, MemoryDataId assigmentData, RegisterName stackAddressingRegister)
+        private static GenResult recursiveAccessGenerate(Token name, SymbolTable currentMethodScope, SymbolTable st, MemoryDataId assigmentData, MemoryDataId stackAddressingRegister)
         {
             var contextRef = currentMethodScope.GetMethodContextRef();
-            var newRefRegister = st.MemoryAllocator.GetFreeRegister();
-            st.MemoryAllocator.MoveToRegister(contextRef.Id);
+            var newRefRegisterName = st.MemoryAllocator.GetFreeRegister();
+            var newRefRegId = new MemoryDataId(st);
+            st.MemoryAllocator.SetIdToFreeRegister(newRefRegId, newRefRegisterName);
+            //st.MemoryAllocator.MoveToRegister(contextRef.Id);
 
 
-            var reg1 = newRefRegister.ToString();
-            var reg2 = stackAddressingRegister.ToString();
+            var reg1 = newRefRegisterName.ToString();
+            var reg2 = stackAddressingRegister is null? "rbp" : stackAddressingRegister.Register.ToString();
             var offset = contextRef.Id.Rbp_Offset;
             st.Emit(string.Format("mov {0}, [{1} {2}]", reg1, reg2, offset));
-
+            if (stackAddressingRegister is null == false)
+                stackAddressingRegister.Free();
             /*
             st.MethodCode.Emit(new AsmInstruction()
             {
@@ -112,13 +116,13 @@ namespace Peak.AsmGeneration
                 if (currentMethodScope is GlobalSymbolTable)
                     Error.ErrMessage(name, "name does not exist");
                 else
-                    return recursiveAccessGenerate(name, contextRef.Context, st, assigmentData, newRefRegister);
+                    return recursiveAccessGenerate(name, contextRef.Context, st, assigmentData, newRefRegId);
             }    
             else
             {
                 st.MemoryAllocator.MoveToRegister(variable.Id);
 
-                var reg1_ = newRefRegister.ToString();
+                var reg1_ = newRefRegisterName.ToString();
                 var offset_ = variable.Id.Rbp_Offset;
                 var reg2_ = variable.Id.Register.ToString();
 

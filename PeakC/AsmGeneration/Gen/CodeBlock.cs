@@ -15,7 +15,7 @@ namespace Peak.AsmGeneration
             {
                 if (n is VariableInitNode)
                 {
-                    return VariableInit.Generate(n as VariableInitNode, st);
+                    VariableInit.Generate(n as VariableInitNode, st);
                 }
                 else if (n is BinaryNode)
                 {

@@ -60,6 +60,7 @@ namespace Peak.AsmGeneration
         {
             get
             {
+                
                 if (this.ExistInRegisters)
                 {
                     var regMap = this.allocator.RegisterMap;
@@ -91,7 +92,27 @@ namespace Peak.AsmGeneration
                 return false;
             }
         }
+
+        public void Free()
+        {
+            FreeFromRegister();
+            FreeFromStack();
+        }
         
+        public void FreeFromRegister()
+        {
+            foreach (var e in this.allocator.RegisterMap)
+                if (this == e.ContainedData)
+                    e.Free();
+        }
+
+        public void FreeFromStack()
+        {
+            foreach (var e in this.allocator.StackModel)
+                if (this == e.ContainedData)
+                    e.Free();
+        }
+
         public int Rbp_Offset
         {
             get
@@ -258,7 +279,7 @@ namespace Peak.AsmGeneration
     class MemoryAllocator
     {
         public SymbolTable NativeSymbolTable { get; set; }
-        public MemoryDataId RBP_dataId { get; set; } // in bytes, is the address to witch bp/ref point
+        public MemoryDataId RBP_dataId { get; set; }
 
         public List<MemoryAreaElement> StackModel = new List<MemoryAreaElement>();
 

@@ -56,8 +56,9 @@ namespace Peak.AsmGeneration
             else
                 throw new CompileException();
 
+            //e.Id.Alignment = e.Id.Size;
+            this.MemoryAllocator.AllocateInStack(e.Id, e.Id.Alignment);
             this.Data.Add(e);
-            this.MemoryAllocator.AllocateInStack(e.Id, e.Id.Size);
         }
 
         public void Emit(string instruction)

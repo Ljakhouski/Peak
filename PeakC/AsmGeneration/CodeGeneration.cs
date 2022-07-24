@@ -24,6 +24,7 @@ namespace Peak.AsmGeneration
 
         private static void generateForProgramNode(ProgramNode node, GlobalSymbolTable st)
         {
+            st.MethodCode.MethodName = "start";
             var rbpSizeOperand = GenMethodPrologueAndGet_rbp(st);
 
             foreach (Node n in node.Node)
@@ -41,7 +42,6 @@ namespace Peak.AsmGeneration
 
         public static AsmInstruction GenMethodPrologueAndGet_rbp(GlobalSymbolTable st)
         {
-            st.MethodCode.Emit("start: ");
             st.MethodCode.Emit("push rbp");
             st.MethodCode.Emit("mov rbp, rsp");
             st.MethodCode.Emit("sub rsp, ...");

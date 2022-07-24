@@ -86,7 +86,7 @@ namespace Peak.PeakC
                 var listing = assembly.GetFasmListing();
 
                 string currentDir = Directory.GetCurrentDirectory();
-                string fullPath = Path.GetFullPath(outputPath);
+                //string fullPath = Path.GetFullPath(outputPath);
 
                 using (StreamWriter writer = new StreamWriter("fasm\\output.ASM", false))
                 {
@@ -108,9 +108,8 @@ namespace Peak.PeakC
         private static void runFasm()
         {
             var arg1 = "output.ASM";
-            var arg2 = outputPath.Length == 0 ? "-o " + getStandartOutputDir() +"\\"+getName(inputPath) + ".exe" : " -o " + outputPath;
+            var arg2 = outputPath.Length == 0 ? "-o " + getStandartOutputDir() : " -o " + outputPath;
 
-            var s = "-o " + getStandartOutputDir() + "\\" + getName(inputPath) + ".exe";
             string fullFasmDirectory = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\fasm";
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -119,7 +118,7 @@ namespace Peak.PeakC
             startInfo.WorkingDirectory = fullFasmDirectory;
             startInfo.FileName = "fasm\\FASM.exe";
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.Arguments = arg1 + arg2;
+            startInfo.Arguments = arg1 + ' ' + arg2;
            
             try
             {
@@ -153,6 +152,7 @@ namespace Peak.PeakC
                         else
                         name = fullName[j] + name;
                     }
+                    return name;
                 }
             }
             throw new CompileException("separating error");
@@ -160,22 +160,14 @@ namespace Peak.PeakC
 
         private static string getStandartOutputDir()
         {
-            string currentPath = Path.GetFullPath(Directory.GetCurrentDirectory());
+            var path = Path.GetFullPath(inputPath);
 
-            var result = currentPath.Split('\\');
+            while ( path[path.Length - 1] != '\\' && path[path.Length - 1] != '/')
+                path = path.Remove(path.Length - 1);
 
-            while (result.Length != 0 && result[result.Length - 1] != "Output")
-                Array.Resize(ref result, result.Length - 1);
+            path += getName(inputPath) + ".exe";
 
-
-            var standartOutputDir = "";
-            foreach (var item in result)
-                standartOutputDir += item + '\\';
-
-            if (standartOutputDir[standartOutputDir.Length - 1] == '\\')
-                standartOutputDir.Remove(standartOutputDir.Length - 1);
-
-            return standartOutputDir;
+            return path;
         }
         public static void GenForInterpreter()
         {

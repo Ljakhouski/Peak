@@ -104,14 +104,16 @@ namespace Peak.AsmGeneration
 
             foreach(AsmMethod method in Code)
             {
-                output += "\n\n\n";
-                
+                output += "\n";
+                output += method.MethodName + ':' + '\n';
+
                 foreach(AsmInstruction instruction in method.Code)
                 {
                     string line = getInstructionListing(instruction) + '\n';
                     output += line;
                 }
             }
+
             if (RData.Count > 0)
             {
                 output += "\nsection '.rdata' data readable \n";
@@ -120,6 +122,7 @@ namespace Peak.AsmGeneration
                     output += S;
 
             }
+
             if (IData.Count > 0)
             {
                 output += "\nsection '.idata' data readable import \n";
@@ -133,11 +136,10 @@ namespace Peak.AsmGeneration
         private string getInstructionListing(AsmInstruction instruction)
         {
             string output = "    ";
-
             output += instruction.content;
 
             if (instruction.comment != null && instruction.comment.Length != 0)
-                output += "    ;"+instruction.comment;
+                output += "    ;" + instruction.comment;
             return output;
         }
     }
