@@ -33,7 +33,7 @@ namespace Peak.AsmGeneration
                 if (v is null)
                 {
                     // search in other method-frames
-                    return getVarRecursive(node, st, st, RegisterName.rbp);
+                    return getVarRecursive(node, st, st, null /* send rbp */);
 
                 }
                 else if (v is VariableTableElement) // if is variable in the top-local-frame
@@ -57,9 +57,9 @@ namespace Peak.AsmGeneration
             throw new CompileException();
         }
 
-        private static GenResult getVarRecursive(IdentifierNode node, SymbolTable searchContext, SymbolTable st /* for code-gen and for stack/register managment*/, RegisterName framePointer)
+        private static GenResult getVarRecursive(IdentifierNode node, SymbolTable searchContext, SymbolTable st /* for code-gen and for stack/register managment*/, MemoryDataId framePointer)
         {
-            // 1: take ref on next context
+            // 1: take ref (where point on rbp in frame) on the next context
             // 2: if frame contains -> mov r?x, [ref+var_offset]
             // no? call GetVarRecursive() with ref.Context (it is the same context for var searching) and with ref (place of register with ref-address)
 
@@ -69,14 +69,16 @@ namespace Peak.AsmGeneration
                 Error.ErrMessage(node.Id, "name does not exist");
             else
             {
-                //var offset = st.MemoryAllocator.Find(mRef.Id).
                 if (mRef.Id.ExistInRegisters == false)
                 {
-                    var outputRegister = st.MemoryAllocator.GetFreeRegister(); // this register will be free after finding
-
+                    var newRbpReg = st.MemoryAllocator.GetNewIdInRegister(); // this register will be free after finding
+                  
                     var offset = mRef.Id.Rbp_Offset.ToString();
 
-                    st.Emit(string.Format("mov {0}, [{1} {2}]", outputRegister.ToString(), framePointer.ToString(), offset));
+                    var reg1 = newRbpReg.Register.ToString();
+                    var reg2 = framePointer is null ? "rbp" : framePointer.Register.ToString();
+                    st.Emit(string.Format("mov {0}, [{1} {2}]", reg1, reg2, offset));
+                    framePointer.Free();
                     /*
                     st.MethodCode.Emit(
                         InstructionName.Mov,
@@ -93,9 +95,10 @@ namespace Peak.AsmGeneration
                     if (e is null == false && e is VariableTableElement) // if variable found
                     {
                         // mov r?x, [output + offset_2]
+                        var outputDataRegisterId = st.MemoryAllocator.GetNewIdInRegister();
                         var offset_ = mRef.Id.Rbp_Offset;
-                        st.Emit(string.Format("mov {0}, [{1} {2}]", outputRegister.ToString(), outputRegister, offset_));
-
+                        st.Emit(string.Format("mov {0}, [{1} {2}]", outputDataRegisterId.Register, reg1, offset_));
+                        newRbpReg.Free();
                         /*
                         st.MethodCode.Emit(
                             InstructionName.Mov,
@@ -107,7 +110,7 @@ namespace Peak.AsmGeneration
                                 Offset = mRef.Id.Rbp_Offset
                             });*/
 
-                        st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputRegister);
+                        st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputDataRegisterId.Register);
                         //var outputRegisterId =  st.MemoryAllocator.ReserveFreeRegister(framePointer, st);
                         return new GenResult() { ResultType = e.Type, ReturnDataId = (e as VariableTableElement).Id };
                     }
@@ -116,12 +119,12 @@ namespace Peak.AsmGeneration
                         if (searchContext is GlobalSymbolTable)
                             Error.ErrMessage(node.Id, "name does not exist");
                         else
-                            return getVarRecursive(node, mRef.Context, st, framePointer /* output (then to take next frame-pointer inside, need add offset with output-register) */);
+                            return getVarRecursive(node, mRef.Context, st, newRbpReg /* output (then to take next frame-pointer inside, need add offset with output-register) */);
                     }
                 }
                 else
                     throw new CompileException(); // method-context-reference always place in stack
-                            }
+            }
             throw new CompileException();
         }
     }

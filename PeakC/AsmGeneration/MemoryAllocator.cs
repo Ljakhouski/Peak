@@ -375,6 +375,13 @@ namespace Peak.AsmGeneration
             return register.Register;
         }
 
+        public MemoryDataId GetNewIdInRegister()
+        {
+            var reg = GetFreeRegister();
+            var id = new MemoryDataId(this.NativeSymbolTable);
+            SetIdToFreeRegister(id, reg);
+            return id;
+        }
         private RegisterMapElement getOldestRegister()
         {
             int minimalUsage = 0;

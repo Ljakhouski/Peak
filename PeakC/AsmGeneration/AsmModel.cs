@@ -137,10 +137,43 @@ namespace Peak.AsmGeneration
         {
             string output = "    ";
             output += instruction.content;
+            InsertPlusSymbolToOffset(ref output);
 
             if (instruction.comment != null && instruction.comment.Length != 0)
                 output += "    ;" + instruction.comment;
             return output;
+        }
+
+
+        // mov r?x, [r?x 64]   ->   mov r?x, [r?x + 64]
+        private void InsertPlusSymbolToOffset(ref string input)
+        {
+            bool isInSqureParents = false;
+
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                if (input[i] == '[')
+                    isInSqureParents = true;
+                if (input[i] == ']')
+                    isInSqureParents = false;
+
+                if (isInSqureParents && input[i] == '-')
+                    return;
+
+                if (isInSqureParents && IsNumber(input[i]))
+                    input.Insert(i, "-");
+            }
+            return;
+
+            bool IsNumber(char ch)
+            {
+                var numbers = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+                foreach (char ch2 in numbers)
+                    if (ch2 == ch)
+                        return true;
+                return false;
+            }
         }
     }
 }

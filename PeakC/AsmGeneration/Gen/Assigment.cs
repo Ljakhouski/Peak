@@ -78,21 +78,19 @@ namespace Peak.AsmGeneration
             }
         }
 
-        private static GenResult recursiveAccessGenerate(Token name, SymbolTable currentMethodScope, SymbolTable st, MemoryDataId assigmentData, MemoryDataId stackAddressingRegister)
+        private static GenResult recursiveAccessGenerate(Token name, SymbolTable currentMethodScope, SymbolTable st, MemoryDataId assigmentData, MemoryDataId framePointer)
         {
             var contextRef = currentMethodScope.GetMethodContextRef();
-            var newRefRegisterName = st.MemoryAllocator.GetFreeRegister();
-            var newRefRegId = new MemoryDataId(st);
-            st.MemoryAllocator.SetIdToFreeRegister(newRefRegId, newRefRegisterName);
+            var newRbpRegId = st.MemoryAllocator.GetNewIdInRegister();
             //st.MemoryAllocator.MoveToRegister(contextRef.Id);
 
 
-            var reg1 = newRefRegisterName.ToString();
-            var reg2 = stackAddressingRegister is null? "rbp" : stackAddressingRegister.Register.ToString();
+            var reg1 = newRbpRegId.ToString();
+            var reg2 = framePointer is null? "rbp" : framePointer.Register.ToString();
             var offset = contextRef.Id.Rbp_Offset;
             st.Emit(string.Format("mov {0}, [{1} {2}]", reg1, reg2, offset));
-            if (stackAddressingRegister is null == false)
-                stackAddressingRegister.Free();
+            if (framePointer is null == false)
+                framePointer.Free();
             /*
             st.MethodCode.Emit(new AsmInstruction()
             {
@@ -116,17 +114,19 @@ namespace Peak.AsmGeneration
                 if (currentMethodScope is GlobalSymbolTable)
                     Error.ErrMessage(name, "name does not exist");
                 else
-                    return recursiveAccessGenerate(name, contextRef.Context, st, assigmentData, newRefRegId);
+                    return recursiveAccessGenerate(name, contextRef.Context, st, assigmentData, framePointer);
             }    
             else
             {
-                st.MemoryAllocator.MoveToRegister(variable.Id);
 
-                var reg1_ = newRefRegisterName.ToString();
+
+                st.MemoryAllocator.MoveToRegister(assigmentData);
                 var offset_ = variable.Id.Rbp_Offset;
-                var reg2_ = variable.Id.Register.ToString();
 
-                st.Emit(string.Format("mov [{0} {1}], {2}", reg1, offset, reg2));
+                st.Emit(string.Format("mov [{0} {1}], {2}", newRbpRegId.Register.ToString(), offset, assigmentData.Register.ToString()));
+
+                assigmentData.FreeFromRegister();
+               // variable.Id = assigmentData.Id;
                 /*st.MethodCode.Emit(new AsmInstruction()
                 {
                     InstructionName = InstructionName.Mov,
