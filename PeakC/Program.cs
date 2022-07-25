@@ -16,6 +16,7 @@ namespace Peak.PeakC
         public static string name = "";
         public static bool   showInfo = false;
         public static bool   genByteCodeForInterpreter = false;
+        public static bool   printAsmtListing = false;
         static void Main(string[] args)
         {
             if (args.Length > 0)
@@ -43,6 +44,11 @@ namespace Peak.PeakC
                     else if (args[i] == "-i")
                     {
                         showInfo = true;
+                        i++;
+                    }
+                    else if (args[i] == "-l")
+                    {
+                        printAsmtListing = true;
                         i++;
                     }
                     else if (args[i] == "-bc")
@@ -84,6 +90,8 @@ namespace Peak.PeakC
             {
                 var assembly = AsmGeneration.CodeGeneration.GetAsmAssembly(n);
                 var listing = assembly.GetFasmListing();
+                if (printAsmtListing)
+                    Console.Write("\n\n        *** FASM listing: ***\n\n\n" + listing);
 
                 string currentDir = Directory.GetCurrentDirectory();
                 //string fullPath = Path.GetFullPath(outputPath);
@@ -108,7 +116,7 @@ namespace Peak.PeakC
         private static void runFasm()
         {
             var arg1 = "output.ASM";
-            var arg2 = outputPath.Length == 0 ? "-o " + getStandartOutputDir() : " -o " + outputPath;
+            var arg2 = outputPath.Length == 0 ? "-o " + " output.exe" /*getStandartOutputDir()*/ : " -o " + outputPath;
 
             string fullFasmDirectory = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\fasm";
 

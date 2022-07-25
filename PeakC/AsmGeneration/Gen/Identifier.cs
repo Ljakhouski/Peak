@@ -29,22 +29,7 @@ namespace Peak.AsmGeneration
             }
             else if (data is VariableTableElement)
             {
-                var v = st.GetFromMethodContext(node.Id);
-                if (v is null)
-                {
-                    // search in other method-frames
-                    return getVarRecursive(node, st, st, null /* send rbp */);
-
-                }
-                else if (v is VariableTableElement) // if is variable in the top-local-frame
-                {
-                    var result = new ConstantResult()
-                    {
-                        ResultType = v.Type,
-                        ReturnDataId = (v as VariableTableElement).Id
-                    };
-                    return result;
-                }
+                return getVarData(node, st);
             }
             else if (data is MethodTableElement)
             {
@@ -57,6 +42,30 @@ namespace Peak.AsmGeneration
             throw new CompileException();
         }
 
+
+        private static GenResult getVarData(IdentifierNode node, SymbolTable st)
+        {
+            var v = st.GetFromMethodContext(node.Id) as VariableTableElement;
+
+            // search in local contexts: in the current-frame and or in other frames
+
+            if (v is null)
+            {
+                // search in other method-frames
+                return getVarRecursive(node, st, st, null /* send rbp */);
+            }
+            else
+            {
+                var outputId = st.MemoryAllocator.GetNewIdInRegister();
+                st.Emit(string.Format("mov {0}, [rbp {1}]", outputId.Register.ToString(), v.Id.Rbp_Offset.ToString()));
+                var result = new GenResult()
+                {
+                    ResultType = v.Type,
+                    ReturnDataId = outputId
+                };
+                    return result;
+            }
+        }
         private static GenResult getVarRecursive(IdentifierNode node, SymbolTable searchContext, SymbolTable st /* for code-gen and for stack/register managment*/, MemoryDataId framePointer)
         {
             // 1: take ref (where point on rbp in frame) on the next context

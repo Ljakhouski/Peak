@@ -17,6 +17,10 @@ namespace Peak.AsmGeneration
             {
                 return Identifier.Generate(node as IdentifierNode, st);
             }
+            else if (node is BinaryNode)
+            {
+                return BinaryOperator.Generate(node as BinaryNode, st);
+            }
             else throw new CompileException();
         }
     }
