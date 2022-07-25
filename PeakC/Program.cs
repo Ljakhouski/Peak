@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using Peak.AsmGeneration;
 using Peak.CodeGeneration;
@@ -64,7 +65,7 @@ namespace Peak.PeakC
                 return;
             }
 
-            if (showInfo) Console.WriteLine("compiling " + inputPath + "  |  current directory: " + Directory.GetCurrentDirectory());
+            if (showInfo) Console.WriteLine("compiling " + inputPath + "  |  output path: " + outputPath);
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
@@ -93,10 +94,9 @@ namespace Peak.PeakC
                 if (printAsmtListing)
                     Console.Write("\n\n        *** FASM listing: ***\n\n\n" + listing);
 
-                string currentDir = Directory.GetCurrentDirectory();
-                //string fullPath = Path.GetFullPath(outputPath);
+                string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-                using (StreamWriter writer = new StreamWriter("fasm\\output.ASM", false))
+                using (StreamWriter writer = new StreamWriter(currentDir + "\\fasm\\output.ASM", false))
                 {
                     writer.WriteLine(listing);
                 }
@@ -114,19 +114,30 @@ namespace Peak.PeakC
         }
 
         private static void runFasm()
-        {
+        {            
             var arg1 = "output.ASM";
-            var arg2 = outputPath.Length == 0 ? "-o " + " output.exe" /*getStandartOutputDir()*/ : " -o " + outputPath;
+            var outputPEName = "";
+            var outputPEPath = "";
+            if (outputPath == "")
+            {
+                outputPEName = getName(inputPath) + ".exe"; 
+                outputPEPath = Path.GetDirectoryName(Path.GetFullPath(inputPath));
+            }
+            else
+            {
+                outputPEName = getName(outputPath) + ".exe";
+                outputPEPath = Path.GetDirectoryName(Path.GetFullPath(outputPath));
+            }            
 
-            string fullFasmDirectory = Path.GetFullPath(Directory.GetCurrentDirectory()) + "\\fasm";
-
+            string fullFasmDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\fasm";
+            Console.WriteLine(fullFasmDirectory);
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.UseShellExecute = false;
             startInfo.RedirectStandardOutput = true;
             startInfo.WorkingDirectory = fullFasmDirectory;
             startInfo.FileName = "fasm\\FASM.exe";
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.Arguments = arg1 + ' ' + arg2;
+            startInfo.Arguments = arg1 + " " + outputPEName;
            
             try
             {
@@ -137,8 +148,9 @@ namespace Peak.PeakC
                     var reader = exeProcess.StandardOutput;
                     var output = reader.ReadToEnd();
                     exeProcess.WaitForExit();
-                    Console.WriteLine(output);
                 }
+
+                File.Copy(fullFasmDirectory + '\\' + outputPEName, outputPEPath + '\\' + outputPEName, true);
             }
             catch(Exception e)
             {
@@ -165,7 +177,15 @@ namespace Peak.PeakC
             }
             throw new CompileException("separating error");
         }
-
+        /*
+        private static string getPath(string input)
+        {
+            for (int i = input.Length - 1; i >=0; i--)
+                if (input[i]=='\\' || input[i]=='/')
+                    return input.Substring(0, i + 1);
+            
+            return input;
+        }*/
         private static string getStandartOutputDir()
         {
             var path = Path.GetFullPath(inputPath);
