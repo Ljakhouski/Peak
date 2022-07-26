@@ -118,7 +118,7 @@ namespace Peak.AsmGeneration
             get
             {
                 foreach (var e in this.allocator.StackModel)
-                    if (e.ContainedData == this)
+                    if ( this == e.ContainedData)
                         return e.Rbp_Offset;
 
                 throw new CompileException();
@@ -237,7 +237,7 @@ namespace Peak.AsmGeneration
         {
              get
              {
-                 return this.Allocator.RBP_dataId.StackOffset - this.StackOffset;
+                 return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
              }
         }
 
@@ -249,7 +249,7 @@ namespace Peak.AsmGeneration
 
                 foreach (var e in this.Allocator.StackModel)
                 {
-                    absoluteOffset += e.Size;
+                    absoluteOffset -= e.Size;
 
                     if (this == e)
                     {
@@ -400,53 +400,59 @@ namespace Peak.AsmGeneration
         {
             defragmentateStackModel();
 
-            var freeSpaces = new List<int>();
+            var freeSpaces = new List<MemoryAreaElement>();
 
             for (int i = 0; i < StackModel.Count; i++)
                 if (StackModel[i].IsFree() && StackModel[i].Size >= areaSize)
-                    freeSpaces.Add(i);
+                    freeSpaces.Add(StackModel[i]);
 
-
-
+            sortFreeSpaces();
 
             if (freeSpaces.Count > 0)
-            {
-
-                int minimalSize = 0;
-                MemoryAreaElement minimalArea = null;
-
-                // get the element with minimal area size
-
-                foreach (int i in freeSpaces)
-                    if (StackModel[i].Size < minimalSize)
-                    {
-                        minimalSize = StackModel[i].Size;
-                        minimalArea = StackModel[i];
-                    }
-
-
-                
-
-
-
-                if (minimalArea.Size == areaSize)
+                foreach (var element in freeSpaces)
                 {
-                    StackModel[freeSpaces[0]].ContainedData = new MemoryDataId(NativeSymbolTable);
-                    return StackModel[freeSpaces[0]];
+                    if (AlignUpAbsolute(element.StackOffset, alignment) == element.StackOffset && element.Size == areaSize)
+                        return element;
+                    else
+                        return expandStackModel();
+                    //else if ()
                 }
-                else
+
+            return expandStackModel();
+               
+
+            void sortFreeSpaces()
+            {
+                MemoryAreaElement temp;
+
+                for (int write = 0; write < freeSpaces.Count; write++)
                 {
-                    return selectFreeMemoryAreaInStack(freeSpaces[0], areaSize);
+                    for (int sort = 0; sort < freeSpaces.Count - 1; sort++)
+                    {
+                        if (freeSpaces[sort].Size > freeSpaces[sort + 1].Size)
+                        {
+                            temp = freeSpaces[sort + 1];
+                            freeSpaces[sort + 1] = freeSpaces[sort];
+                            freeSpaces[sort] = temp;
+                        }
+                    }
                 }
             }
-            else
-            {
-                if (GetFrameSize() % alignment != 0) 
-                {
 
+            MemoryAreaElement expandStackModel()
+            {
+                if (GetFrameSize() % alignment != 0)
+                {
+                    var size = AlignUpAbsolute(GetFrameSize(), alignment) - GetFrameSize();
+                    StackModel.Add(new MemoryAreaElement(this) { Size = size, ContainedData = null });
+                    var ae = new MemoryAreaElement(this) { Size = areaSize };
+                    StackModel.Add(ae);
+                    return ae;
                 }
-                StackModel.Add(new MemoryAreaElement(this) { Size = areaSize });
-                return StackModel[StackModel.Count - 1];
+
+                var e = new MemoryAreaElement(this) { Size = areaSize };
+                StackModel.Add(e);
+                return e;
             }
         }
 
