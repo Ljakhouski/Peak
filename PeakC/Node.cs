@@ -31,7 +31,7 @@ namespace Peak.PeakC
         }
     }*/
 
-    class ConstantInitNode: Node
+    class ConstantInitNode : Node
     {
         public Token Name { get; set; }
         public ConstantInitNode(Token name)
@@ -74,7 +74,7 @@ namespace Peak.PeakC
     {
         public List<Node> Sequence { get; set; }
         public DotNode()
-        {}
+        { }
     }
 
     class BinaryNode : Node
@@ -83,7 +83,7 @@ namespace Peak.PeakC
         public Node Left { get; set; }
         public Node Right { get; set; }
 
-        public BinaryNode(Token binaryOperator, Node left=null, Node right=null)
+        public BinaryNode(Token binaryOperator, Node left = null, Node right = null)
         {
             this.Operator = binaryOperator;
             this.Left = left;
@@ -97,7 +97,7 @@ namespace Peak.PeakC
 
         public ProgramNode()
         {
-            
+
         }
     }
 
@@ -108,7 +108,7 @@ namespace Peak.PeakC
 
         public CodeBlockNode()
         {
-            
+
         }
     }
     /*
@@ -134,10 +134,18 @@ namespace Peak.PeakC
         public Node RetType { get; set; }
         public Token Name { get; set; }
         public CodeBlockNode Code { get; set; }
+        public Token DllPath { get; set; }
 
         public MethodNode(ModifierNode modifiers, Token name, Node args, Node retType, CodeBlockNode code = null)
         {
             this.Modifiers = modifiers;
+            this.Name = name;
+            this.Args = args;
+            this.RetType = retType;
+            this.Code = code;
+        }
+        public MethodNode(Token name, Node args, Node retType, CodeBlockNode code = null)
+        {
             this.Name = name;
             this.Args = args;
             this.RetType = retType;
@@ -152,6 +160,13 @@ namespace Peak.PeakC
         public bool IsProc()
         {
             return !IsFunc();
+        }
+
+        public bool IsFromDll()
+        {
+            if (this.DllPath is null)
+                return false;
+            return true;
         }
     }
 
@@ -191,7 +206,7 @@ namespace Peak.PeakC
     {
         public Token Id { get; set; }
         public Node Args { get; set; }
-        
+
         public MethodCallNode(Token id, Node args = null)
         {
             this.Id = id;
@@ -203,7 +218,7 @@ namespace Peak.PeakC
     {
         public Token LoadFileName { get; set; }
 
-        public LoadNode (Token loadFileName)
+        public LoadNode(Token loadFileName)
         {
             this.LoadFileName = loadFileName;
         }
@@ -244,6 +259,47 @@ namespace Peak.PeakC
         public CodeBlockNode ElseCode { get; set; }
     }
 
+    class IfElifNode : IfNode // contains if - else if - else statements
+    {
+        // IfNode in ElseIfNodes contains only "if"-statement (ElseCode = null)
+        public List<IfNode> ElseIfNodes { get; set; } = new List<IfNode>();
+
+        public IfNode ConvertToIfNode()
+        {
+            if (this.ElseIfNodes.Count == 0)
+                return this;
+
+            var node = new IfNode();
+            node.Condition = this.Condition;
+            node.IfTrueCode = this.IfTrueCode;
+            node.ElseCode = recursiveDivOnIfAndElse();
+            node.MetaInf = this.MetaInf;
+            return node;
+        }
+
+        private CodeBlockNode recursiveDivOnIfAndElse(int currentElifNode = 0)
+        {
+            if (ElseIfNodes.Count <= currentElifNode)
+            {
+                return this.ElseCode;
+            }
+            else return new CodeBlockNode()
+            {
+                Node = new List<Node>()
+                {
+                    new IfNode()
+                    {
+                        Condition = this.ElseIfNodes[currentElifNode].Condition,
+                        ElseCode = recursiveDivOnIfAndElse(currentElifNode + 1)
+                    }
+                }
+            };
+        }
+    }
+
+
+
+    
     class WhileNode : Node
     {
         public Node Condition { get; set; }

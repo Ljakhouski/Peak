@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29920.165
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PeakC", "PeakC\PeakC.csproj", "{41055462-4C0A-4440-BBEB-AF1747667EAC}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -11,6 +11,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RuntimeEnvironment", "RuntimeEnvironment\RuntimeEnvironment.csproj", "{08BE310B-5ABF-4C3B-9DD2-081BB0A7156B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IDE", "IDE\IDE.csproj", "{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDE", "PDE\PDE.csproj", "{E6B21505-83C0-4E83-99C9-7585EBA44401}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,10 @@ Global
 		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6B21505-83C0-4E83-99C9-7585EBA44401}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6B21505-83C0-4E83-99C9-7585EBA44401}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6B21505-83C0-4E83-99C9-7585EBA44401}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6B21505-83C0-4E83-99C9-7585EBA44401}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

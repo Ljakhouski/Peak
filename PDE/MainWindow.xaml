@@ -1,0 +1,24 @@
+﻿<Window x:Class="PDE.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:PDE"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="750" Width="800"  Background="#FF202323">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
+
+        <local:TabControl x:Name="mainTabControl" Grid.Row="1"/>
+
+        <GridSplitter Background="#FF313238" Grid.Row="2" Height="10"
+         HorizontalAlignment="Stretch" VerticalAlignment="Center" >
+        </GridSplitter>
+    </Grid>
+    
+    
+</Window>

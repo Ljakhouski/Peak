@@ -9,21 +9,21 @@ namespace Peak.PeakC.Parser
         Global,
         Local
     }
-    class Parser 
-    { 
+    class Parser
+    {
         /* Common LL(k=1) parser */
 
         private Lexer lexer;
         private Preprocessor preproc;
-        
+
         private List<Token> usedTokens = new List<Token>();
         int position = -1;
-        private Token t 
-        { 
-            get 
+        private Token t
+        {
+            get
             {
-                return position>=0? usedTokens[position] : null; 
-            } 
+                return position >= 0 ? usedTokens[position] : null;
+            }
         }
 
         private List<string> loadetFileNames = new List<string>();
@@ -104,7 +104,7 @@ namespace Peak.PeakC.Parser
         {
             if ((next() && t.Type == type.Identifier) == false)
                 Error.ErrMessage(t, "expected name");
-            
+
             return t;
         }
 
@@ -130,7 +130,7 @@ namespace Peak.PeakC.Parser
                     }
                 else
                     return programNode;
-                    
+
             }
             programNode.Node.Add(parse(NonterminalType.CodeBlock));
             if (next())
@@ -148,7 +148,7 @@ namespace Peak.PeakC.Parser
             switch (nt.Type)
             {
                 case NonterminalType.Program: // contains <load "...">
-                    return parseProgram();                    
+                    return parseProgram();
                 case NonterminalType.CodeBlock:
                     return parseCodeBlock();
                 case NonterminalType.Modifier:
@@ -169,9 +169,9 @@ namespace Peak.PeakC.Parser
                     if (nt.IsBinary)
                         return parseBinary(nt);
                     break;
-                    
+
             }
-            
+
             throw new CompileException();
         }
 
@@ -181,9 +181,9 @@ namespace Peak.PeakC.Parser
             {
                 var metaInf = t;
                 expect(type.StrValue);
-                var s = t; 
-                expect(";"); 
-                return new LoadNode(s) { MetaInf = metaInf};
+                var s = t;
+                expect(";");
+                return new LoadNode(s) { MetaInf = metaInf };
             }
             else
                 throw new CompileException();
@@ -197,13 +197,14 @@ namespace Peak.PeakC.Parser
 
                 if (!nextExist())
                     return n;
-                
+
                 else if (getNext() == "]")
                     return n;
 
                 else
-                    n.Node.Add(parseCodeBlockExpression());       
+                    n.Node.Add(parseCodeBlockExpression());
         }
+
         private Node parseCodeBlockExpression()
         {
             /* parsing if-else-while-proc-func-varInit 
@@ -250,87 +251,40 @@ namespace Peak.PeakC.Parser
                     return new VariableInitNode(name);
                 }
             }
-            else if (getNext() == "proc")
+            else if (getNext() == "import")
             {
                 next();
-                var name = expectName();
-                expect("(");
-                var args = parse(NonterminalType.Args);
-                expect(")");
-
-                if (getNext() == ";")
+                if (getNext() == "proc" || getNext() == "func")
                 {
-                    next();
-                    return new MethodNode(getModifier(), name, args, retType: null);
-                }
-                else if (getNext() == "[")
-                {
-                    next();
-                    var bn = parse(NonterminalType.CodeBlock);
-                    expect("]");
-                    return new MethodNode(getModifier(), name, args, retType: null, (CodeBlockNode)bn);
+                    var node = parseMethod();
+                    if (node.Code == null)
+                    {
+                        expect("from");
+                        expect(type.StrValue);
+                        node.DllPath = t;
+                        expect(";");
+                        return node;
+                    }
+                    else
+                        Error.ErrMessage(node.Code.MetaInf, "method code not expected");
                 }
                 else
-                    Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
-                
+                    Error.ErrMessage(t, "\"func\" or \"proc\" expected");
             }
-            else if (getNext() == "func")
+            else if (getNext() == "proc" || getNext() == "func")
             {
-                next();
-                expect("(");
-                var retType = parse(NonterminalType.Data);
-                expect(")");
-
-                var name = expectName();
-
-                expect("(");
-                var args = parse(NonterminalType.Args);
-                expect(")");
-
-                if (getNext() == ";")
-                {
-                    next();
-                    return new MethodNode(getModifier(), name, args, retType);
-                }
-                else if (getNext() == "[")
-                {
-                    next();
-                    var block = parse(NonterminalType.CodeBlock) as CodeBlockNode;
-                    expect("]");
-                    return new MethodNode(getModifier(), name, args, retType, block);
-                }
-                else
-                    Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+                return parseMethod();
             }
             else if (getNext() == "if")
             {
-                next();
-                var metaInfToken = t;
+                return parseIf().ConvertToIfNode();
                 
-                var condition = parse(NonterminalType.AndOr);
-                expect("[");
-                var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
-                expect("]");
-
-                var node = new IfNode() { Condition = condition, IfTrueCode = code, MetaInf = metaInfToken };
-
-                if (getNext() == "else")
-                {
-                    next();
-                    expect("[");
-                    var elseCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
-                    expect("]");
-
-                    node.ElseCode = elseCode;
-                }
-
-                return node;
             }
             else if (getNext() == "while")
             {
                 next();
                 var metaInfToken = t;
-                
+
                 var condition = parse(NonterminalType.AndOr);
                 expect("[");
                 var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
@@ -349,7 +303,7 @@ namespace Peak.PeakC.Parser
                 if (maybeTypeExpression(expr))
                 {
                     var varInitNode = new VariableInitNode(
-                        expr, 
+                        expr,
                         expectName()
                         );
 
@@ -367,7 +321,7 @@ namespace Peak.PeakC.Parser
                         expect(";");
                         return varInitNode;
                     }
-                        //Error.ErrMessage(getNext(), "expected \"<<\"");
+                    //Error.ErrMessage(getNext(), "expected \"<<\"");
 
                 }
                 else
@@ -383,6 +337,135 @@ namespace Peak.PeakC.Parser
             throw new CompileException();
         }
 
+        private IfElifNode parseIf()
+        {
+            expect("if");
+            var metaInfToken = t;
+
+            var condition = parse(NonterminalType.AndOr);
+            expect("[");
+            var code = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+            expect("]");
+
+            var node = new IfElifNode() { Condition = condition, IfTrueCode = code, MetaInf = metaInfToken };
+
+
+            const bool else_if_Sequence = true;
+            while (else_if_Sequence)
+            {
+                if (getNext() == "else")
+                {
+                    expect("else");
+                    if (getNext() == "if")
+                    {
+                        var elifCondition = parse(NonterminalType.AndOr);
+                        expect("[");
+                        var elifCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                        expect("]");
+                        node.ElseIfNodes.Add(new IfNode() { Condition = elifCondition, IfTrueCode = elifCode });
+                    }
+                    else
+                    {
+                        parseElse();
+                        return node;
+                    }
+                }
+                else if (getNext() == "elif")
+                {
+                    var elifCondition = parse(NonterminalType.AndOr);
+                    expect("[");
+                    var elifCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                    expect("]");
+                    node.ElseIfNodes.Add(new IfNode() { Condition = elifCondition, IfTrueCode = elifCode });
+                }
+                else
+                    break;
+            }
+
+            if (getNext() == "else")
+            {
+                parseElse();
+                return node;
+            }
+            return node;
+
+            void parseElse()
+            {
+                next();
+                if (getNext() == "[")
+                {
+                    expect("[");
+                    var elseCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                    expect("]");
+
+                    node.ElseCode = elseCode;
+                }
+                else
+                    Error.ErrMessage(t, "[] expected");
+            }
+        }
+        private MethodNode parseMethod()
+        {
+            if (getNext() == "func")
+                return parseFunc();
+            else if (getNext() == "proc")
+                return parseProc();
+            else
+                throw new CompileException();
+        }
+        private MethodNode parseProc()
+        {
+            expect("proc");
+            var name = expectName();
+            expect("(");
+            var args = parse(NonterminalType.Args);
+            expect(")");
+
+            if (getNext() == "[")
+            {
+                next();
+                var bn = parse(NonterminalType.CodeBlock);
+                expect("]");
+                return new MethodNode(name, args, retType: null, (CodeBlockNode)bn);
+            }
+            else
+                return new MethodNode(name, args, retType: null);
+            Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+
+
+        }
+
+        private MethodNode parseFunc()
+        {
+            expect("func");
+            expect("(");
+            var retType = parse(NonterminalType.Data);
+            if (maybeTypeExpression(retType) == false) Error.ErrMessage(t, "expected type expression");
+            expect(")");
+
+            var name = expectName();
+
+            expect("(");
+            var args = parse(NonterminalType.Args);
+            expect(")");
+
+            if (getNext() == ";")
+            {
+                next();
+                return new MethodNode(name, args, retType);
+            }
+            else if (getNext() == "[")
+            {
+                next();
+                var block = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                expect("]");
+                return new MethodNode(name, args, retType, block);
+            }
+            else
+                Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+                throw new CompileException();
+        }
+
         private Node parseModifier()
         {
             var mn = new ModifierNode();
@@ -393,7 +476,7 @@ namespace Peak.PeakC.Parser
                 return new EmptyNode();
             else
                 return mn;
-            
+
         }
         private Node parseDot()
         {
@@ -427,7 +510,7 @@ namespace Peak.PeakC.Parser
                     return n;
             }
         }
-        
+
         private Node parseSequence()
         {
             Node n = parse(NonterminalPreority.GetNextByPreority(NonterminalType.AndOr));
@@ -445,7 +528,7 @@ namespace Peak.PeakC.Parser
                         Error.ErrMessage(t, "expression expected");
                     else
                         sequence.Sequence.Add(expr);
-                    
+
                 }
                 return sequence;
 
@@ -453,12 +536,12 @@ namespace Peak.PeakC.Parser
             else
                 return n;
 
-            
+
         }
         private Node parseBinary(Nonterminal nonterm) // <binaryEpxr> -> <binaryEpxr> operator <expr> | <expr> 
         {
             Node n;
-            
+
             n = parse(NonterminalPreority.GetNextByPreority(nonterm));
             while (true)
             {
@@ -477,7 +560,7 @@ namespace Peak.PeakC.Parser
                 else
                     return n;
             }
-            
+
         }
         private Node parseMethodCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
         {
@@ -496,10 +579,10 @@ namespace Peak.PeakC.Parser
                     expect(")");
                     return n;
                 }
-                   
+
             }
             return expr;
-                
+
         }
         private Node parseData()
         {
@@ -520,9 +603,9 @@ namespace Peak.PeakC.Parser
                 else
                     return new ConstValueNode(t);
             }
-            else if (t.Type == type.StrValue   ) return new ConstValueNode(t);
-            else if (t.Type == type.BoolValue  ) return new ConstValueNode(t);
-            else if (t.Type == type.Identifier ) return new IdentifierNode(t);
+            else if (t.Type == type.StrValue) return new ConstValueNode(t);
+            else if (t.Type == type.BoolValue) return new ConstValueNode(t);
+            else if (t.Type == type.Identifier) return new IdentifierNode(t);
             /*{
                 if (getNext() == "(")
                 {
@@ -536,7 +619,7 @@ namespace Peak.PeakC.Parser
             else
                 Error.ErrMessage(t, "identifier expected");
 
-            throw new CompileException();           
+            throw new CompileException();
         }
 
         private Node parseWordOperator()
@@ -572,7 +655,7 @@ namespace Peak.PeakC.Parser
             else
                 Error.ErrMessage(t, "type expression expected");
 
-          
+
             while (true)
                 if (getNext() == ",")
                 {
@@ -588,7 +671,7 @@ namespace Peak.PeakC.Parser
                 }
                 else
                     return n;
-            
+
         }
         private bool maybeTypeExpression(Node expr)
         {
