@@ -17,7 +17,7 @@ namespace Peak.AsmGeneration
     {
 
         public SymbolTable Source{ get; set; } // the place where he is 
-        public SymbolType Type { get; set; }
+        public SemanticType Type { get; set; }
 
         public Token NameToken { get; set; }
         public string Name { get { return NameToken.Content; } }
@@ -26,7 +26,7 @@ namespace Peak.AsmGeneration
     class VariableTableElement : TableElement
     {
         public MemoryDataId Id { get; private set; } 
-        public VariableTableElement(SymbolTable st, Token name, SymbolType type)
+        public VariableTableElement(SymbolTable st, Token name, SemanticType type)
         {
             this.Id = new MemoryDataId(st);
             this.NameToken = name;
@@ -41,14 +41,18 @@ namespace Peak.AsmGeneration
     enum CallConvention
     {
         __stdcall,
-        __ccall
+        __ccall,
+        x64_win,
+        x86_64_linux 
     }
     class MethodTableElement : TableElement
     {
         public bool IsDllImportMethod { get; set; } = false;
-        public CallConvention Convention { get; set; } = CallConvention.__stdcall;
-        public SymbolType MethodSignature { get; set; }
+        public CallConvention Convention { get; set; } = CallConvention.x64_win;
+        public SemanticType MethodSignature { get; set; }
 
+        public MethodContextReferenceElement ExternContextRef { get; set; }
+        //public Struct
     }
 
     class MethodContextReferenceElement : TableElement

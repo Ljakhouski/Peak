@@ -12,7 +12,7 @@ namespace Peak.AsmGeneration
             return new ConstantResult()
             {
                 ConstValue = node.Value,
-                ResultType = new SymbolType(node),
+                ResultType = new SemanticType(node),
                 ReturnDataId = null
             };
         }

@@ -46,11 +46,11 @@ namespace Peak.CodeGeneration
 
 
             if (/*left.Result == right.Result &&*/
-                (left.ExprResult.Value == SymbolType.Type.Int
-             || left.ExprResult.Value == SymbolType.Type.Double)
+                (left.ExprResult.Value == SemanticType.Type.Int
+             || left.ExprResult.Value == SemanticType.Type.Double)
              &&
-             (right.ExprResult.Value == SymbolType.Type.Int
-             || right.ExprResult.Value == SymbolType.Type.Double))
+             (right.ExprResult.Value == SemanticType.Type.Int
+             || right.ExprResult.Value == SemanticType.Type.Double))
             {
 
                 var result = new GenerationResult() { Nothing = false, ExprResult = left.ExprResult };
@@ -77,7 +77,7 @@ namespace Peak.CodeGeneration
                 return result;
             }
             else if (left.ExprResult == right.ExprResult &&
-               left.ExprResult.Value == SymbolType.Type.Str)
+               left.ExprResult.Value == SemanticType.Type.Str)
             {
                 throw new CompileException("temporarily unsupported");
             }
@@ -99,7 +99,7 @@ namespace Peak.CodeGeneration
             else if (right.Nothing)
                 Error.ErrMessage(n.Right.MetaInf, "expression must be return value");
 
-            var res = new GenerationResult() { Nothing = false, ExprResult = new SymbolType(SymbolType.Type.Bool) };
+            var res = new GenerationResult() { Nothing = false, ExprResult = new SemanticType(SemanticType.Type.Bool) };
             res.GeneratedByteCode.AddByteCode(left);
             res.GeneratedByteCode.AddByteCode(right);
 
@@ -109,16 +109,16 @@ namespace Peak.CodeGeneration
                 {
                     switch (left.ExprResult.Value)
                     {
-                        case SymbolType.Type.Bool:
+                        case SemanticType.Type.Bool:
                             res.GeneratedByteCode.AddByteCode(InstructionName.EqualsBool);
                             break;
-                        case SymbolType.Type.Int:
+                        case SemanticType.Type.Int:
                             res.GeneratedByteCode.AddByteCode(InstructionName.EqualsInt);
                             break;
-                        case SymbolType.Type.Double:
+                        case SemanticType.Type.Double:
                             res.GeneratedByteCode.AddByteCode(InstructionName.EqualsDouble);
                             break;
-                        case SymbolType.Type.Str:
+                        case SemanticType.Type.Str:
                             res.GeneratedByteCode.AddByteCode(InstructionName.EqualsString);
                             break;
                         default:
@@ -150,11 +150,11 @@ namespace Peak.CodeGeneration
                     res.GeneratedByteCode.AddByteCode(InstructionName.PushCopy, 2);
                 }
 
-                if (left.ExprResult.Value == SymbolType.Type.Int)
+                if (left.ExprResult.Value == SemanticType.Type.Int)
                 {
                     res.GeneratedByteCode.AddByteCode(InstructionName.MoreInt);
                 }
-                else if (left.ExprResult.Value == SymbolType.Type.Double)
+                else if (left.ExprResult.Value == SemanticType.Type.Double)
                 {
                     res.GeneratedByteCode.AddByteCode(InstructionName.MoreDouble);
                 }
@@ -185,7 +185,7 @@ namespace Peak.CodeGeneration
             }
             else if (n.Operator == "and" || n.Operator == "or")
             {
-                if (left.ExprResult == right.ExprResult && left.ExprResult.Value == SymbolType.Type.Bool)
+                if (left.ExprResult == right.ExprResult && left.ExprResult.Value == SemanticType.Type.Bool)
                     Error.ErrMessage(n.Operator, "expressions should be the bool types");
 
                 if (n.Operator == "and")

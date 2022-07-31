@@ -9,7 +9,7 @@ namespace Peak.AsmGeneration
     {
         public static GenResult Generate(CodeBlockNode node, SymbolTable st)
         {
-            var result = new EmptyGenResult() { ResultType = new SymbolType() };
+            var result = new EmptyGenResult() { ResultType = new SemanticType() };
 
             foreach (Node n in node.Node)
             {

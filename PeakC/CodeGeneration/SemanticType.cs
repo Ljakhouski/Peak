@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Peak.CodeGeneration
 {
-    class SymbolType
+    class SemanticType
     {
         public enum Type
         {
@@ -22,16 +22,16 @@ namespace Peak.CodeGeneration
             RefOnContext,
         }
         public Type Value { get; set; }
-        public SymbolType SecondValue { get; set; } // only for define type of array/struct/stack/dict...
-        public List<SymbolType> Args { get; set; }
-        public SymbolType ReturnType { get; set; } // only for procedure
+        public SemanticType SecondValue { get; set; } // only for define type of array/struct/stack/dict...
+        public List<SemanticType> Args { get; set; }
+        public SemanticType ReturnType { get; set; } // only for procedure
         public SymbolTable ContextTable { get; internal set; }
 
         public override bool Equals(object obj)
         {
-            if (obj is SymbolType)
+            if (obj is SemanticType)
             {
-                SymbolType t = (SymbolType)obj;
+                SemanticType t = (SemanticType)obj;
                 if (this.Value == t.Value)
                 {
                     if (this.Value == Type.Proc) 
@@ -50,7 +50,7 @@ namespace Peak.CodeGeneration
             else
                 return base.Equals(obj);
         }
-        public static bool operator ==(SymbolType first, SymbolType second)
+        public static bool operator ==(SemanticType first, SemanticType second)
         {
             if (first as object == null)
                 return false;
@@ -58,7 +58,7 @@ namespace Peak.CodeGeneration
             return first.Equals(second);
 
         }
-        public static bool operator !=(SymbolType first, SymbolType second)
+        public static bool operator !=(SemanticType first, SemanticType second)
         {
             return !(first == second);
             /*if (first == null)
@@ -84,40 +84,40 @@ namespace Peak.CodeGeneration
             }
         }
 
-        public SymbolType(Type type)
+        public SemanticType(Type type)
         {
             this.Value = type;
         }
 
-        public SymbolType(ConstValueNode node)
+        public SemanticType(ConstValueNode node)
         {
-            makeSymbolTypeForConst(node);
+            makeSemanticTypeForConst(node);
         }
 
-        public SymbolType(Node node)
+        public SemanticType(Node node)
         {
             if (node is ConstValueNode)
-                makeSymbolTypeForConst((ConstValueNode)node);
+                makeSemanticTypeForConst((ConstValueNode)node);
            // else if (node is ConstantNode)
-           //     makeSymbolTypeForConstantNode((ConstantNode)node);
+           //     makeSemanticTypeForConstantNode((ConstantNode)node);
             else if (node is IdentifierNode)
-                makeSymbolTypeForIdentifier((IdentifierNode)node);
+                makeSemanticTypeForIdentifier((IdentifierNode)node);
             else if (node is MethodNode)
-                makeSymbolTypeForMethod((MethodNode)node);
+                makeSemanticTypeForMethod((MethodNode)node);
             //else if (node is null)
             else
                 throw new CompileException();
         }
 
-        private void makeSymbolTypeForMethod(MethodNode node)
+        private void makeSemanticTypeForMethod(MethodNode node)
         {
             this.Value = Type.Proc;
-            this.Args = new List<SymbolType>();
+            this.Args = new List<SemanticType>();
 
-            this.ReturnType = node.RetType is null? null : new SymbolType(node.RetType);
+            this.ReturnType = node.RetType is null? null : new SemanticType(node.RetType);
             if (node.Args is VariableInitNode)
             {
-                this.Args.Add(new SymbolType(node.Args));
+                this.Args.Add(new SemanticType(node.Args));
             }
             else if (node.Args is SequenceNode)
                 foreach (Node n in (node.Args as SequenceNode).Sequence)
@@ -125,7 +125,7 @@ namespace Peak.CodeGeneration
                     if (n is VariableInitNode)
                     {
                         if ((n as VariableInitNode).Type != null)
-                            this.Args.Add(new SymbolType((n as VariableInitNode).Type));
+                            this.Args.Add(new SemanticType((n as VariableInitNode).Type));
                         else
                             Error.ErrMessage((n as VariableInitNode).Name, "expected type");
                     }
@@ -135,7 +135,7 @@ namespace Peak.CodeGeneration
                 }
         }
 
-        private void makeSymbolTypeForIdentifier(IdentifierNode node)
+        private void makeSemanticTypeForIdentifier(IdentifierNode node)
         {
             if (node.Id == "int")
             {
@@ -153,7 +153,7 @@ namespace Peak.CodeGeneration
                 Error.ErrMessage(node.Id, "currently not supported");
         }
 
-      /*  private void makeSymbolTypeForConstantNode(ConstantNode node)
+      /*  private void makeSemanticTypeForConstantNode(ConstantNode node)
         {
             if (node.Content == "int")
             {
@@ -171,7 +171,7 @@ namespace Peak.CodeGeneration
                 throw new CompileException();
         }*/
 
-        private void makeSymbolTypeForConst(ConstValueNode node)
+        private void makeSemanticTypeForConst(ConstValueNode node)
         {
             if (node.Value.Type == type.IntValue)
             {
@@ -193,7 +193,7 @@ namespace Peak.CodeGeneration
                 throw new CompileException();
         }
 
-        private bool equalsArgs(List<SymbolType> args1, List<SymbolType> args2)
+        private bool equalsArgs(List<SemanticType> args1, List<SemanticType> args2)
         {
             if (args1.Count != args2.Count)
                 return false;

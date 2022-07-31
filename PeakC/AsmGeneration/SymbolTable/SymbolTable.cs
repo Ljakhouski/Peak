@@ -10,6 +10,8 @@ namespace Peak.AsmGeneration
     {
         public SymbolTable Next { get; set; }
         public SymbolTable Prev { get; set; }
+        public virtual GlobalSymbolTable GlobalTable { get { return Prev.GlobalTable; } }
+        public virtual AsmModel MainAssembly { get { return Prev.MainAssembly; } }
 
         public List<TableElement> Data = new List<TableElement>();
 
@@ -42,6 +44,12 @@ namespace Peak.AsmGeneration
             }
             else
                 return null;
+        }
+
+        public void RegisterMethod(MethodTableElement tableElement)
+        {
+            tableElement.Source = this;
+            this.Data.Add(tableElement);
         }
 
         /* most important method for allocate new data in stack and in symbol table */
@@ -162,8 +170,9 @@ namespace Peak.AsmGeneration
 
     class GlobalSymbolTable : MethodSymbolTable
     {
-        public AsmModel MainAssembly { get; private set; } = new AsmModel();
-
+        private AsmModel mainAssembly_ = new AsmModel();
+        public override AsmModel MainAssembly { get { return mainAssembly_; } } 
+        public override GlobalSymbolTable GlobalTable { get { return this; } } 
         private List<string> loadetFiles = new List<string>();
         public bool IsNewFile(string fileName)
         {

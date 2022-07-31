@@ -227,7 +227,7 @@ namespace Peak.CodeGeneration
                 }
                 else
                 {
-                    var type = new SymbolType(n.Type);
+                    var type = new SemanticType(n.Type);
 
                     if (n.RightExpression != null)
                     {
@@ -258,7 +258,7 @@ namespace Peak.CodeGeneration
             var res = new GenerationResult() { Nothing = false };
 
             res.GeneratedByteCode.AddByteCode(InstructionName.PushConst, globalTable.GetConstantAddress(node));
-            res.ExprResult = new SymbolType(node);
+            res.ExprResult = new SemanticType(node);
             return res;
         }
         /*

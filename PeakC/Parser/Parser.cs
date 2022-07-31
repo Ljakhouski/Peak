@@ -273,7 +273,23 @@ namespace Peak.PeakC.Parser
             }
             else if (getNext() == "proc" || getNext() == "func")
             {
-                return parseMethod();
+                var node = parseMethod();
+
+                if (getNext() == ";")
+                {
+                    expect(";");
+                    return node;
+                }
+                else if (getNext() == "[")
+                {
+                    expect("[");
+                    var block = parse(NonterminalType.CodeBlock) as CodeBlockNode;
+                    expect("]");
+                    node.Code = block;
+                    return node;
+                }
+                else
+                    Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
             }
             else if (getNext() == "if")
             {
@@ -421,6 +437,9 @@ namespace Peak.PeakC.Parser
             var args = parse(NonterminalType.Args);
             expect(")");
 
+            return new MethodNode(name, args, null);
+
+            /*
             if (getNext() == "[")
             {
                 next();
@@ -430,7 +449,7 @@ namespace Peak.PeakC.Parser
             }
             else
                 return new MethodNode(name, args, retType: null);
-            Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
+            Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");*/
 
 
         }
@@ -449,6 +468,8 @@ namespace Peak.PeakC.Parser
             var args = parse(NonterminalType.Args);
             expect(")");
 
+            return new MethodNode(name, args, retType);
+            /*
             if (getNext() == ";")
             {
                 next();
@@ -463,7 +484,7 @@ namespace Peak.PeakC.Parser
             }
             else
                 Error.ErrMessage(getNext(), "expected \";\" or \"[]\"");
-                throw new CompileException();
+                throw new CompileException();*/
         }
 
         private Node parseModifier()

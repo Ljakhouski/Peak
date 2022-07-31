@@ -10,7 +10,7 @@ namespace Peak.CodeGeneration
     class GenerationResult
     {
         public bool Nothing { get; set; }
-        public SymbolType ExprResult { get; set; }
+        public SemanticType ExprResult { get; set; }
 
         public TableElement NameResult { get; set; } // only for analysis data-contains in name from name-table
 

@@ -20,7 +20,7 @@ namespace Peak.CodeGeneration
                 {
                     if (t.Name == name.Content)
                     {
-                        //if (t.Type.Value == SymbolType.Type.Object) // for structures or namespaces
+                        //if (t.Type.Value == SemanticType.Type.Object) // for structures or namespaces
 
                         if (currentContext.IsGlobalScopeTable)
                         {
@@ -467,7 +467,7 @@ namespace Peak.CodeGeneration
         {
             foreach (TableElement element in currentSymbolTable.Data)
             {
-                if (element.Type.Value == SymbolType.Type.RefOnMethodContext)
+                if (element.Type.Value == SemanticType.Type.RefOnMethodContext)
                 {
                     var address = element.OffsetAddress;
                     addByteCode(InstructionName.Push, address);

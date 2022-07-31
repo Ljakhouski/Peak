@@ -91,6 +91,13 @@ namespace Peak.AsmGeneration
         public List<string> IData { get; set; } = new List<string>();
         public List<AsmMethod> Code { get; set; } = new List<AsmMethod>();
 
+
+        private List <DllImportSymbol> dllImportSymbols = new List<DllImportSymbol>();
+        class DllImportSymbol
+        {
+            public string DllPath { get; set; }
+            public List<string> Symbols { get; set; }
+        }
         public string GetFasmListing()
         {
             string output = "format PE64 Console \n entry start  \n";
@@ -131,6 +138,23 @@ namespace Peak.AsmGeneration
             }
 
             return output;
+        }
+
+        public void AddDllImportSymbol(string dllPath, string name)
+        {
+            foreach(var e in dllImportSymbols)
+            {
+                if (e.DllPath == dllPath)
+                {
+                    e.Symbols.Add(name);
+                }
+            }
+
+            dllImportSymbols.Add(new DllImportSymbol()
+            {
+                DllPath = dllPath,
+                Symbols = new List<string>() { name }
+            });
         }
 
         private string getInstructionListing(AsmInstruction instruction)

@@ -56,7 +56,7 @@ namespace Peak.AsmGeneration
                 }
                 else  // int varName <- <expression>;  ||  int varName;
                 {
-                    var declaredType = new SymbolType(node.Type);
+                    var declaredType = new SemanticType(node.Type);
 
                     if (node.RightExpression != null)
                     {

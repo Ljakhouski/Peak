@@ -40,7 +40,7 @@ namespace Peak.CodeGeneration
             {
                 if (t.Name == name.Content)
                     return true;
-                else if (t.Type.Value == SymbolType.Type.RefOnMethodContext)
+                else if (t.Type.Value == SemanticType.Type.RefOnMethodContext)
                 {
                     if (t.MethodContextTable.ContainsInAllTables(name))
                         return true;
@@ -60,7 +60,7 @@ namespace Peak.CodeGeneration
 
                 if (t.Name == name.Content)
                     return t;
-                else if (t.Type.Value == SymbolType.Type.RefOnMethodContext)
+                else if (t.Type.Value == SemanticType.Type.RefOnMethodContext)
                 {
                     return t.MethodContextTable.GetSymbol(name);
                 }
@@ -82,7 +82,7 @@ namespace Peak.CodeGeneration
 
                 if (t.Name == name.Content)
                     symbols.Add(t);
-                else if (t.Type.Value == SymbolType.Type.RefOnMethodContext)
+                else if (t.Type.Value == SemanticType.Type.RefOnMethodContext)
                 {
                     symbols.AddRange(t.MethodContextTable.GetSymbols(name));
                 }
@@ -103,7 +103,7 @@ namespace Peak.CodeGeneration
             var refs = new List<TableElement>();
             for (int i = Data.Count - 1; i >= 0; i--)
             {
-                if (Data[i].Type.Value == SymbolType.Type.RefOnContext)
+                if (Data[i].Type.Value == SemanticType.Type.RefOnContext)
                     refs.Add(Data[i]);
             }
 

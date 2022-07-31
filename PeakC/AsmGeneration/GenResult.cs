@@ -9,7 +9,7 @@ namespace Peak.AsmGeneration
     {
         //public Operand Operand { get; set; }
 
-        public SymbolType ResultType { get; set; }
+        public SemanticType ResultType { get; set; }
         public MemoryDataId ReturnDataId { get; set; }
 
     }

@@ -10,7 +10,7 @@ namespace Peak.CodeGeneration
         public string Name { get; set; }
         public int OffsetAddress { get; set; } = -1; // '-1' - has not address
         
-        public SymbolType Type { get; set; }
+        public SemanticType Type { get; set; }
 
         public SymbolTable Ref { get; set; } // authomatically
         public int ReferingContextId { get; internal set; } // id for equalling method and struct references (id from method memory context or id from struct memory context)

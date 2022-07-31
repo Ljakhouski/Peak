@@ -62,6 +62,7 @@ namespace Peak.AsmGeneration.ObjectAsmModel
         XMM7,
         NONE
     }
+    [Obsolete]
     class AsmInstruction
     {
         public InstructionName InstructionName { get; set; }
@@ -74,7 +75,7 @@ namespace Peak.AsmGeneration.ObjectAsmModel
         public Operand ThirdOperand { get; set; }
 
     }
-
+    [Obsolete]
     class Operand
     {
         public bool IsGettingAddress { get; set; } = false; // (for FASM) if true: [ RDX ]   if false:  RDX 
@@ -85,7 +86,7 @@ namespace Peak.AsmGeneration.ObjectAsmModel
         public DataSize Size { get; set; } = DataSize.None;
         public string Label { get; set; }
     }
-
+    [Obsolete]
     class AsmMethod
     {
         public string MethodName { get; set; }
@@ -169,6 +170,7 @@ namespace Peak.AsmGeneration.ObjectAsmModel
         }
 
     }
+    [Obsolete]
     class AsmModel
     {
         public const int ByteInWord = 8; // for x64 mode 

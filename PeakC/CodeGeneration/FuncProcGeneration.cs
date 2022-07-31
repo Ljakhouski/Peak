@@ -12,11 +12,11 @@ namespace Peak.CodeGeneration
     {
         private /*GenerationResult*/ void generateMethodDeclaration(MethodNode node, SymbolTable currentSymbolTable)
         {
-            var type = new SymbolType(node);
+            var type = new SemanticType(node);
             var symbols = currentSymbolTable.GetSymbols(node.Name);
             foreach (TableElement t in symbols)
             {
-                if (t.Type.Value == SymbolType.Type.Proc)
+                if (t.Type.Value == SemanticType.Type.Proc)
                 {
                     if (t.Type == type)
                         Error.ErrMessage(node.MetaInf, "name already exist");
@@ -93,7 +93,7 @@ namespace Peak.CodeGeneration
                     if (node.Args is VariableInitNode)
                     {
                         var arg = node.Args as VariableInitNode;
-                        procTable.RegisterSymbol(new TableElement() { Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
+                        procTable.RegisterSymbol(new TableElement() { Info = arg.MetaInf, Type = new SemanticType(arg.Type), InfoNode = arg });
                         addByteCode(generateStoreName(arg.Name, procTable), method);
                     }
                     else if (node.Args is SequenceNode)
@@ -102,7 +102,7 @@ namespace Peak.CodeGeneration
                             if (arg__ is VariableInitNode)
                             {
                                 var arg = arg__ as VariableInitNode;
-                                procTable.RegisterSymbol(new TableElement() { Name = arg.Name.Content, Info = arg.MetaInf, Type = new SymbolType(arg.Type), InfoNode = arg });
+                                procTable.RegisterSymbol(new TableElement() { Name = arg.Name.Content, Info = arg.MetaInf, Type = new SemanticType(arg.Type), InfoNode = arg });
                                 addByteCode(generateStoreName(arg.Name, procTable), method);
                             }
                             else
@@ -155,7 +155,7 @@ namespace Peak.CodeGeneration
                 t = t.Prev;
                 if (t.IsStructDefTable)
                 {
-                    return new TableElement() { Type = new SymbolType(SymbolType.Type.RefOnContext) { ContextTable = table.Prev }, MethodContextTable = table.Prev, ReferingContextId = t.Id };
+                    return new TableElement() { Type = new SemanticType(SemanticType.Type.RefOnContext) { ContextTable = table.Prev }, MethodContextTable = table.Prev, ReferingContextId = t.Id };
                 }
             }
 
@@ -175,7 +175,7 @@ namespace Peak.CodeGeneration
                 
                 if (t.IsMethodDefTable)
                 {
-                    return new TableElement() { Type = new SymbolType(SymbolType.Type.RefOnContext) { ContextTable = table.Prev }, MethodContextTable = table.Prev, ReferingContextId = t.Id };
+                    return new TableElement() { Type = new SemanticType(SemanticType.Type.RefOnContext) { ContextTable = table.Prev }, MethodContextTable = table.Prev, ReferingContextId = t.Id };
                 }
                 t = t.Prev;
             }
@@ -207,7 +207,7 @@ namespace Peak.CodeGeneration
             callArgs.Reverse(); // to reverse code-generation
 
 
-            var argsType = new List<SymbolType>();
+            var argsType = new List<SemanticType>();
             var argsByteCode = new List<GenerationResult>();
 
             foreach (Node n in callArgs)
@@ -278,6 +278,6 @@ namespace Peak.CodeGeneration
             throw new CompileException();
         }
 
-        //private bool EqualsMethodAndCall(string name, List<SymbolType> args, )
+        //private bool EqualsMethodAndCall(string name, List<SemanticType> args, )
     }
 }

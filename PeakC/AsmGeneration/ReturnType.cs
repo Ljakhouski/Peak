@@ -15,7 +15,7 @@ namespace Peak.AsmGeneration
         Method,
         IdType, // struct ot other data-type
     }
-    class SymbolType
+    class SemanticType
     {
         private Node type;
 
@@ -24,7 +24,7 @@ namespace Peak.AsmGeneration
         public virtual Type Type { get; set; }
         public string TypeIdentifier { get; set; } // if type is 'IdType'
 
-        public static bool operator == (SymbolType first, SymbolType second)
+        public static bool operator == (SemanticType first, SemanticType second)
         {
             if (first as Object is null || second as Object is null)
                 return false;
@@ -35,25 +35,25 @@ namespace Peak.AsmGeneration
                 return false;
         }
 
-        public static bool operator != (SymbolType first, SymbolType second)
+        public static bool operator != (SemanticType first, SemanticType second)
         {
             return !(first == second);
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is SymbolType)
-                return this == obj as SymbolType;
+            if (obj is SemanticType)
+                return this == obj as SemanticType;
             else
                 return false;
         }
 
-        public SymbolType()
+        public SemanticType()
         {
 
         }
 
-        public SymbolType(ConstValueNode node)
+        public SemanticType(ConstValueNode node)
         {
 
             if (node.Value.Type == PeakC.type.IntValue)
@@ -66,7 +66,7 @@ namespace Peak.AsmGeneration
                 throw new CompileException("it is other const value node type");
         }
 
-        public SymbolType(Node node)
+        public SemanticType(Node node)
         {
             if (node is TypeNode)
             {
@@ -96,28 +96,28 @@ namespace Peak.AsmGeneration
         }
     }
 
-    class MethodSymbolType : SymbolType
+    class MethodSemanticType : SemanticType
     {
         public override Type Type {get{ return Type.Method; } }
-        public List<SymbolType> Args { get; set; } = new List<SymbolType>();
-        public SymbolType RetType { get; set; }
+        public List<SemanticType> Args { get; set; } = new List<SemanticType>();
+        public SemanticType RetType { get; set; }
 
-        public static bool operator == (MethodSymbolType first, SymbolType second)
+        public static bool operator == (MethodSemanticType first, SemanticType second)
         {
-            if (first is MethodSymbolType && second is MethodSymbolType
-                && (first as MethodSymbolType).RetType == (second as MethodSymbolType).RetType
+            if (first is MethodSemanticType && second is MethodSemanticType
+                && (first as MethodSemanticType).RetType == (second as MethodSemanticType).RetType
                 )
-                if (((first as MethodSymbolType)).Args.Count == ((second as MethodSymbolType).Args.Count))
+                if (((first as MethodSemanticType)).Args.Count == ((second as MethodSemanticType).Args.Count))
                 
-                    for (int i = 0; i< (first as MethodSymbolType).Args.Count; i++)
+                    for (int i = 0; i< (first as MethodSemanticType).Args.Count; i++)
                     
-                        if ((first as MethodSymbolType).Args[i] != (second as MethodSymbolType).Args[i])
+                        if ((first as MethodSemanticType).Args[i] != (second as MethodSemanticType).Args[i])
                             return false;
                     
                     return true;            
         }
 
-        public static bool operator !=(MethodSymbolType first, SymbolType second)
+        public static bool operator !=(MethodSemanticType first, SemanticType second)
         {
             return !(first == second);
         }

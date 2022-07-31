@@ -26,7 +26,7 @@ namespace Peak.CodeGeneration
 
             var condition = generateByteCode(n.Condition, currentSymbolTable);
 
-            if (condition.ExprResult.Value == SymbolType.Type.Bool)
+            if (condition.ExprResult.Value == SemanticType.Type.Bool)
             {
                 addByteCode(condition, currentSymbolTable.CurrentMethod);
                 addByteCode(InstructionName.IfNot, currentSymbolTable.CurrentMethod);
@@ -91,7 +91,7 @@ namespace Peak.CodeGeneration
 
             var condition = generateByteCode(n.Condition, currentSymbolTable);
 
-            if (condition.ExprResult.Value == SymbolType.Type.Bool)
+            if (condition.ExprResult.Value == SemanticType.Type.Bool)
             {
                 int nextInstruction = 0;
                 if (getCurrentPosition() > 0)
