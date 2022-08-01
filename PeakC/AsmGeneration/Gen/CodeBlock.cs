@@ -30,6 +30,10 @@ namespace Peak.AsmGeneration
                             break;
                     }
                 }
+                else if (n is MethodNode)
+                {
+                    MethodDeclaration.Generate(n as MethodNode, st);
+                }
                 else
                     throw new CompileException();
 

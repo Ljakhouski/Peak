@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Peak.AsmGeneration.Gen
+namespace Peak.AsmGeneration
 {
     static class MethodDeclaration
     {
         public static GenResult Generate(MethodNode node, SymbolTable st)
         {
-            var type = new SemanticType(node);
+            var type = new MethodSemanticType(node);
             var e = getMethod(node.Name, type, st);
             if (e is null == false)
                 Error.ErrMessage(node.Name, "method already exist in current scope");
@@ -25,7 +25,7 @@ namespace Peak.AsmGeneration.Gen
 
             if (node.IsFromDll())
             {
-                if (e.NameToken == node.Name)
+                if (st.GetSymbolFromAllSpaces(node.Name) is null == false)
                     Error.ErrMessage(node.Name, "dll-import methods not supported overloading");
                 st.RegisterMethod(tableElement);
 
@@ -59,6 +59,8 @@ namespace Peak.AsmGeneration.Gen
             // TODO: search in static global context
            
         }
+
+       
 
     }
 }

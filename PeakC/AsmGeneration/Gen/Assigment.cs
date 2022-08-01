@@ -12,9 +12,8 @@ namespace Peak.AsmGeneration
             var rightExpr = Expression.Generate(from, st);
 
             if (rightExpr is ConstantResult)
-            {
-                rightExpr = Constant.GenerateConstInRegister(rightExpr as ConstantResult, st);
-            }
+                (rightExpr as ConstantResult).MoveToRegister(st);
+
             //var leftExpr = Expression.Generate(node.Left, st);
 
             if (to is IdentifierNode)

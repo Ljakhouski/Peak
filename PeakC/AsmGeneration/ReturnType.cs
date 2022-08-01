@@ -14,6 +14,7 @@ namespace Peak.AsmGeneration
 
         Method,
         IdType, // struct ot other data-type
+        AnyToCompare,
     }
     class SemanticType
     {
@@ -30,7 +31,8 @@ namespace Peak.AsmGeneration
                 return false;
             else if (first.Type == second.Type)
                 return true;
-            
+            else if (first.Type == Type.AnyToCompare || second.Type == Type.AnyToCompare)
+                return true;
             else
                 return false;
         }
@@ -94,6 +96,7 @@ namespace Peak.AsmGeneration
                 }
             }
         }
+
     }
 
     class MethodSemanticType : SemanticType
@@ -120,6 +123,30 @@ namespace Peak.AsmGeneration
         public static bool operator !=(MethodSemanticType first, SemanticType second)
         {
             return !(first == second);
+        }
+
+        public MethodSemanticType(MethodNode node)
+        {
+            this.Type = Type.Method;
+
+            if (node.Args is SequenceNode)
+                foreach (var e in (node.Args as SequenceNode).Sequence)
+                    this.Args.Add(new SemanticType(e));
+            else
+                this.Args.Add(new SemanticType(node.Args));
+
+            if (node.RetType is null || node.RetType is EmptyNode)
+            {
+                this.RetType = null;
+            }
+            else
+                this.RetType = new SemanticType(node.RetType);
+
+        }
+
+        public MethodSemanticType()
+        {
+            this.Type = Type.Method;
         }
     }
 

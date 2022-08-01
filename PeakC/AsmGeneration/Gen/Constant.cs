@@ -16,7 +16,7 @@ namespace Peak.AsmGeneration
                 ReturnDataId = null
             };
         }
-
+        [Obsolete]
         public static GenResult GenerateConstInRegister(ConstantResult constant, SymbolTable st)
         {
             var result = constant.ResultType;

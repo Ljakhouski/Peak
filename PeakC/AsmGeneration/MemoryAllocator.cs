@@ -21,7 +21,8 @@ namespace Peak.AsmGeneration
     {
         public int Id { get; private set; } // only for handle searching in register map or in stack-model
         public int Size { get; set; } // in bytes, size of data-type (without alligment)
-        public int Alignment { get { return this.Size; } } 
+        public int Alignment { get { return this.Size; } }
+        public bool IsSSE_Element { get; set; } = false; // for double/float type
         /*** optional ***/
         //public MemoryPositonInfo Position { get; set; } // only for sync between code-generator and MemoryAllocator
 
@@ -56,6 +57,42 @@ namespace Peak.AsmGeneration
                 return false;
             }
         }
+
+        public static MemoryDataId FuncResult(SymbolTable st, bool isSSE = false)
+        {
+            if (isSSE)
+            {
+                foreach (var e in st.MemoryAllocator.SSERegisterMap)
+                {
+                    if (e.Register == RegisterName.xmm0)
+                    {
+                        e.ContainedData = new MemoryDataId(st)
+                        {
+                            Size = 8,
+                            IsSSE_Element = true
+                        };
+
+                        return e.ContainedData;
+                    }
+                }
+            }
+
+            foreach(var e in st.MemoryAllocator.RegisterMap)
+            {
+                if (e.Register == RegisterName.rax)
+                {
+                    e.ContainedData = new MemoryDataId(st)
+                    {
+                        Size = 8
+                    };
+
+                    return e.ContainedData;
+                }
+            }
+
+            throw new CompileException();
+        }
+
         public RegisterName Register
         {
             get
@@ -710,6 +747,17 @@ namespace Peak.AsmGeneration
                 input++;
 
             return i < 0 ? (-1) * input : input;
+        }
+
+        internal void MoveToRegister(MemoryDataId returnDataId, RegisterName register)
+        {
+            if (returnDataId.Register == register)
+                return;
+            if (returnDataId.ExistInStack && returnDataId.ExistInRegisters == false)
+            {
+                
+            }
+            //else if ()
         }
     }
 }
