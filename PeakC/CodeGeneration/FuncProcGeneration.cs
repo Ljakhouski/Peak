@@ -192,8 +192,6 @@ namespace Peak.CodeGeneration
                     return true;
             return false;
         }
-
-
         private GenerationResult generateMethodCall(MethodCallNode node, SymbolTable callPlaceSymbolTable, SymbolTable argsCallPlaceSymbolTable)
         {
             var callArgs = new List<Node>();

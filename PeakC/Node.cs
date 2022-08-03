@@ -72,9 +72,14 @@ namespace Peak.PeakC
     }
     class DotNode : Node
     {
-        public List<Node> Sequence { get; set; }
-        public DotNode()
-        { }
+        public Node Left { get; set; }
+        public Node Right { get; set; }
+        public DotNode(Node left, Node right, Token metaInf)
+        {
+            this.Left = left;
+            this.Right = right;
+            this.MetaInf = metaInf;
+        }
     }
 
     class BinaryNode : Node
@@ -206,10 +211,11 @@ namespace Peak.PeakC
     {
         public Node Args { get; set; }
         public Node From { get; set; } // can be IdentifierNode or other:   arr[i]( "i am called func and send this sting" );  someStruct.func_name("i am called by name");
-        public MethodCallNode(Node args = null, Node from = null)
+        public MethodCallNode(Node args, Node from, Token metaInf)
         {
             this.Args = args;
-            From = from;
+            this.From = from;
+            this.MetaInf = metaInf;
         }
     }
 
@@ -217,10 +223,11 @@ namespace Peak.PeakC
     {
         public Node Args { get; set; }
         public Node From { get; set; }
-        public ArrayAccessNode(Node args = null, Node from = null)
+        public ArrayAccessNode(Node args, Node from, Token metaInf)
         {
             this.Args = args;
             From = from;
+            this.MetaInf = metaInf;
         }
     }
 

@@ -39,8 +39,8 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.Modifier, IsBinary = false });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Sequence, IsBinary = false, Terminals = new List<string> { "," } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.WordOperator, IsBinary = false, Terminals = new List<string>() { "return", "break", "continue"} });
-            Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Assignment, IsBinary = true, Terminals = new List<string> { "<-" } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.AndOr, IsBinary = true, Terminals = new List<string> { "and", "or" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.IncrementOrDecrement, IsBinary = false, Terminals = new List<string> { "++", "--" } });
            // Preority.Add(new Nonterminal() { Type = NonterminalType.DoubleDot, IsBinary = false, Terminals = new List<string> { ":" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.Equals, IsBinary = true, Terminals = new List<string> { "==" } });
@@ -49,7 +49,7 @@ namespace Peak.PeakC.Parser
             Preority.Add(new Nonterminal() { Type = NonterminalType.MulDiv, IsBinary = true, Terminals = new List<string> { "*", "/" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.MethodCall, IsBinary = false });
             /*  array-access here */
-            Preority.Add(new Nonterminal() { Type = NonterminalType.Dot, IsBinary = false, Terminals = new List<string> { "." } });
+            Preority.Add(new Nonterminal() { Type = NonterminalType.DotPreority, IsBinary = false, Terminals = new List<string> { ".", "[]", "()" } });
             Preority.Add(new Nonterminal() { Type = NonterminalType.MethodCall, IsBinary = false});
             Preority.Add(new Nonterminal() { Type = NonterminalType.Data, IsBinary = false });
             //Preority.Add(new Nonterminal() { Type = NonterminalType.Double, IsBinary = false, Terminals = new List<string> { "." } });
@@ -99,12 +99,12 @@ namespace Peak.PeakC.Parser
         Comparison,
         PlusMinus,
         MulDiv,
-        Dot,    // contains array-access-expression // ???
         Data,   // Names (ID) | func calling | array-access-expression
         Double, // <int_const>, ".", <int_const>
         MethodCall, // <ID>, '(', <args expression>, ')'
         ArrayAccess, // <expr>[] || <expr>[]{[]}
         WordOperator, // return <expr> | break <expr> | continue <expr> | <expr> 
+        DotPreority,
     }
     class Nonterminal
     {

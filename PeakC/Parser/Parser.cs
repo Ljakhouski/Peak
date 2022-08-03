@@ -153,16 +153,16 @@ namespace Peak.PeakC.Parser
                     return parseCodeBlock();
                 case NonterminalType.Modifier:
                     return parseModifier();
-                case NonterminalType.Dot:
-                    return parseDot();
+                case NonterminalType.DotPreority:
+                    return parseDotExprPreority();
                 case NonterminalType.Sequence:
                     return parseSequence();
                 case NonterminalType.Args:
                     return parseArgs();
-                case NonterminalType.MethodCall:
-                    return parseMethodCall();
                 case NonterminalType.WordOperator:
                     return parseWordOperator();
+                case NonterminalType.MethodCall:
+                    return parseMethodCallByName();
                 case NonterminalType.Data:
                     return parseData();
                 default:
@@ -499,37 +499,56 @@ namespace Peak.PeakC.Parser
                 return mn;
 
         }
-        private Node parseDot()
+
+        // N =-> <expr>.<expr> | <expr>{[]} | <expr>{()} | <expr>
+        // terms: '.'  '('  '['
+        private Node parseDotExprPreority(Node parsedExpr = null) 
         {
-            var dotNode = new DotNode() { Sequence = new List<Node>() };
-            Node n = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Dot));
-
-            if (getNext() == ".") // if expression contains at least one dot, then <dotExpr> -> <expr> <.> <expr> ... ? 
+            var expr = parsedExpr is null? parse(NonterminalPreority.GetNextByPreority(NonterminalType.DotPreority)) : parsedExpr;
+            Node N;
+            if (getNext() == ".")
             {
-                next();
-                dotNode.Sequence.Add(n);
-                var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Dot));
-                if (expr is EmptyNode)
-                    Error.ErrMessage(t, "expression expected");
-                else
-                    dotNode.Sequence.Add(expr);
+                N = makeDotNode(expr);
             }
-            return n;
-
-            while (true) // if expression contains two and more dot. <dotExpr> -> <expr> { <.> <expr> }
+            else if (getNext() == "[")
             {
-                if (getNext() == ".")
-                {
-                    next();
-                    var expr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.Dot));
-                    if (expr is EmptyNode)
-                        Error.ErrMessage(t, "expression expected");
-                    else
-                        dotNode.Sequence.Add(expr);
-                }
-                else
-                    return n;
+                N = makeArrayAccess(expr);
             }
+            else if (getNext() == "(")
+            {
+                N = makeDynamicCallMethod(expr);
+            }
+            else
+                return expr;
+
+            return parseDotExprPreority(N);
+        }
+
+        private Node makeDotNode(Node expr)
+        {
+            expect(".");
+            var metaInf = t;
+            var nextExpr = parse(NonterminalPreority.GetNextByPreority(NonterminalType.DotPreority));
+           
+            return new DotNode(expr, nextExpr, metaInf);
+        }
+
+        private Node makeArrayAccess(Node expr)
+        {
+            expect("[");
+            var metaInf = t;
+            var arg = parse(NonterminalType.AndOr);
+            expect("]");
+            return new ArrayAccessNode(arg, expr, t);
+        }
+
+        private Node makeDynamicCallMethod(Node expr)
+        {
+            expect("(");
+            var metaInf = t;
+            var arg = parse(NonterminalType.Sequence);
+            expect(")");
+            return new MethodCallNode(arg, expr, metaInf);
         }
 
         private Node parseSequence()
@@ -559,6 +578,21 @@ namespace Peak.PeakC.Parser
 
 
         }
+
+        private Node parseMethodCallByName()
+        {
+            var id = parse(NonterminalType.Data);
+            if (getNext() == "(")
+            {
+                expect("(");
+                var metaInf = t;
+                var args = parse(NonterminalType.Sequence);
+                expect(")");
+                return new MethodCallNode(args, id, metaInf);
+            }
+            else
+                return id;
+        }
         private Node parseBinary(Nonterminal nonterm) // <binaryEpxr> -> <binaryEpxr> operator <expr> | <expr> 
         {
             Node n;
@@ -584,116 +618,6 @@ namespace Peak.PeakC.Parser
 
         }
 
-        private Node parseDynamicMethodCall(Node parsedExpr = null /* if it is necessary to continue parsing expression like ' <expr>[]()[]()[](); ' */)
-        {
-            if (parsedExpr is null)
-            {
-                var expr = parse(NonterminalType.Dot);
-
-                if (getNext() == "(")
-                {
-                    expect("(");
-                    var args_ = parse(NonterminalType.Sequence);
-                    expect(")");
-                    return new MethodCallNode(args_, expr);
-                }
-                else if (getNext() == "[")
-                {
-                    return parseArrayAccess(expr);
-                }
-                else
-                    return expr;
-            }
-            else
-            {
-                expect("(");
-                var args = parse(NonterminalType.Sequence);
-                expect(")");
-
-                var node = new MethodCallNode(args, parsedExpr);
-
-                /* parse ()()()()()()[][][][][] */
-
-                if (getNext() == "(")
-                    return parseDynamicMethodCall(node);
-                else if (getNext() == "[")
-                    return parseArrayAccess(node);
-                else
-                    return node;
-            }
-        }
-        private Node parseArrayAccess(Node parsedExpr= null /* if it is necessary to continue parsing expression like ' <expr>()[]()[]()[]; ' */)
-        {
-            if (parsedExpr is null)
-            {
-                var expr = parse(NonterminalType.Dot);
-                if (getNext() == "[")
-                {
-                    expect("[");
-                    var argExpression = parse(NonterminalType.MethodCall);
-                    expect("]");
-                    return new ArrayAccessNode(expr, argExpression);
-                }
-                else if (getNext() == "(")
-                {
-                    return parseDynamicMethodCall(expr);
-                }
-                else
-                    return expr;
-            }
-            else
-            {
-                expect("[");
-                var arg = parse(NonterminalType.MethodCall);
-                expect("]");
-
-                var node = new ArrayAccessNode(arg, parsedExpr);
-
-                if (getNext() == "[")
-                {
-                    return parseArrayAccess(node);
-                }
-                else if (getNext() == "(")
-                {
-                    return parseDynamicMethodCall(node);
-                }
-                else
-                    return node;
-            }
-        }
-        private Node parseMethodCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
-        {
-            var id = parse(NonterminalType.Data); //parseData();
-            if (id is IdentifierNode && getNext() == "(")
-            {
-                next();
-                if (getNext() == ")")
-                {
-                    expect(")");
-                    return new MethodCallNode(null, id);            
-                }
-                else
-                {
-                    var n = new MethodCallNode(parse(NonterminalType.Sequence), id);
-                    expect(")");
-                    return n;
-                }
-
-            }
-            /*else
-            {
-                if (getNext() == "(")
-                {
-                    expect("(");
-                    var args = parse(NonterminalType.Sequence);
-                    expect(")");
-                    return new MethodCallNode(args, expr);
-                }
-            }*/
-
-            return id;
-
-        }
         private Node parseData()
         {
             next();
@@ -787,14 +711,14 @@ namespace Peak.PeakC.Parser
         {
             if (expr is IdentifierNode)
                 return true;
+            else if (expr is TypeNode)
+                return true;
             else if (expr is DotNode)
-                foreach (Node n in (expr as DotNode).Sequence)
-                {
-                    if (!(n is IdentifierNode || n is TypeNode))
-                    {
-                        return false;
-                    }
-                }
+            {
+                if (maybeTypeExpression((expr as DotNode).Left) && maybeTypeExpression((expr as DotNode).Right))
+                    return true;
+                return false;
+            }
             return false;
         }
 
