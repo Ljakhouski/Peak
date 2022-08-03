@@ -25,10 +25,10 @@ namespace Peak.AsmGeneration
 
             };
 
-            var method = getMethod(node.Id, calledSignature, methodSt);
+            var method = getMethod(node, calledSignature, methodSt);
 
-            if (method is null)
-                Error.ErrMessage(node.Id, "method not exist in current scope");
+            /*if (method is null)
+                Error.ErrMessage(node.MetaInf, "method not exist in current scope");*/
 
             /* if (method is VariableTableElement)
              {
@@ -43,8 +43,10 @@ namespace Peak.AsmGeneration
 
             }*/
 
-            if (method is MethodTableElement)
-                call_x86_64(argsResult.ToArray(), st, method.Name);
+            if (method is ConstantResult)
+                call_x86_64(argsResult.ToArray(), st, label: (method as ConstantResult).ConstValue.Content);
+            else
+                call_x86_64(argsResult.ToArray(), st, methodObj: method.ReturnDataId);
             return new GenResult()
             {
                 ResultType = calledSignature,
@@ -99,6 +101,8 @@ namespace Peak.AsmGeneration
                     st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.r9);
             }
 
+
+
             restoreStackAlign(N, st);
         }
 
@@ -120,7 +124,7 @@ namespace Peak.AsmGeneration
                 st.Emit("add rsp, 8");
             }
         }
-        private static void pushArg(GenResult r, SymbolTable st)
+        private static void pushArg(GenResult r, SymbolTable st)  // ?
         {
             if (r is ConstantResult)
             {
@@ -155,8 +159,9 @@ namespace Peak.AsmGeneration
             }
                 
 
-        }
-        private static TableElement getMethod(Token name, SemanticType signature, SymbolTable st)
+        }/*
+        [Obsolete]
+        private static TableElement getStaticMethodObsolete(MethodCallNode node, SemanticType signature, SymbolTable st)
         {
             foreach(var e in st.Data)
             {
@@ -174,7 +179,7 @@ namespace Peak.AsmGeneration
                 }
                 else if (e is MethodContextReferenceElement)
                 {
-                    var m = getMethod(name, signature, (e as MethodContextReferenceElement).Context);
+                    var m = getMethod(node, signature, (e as MethodContextReferenceElement).Context);
                     if (m is null)
                         continue;
                     else
@@ -183,8 +188,32 @@ namespace Peak.AsmGeneration
             }
 
             if (st.Prev != null)
-                return getMethod(name, signature, st.Prev);
+                return getMethod(node, signature, st.Prev);
             return null;
+        }*/
+        private static GenResult getMethod(MethodCallNode node, SemanticType signature, SymbolTable st/*, SymbolTable context*/)
+        {
+            if (node.From is IdentifierNode)
+            {
+                var method = st.GetVisibleMethodTableElement((node.From as IdentifierNode).Id);
+                if (method is null)
+                    Error.ErrMessage((node.From as IdentifierNode).Id, "method not exist");
+
+                return new ConstantResult()
+                {
+                    ConstValue = (node.From as IdentifierNode).Id,
+                    ResultType = new SemanticType(Type.Str)
+                };
+            }
+            else
+            {
+                var id = Expression.Generate(node.From, st);
+                if (id.ResultType == signature)
+                    return id;
+                else
+                    Error.ErrMessage(node.MetaInf, "method not exist");
+            }
+            throw new CompileException();
         }
 
         private static Node[] getArgsInArray(Node n)

@@ -15,20 +15,37 @@ namespace Peak.AsmGeneration
     }*/
     class TableElement
     {
-
+        public int Id { get; private set; } = IdGenerator.GenerateId();
         public SymbolTable Source{ get; set; } // the place where he is 
         public SemanticType Type { get; set; }
 
         public Token NameToken { get; set; }
         public string Name { get { return NameToken.Content; } }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null || obj is TableElement == false)
+                return false;
+            if ((obj as TableElement).Id == this.Id)
+                return true;
+            return false;
+        }
+        public static bool operator ==(TableElement e1, TableElement e2)
+        {
+            return e1.Equals(e2);
+        }
+        public static bool operator !=(TableElement e1, TableElement e2)
+        {
+            return !e1.Equals(e2);
+        }
     }
 
     class VariableTableElement : TableElement
     {
-        public MemoryDataId Id { get; private set; } 
+        public MemoryDataId MemoryId { get; private set; } 
         public VariableTableElement(SymbolTable st, Token name, SemanticType type)
         {
-            this.Id = new MemoryDataId(st);
+            this.MemoryId = new MemoryDataId(st);
             this.NameToken = name;
             this.Type = type;
         }
@@ -58,12 +75,12 @@ namespace Peak.AsmGeneration
     class MethodContextReferenceElement : TableElement
     {
         public SymbolTable Context { get; set; }
-        public MemoryDataId Id { get; private set; }
+        public MemoryDataId MemoryId { get; private set; }
 
         public MethodContextReferenceElement(SymbolTable st)
         {
             Source = st;
-            Id = new MemoryDataId(st);
+            MemoryId = new MemoryDataId(st);
         }
     }
 }

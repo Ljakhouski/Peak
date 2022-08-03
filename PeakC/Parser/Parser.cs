@@ -583,26 +583,115 @@ namespace Peak.PeakC.Parser
             }
 
         }
+
+        private Node parseDynamicMethodCall(Node parsedExpr = null /* if it is necessary to continue parsing expression like ' <expr>[]()[]()[](); ' */)
+        {
+            if (parsedExpr is null)
+            {
+                var expr = parse(NonterminalType.Dot);
+
+                if (getNext() == "(")
+                {
+                    expect("(");
+                    var args_ = parse(NonterminalType.Sequence);
+                    expect(")");
+                    return new MethodCallNode(args_, expr);
+                }
+                else if (getNext() == "[")
+                {
+                    return parseArrayAccess(expr);
+                }
+                else
+                    return expr;
+            }
+            else
+            {
+                expect("(");
+                var args = parse(NonterminalType.Sequence);
+                expect(")");
+
+                var node = new MethodCallNode(args, parsedExpr);
+
+                /* parse ()()()()()()[][][][][] */
+
+                if (getNext() == "(")
+                    return parseDynamicMethodCall(node);
+                else if (getNext() == "[")
+                    return parseArrayAccess(node);
+                else
+                    return node;
+            }
+        }
+        private Node parseArrayAccess(Node parsedExpr= null /* if it is necessary to continue parsing expression like ' <expr>()[]()[]()[]; ' */)
+        {
+            if (parsedExpr is null)
+            {
+                var expr = parse(NonterminalType.Dot);
+                if (getNext() == "[")
+                {
+                    expect("[");
+                    var argExpression = parse(NonterminalType.MethodCall);
+                    expect("]");
+                    return new ArrayAccessNode(expr, argExpression);
+                }
+                else if (getNext() == "(")
+                {
+                    return parseDynamicMethodCall(expr);
+                }
+                else
+                    return expr;
+            }
+            else
+            {
+                expect("[");
+                var arg = parse(NonterminalType.MethodCall);
+                expect("]");
+
+                var node = new ArrayAccessNode(arg, parsedExpr);
+
+                if (getNext() == "[")
+                {
+                    return parseArrayAccess(node);
+                }
+                else if (getNext() == "(")
+                {
+                    return parseDynamicMethodCall(node);
+                }
+                else
+                    return node;
+            }
+        }
         private Node parseMethodCall() // <expression> -> <name> + '(' + <expression> + ')' | <expression>
         {
-            var expr = parseData();
-            if (expr is IdentifierNode && getNext() == "(")
+            var id = parse(NonterminalType.Data); //parseData();
+            if (id is IdentifierNode && getNext() == "(")
             {
                 next();
                 if (getNext() == ")")
                 {
-                    next();
-                    return new MethodCallNode((expr as IdentifierNode).Id);
+                    expect(")");
+                    return new MethodCallNode(null, id);            
                 }
                 else
                 {
-                    var n = new MethodCallNode((expr as IdentifierNode).Id, parse(NonterminalType.Sequence));
+                    var n = new MethodCallNode(parse(NonterminalType.Sequence), id);
                     expect(")");
                     return n;
                 }
 
             }
-            return expr;
+            /*else
+            {
+                if (getNext() == "(")
+                {
+                    expect("(");
+                    var args = parse(NonterminalType.Sequence);
+                    expect(")");
+                    return new MethodCallNode(args, expr);
+                }
+            }*/
+
+            return id;
 
         }
         private Node parseData()

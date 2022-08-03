@@ -204,13 +204,23 @@ namespace Peak.PeakC
 
     class MethodCallNode : Node
     {
-        public Token Id { get; set; }
         public Node Args { get; set; }
-
-        public MethodCallNode(Token id, Node args = null)
+        public Node From { get; set; } // can be IdentifierNode or other:   arr[i]( "i am called func and send this sting" );  someStruct.func_name("i am called by name");
+        public MethodCallNode(Node args = null, Node from = null)
         {
-            this.Id = id;
             this.Args = args;
+            From = from;
+        }
+    }
+
+    class ArrayAccessNode : Node
+    {
+        public Node Args { get; set; }
+        public Node From { get; set; }
+        public ArrayAccessNode(Node args = null, Node from = null)
+        {
+            this.Args = args;
+            From = from;
         }
     }
 

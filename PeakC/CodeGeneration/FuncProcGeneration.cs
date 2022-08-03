@@ -218,7 +218,7 @@ namespace Peak.CodeGeneration
             }
             argsType.Reverse();
 
-            var methods = callPlaceSymbolTable.GetSymbols(node.Id);
+            var methods = callPlaceSymbolTable.GetSymbols((node.From as IdentifierNode).Id);
 
             foreach (TableElement method in methods)
             {
@@ -274,7 +274,7 @@ namespace Peak.CodeGeneration
 
             }
 
-            Error.ErrMessage(node.Id, "method with these arguments not exist");
+            Error.ErrMessage((node.From as IdentifierNode).Id, "method with these arguments not exist");
             throw new CompileException();
         }
 

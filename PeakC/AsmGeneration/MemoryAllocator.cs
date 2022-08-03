@@ -178,7 +178,7 @@ namespace Peak.AsmGeneration
     
         public MemoryDataId(SymbolTable st)
         {
-            this.Id = IdGenerator.GenerateId();
+            this.Id = IdGenerator.GenerateMemoryId();
             this.allocator = st.MemoryAllocator;
         }
 
@@ -205,15 +205,6 @@ namespace Peak.AsmGeneration
         }
     }
 
-    static class IdGenerator
-    {
-        static int counter = -1;
-        public static int GenerateId()
-        {
-            counter++;
-            return counter;
-        }
-    }
 
     class RegisterMapElement
     {

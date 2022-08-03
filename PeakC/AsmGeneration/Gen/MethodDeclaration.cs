@@ -25,7 +25,7 @@ namespace Peak.AsmGeneration
 
             if (node.IsFromDll())
             {
-                if (st.GetSymbolFromAllSpaces(node.Name) is null == false)
+                if (st.GetSymbolFromVisibleSpaces(node.Name) is null == false)
                     Error.ErrMessage(node.Name, "dll-import methods not supported overloading");
                 st.RegisterMethod(tableElement);
 

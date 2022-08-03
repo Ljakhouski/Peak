@@ -15,10 +15,11 @@ namespace Peak.AsmGeneration
         Method,
         IdType, // struct ot other data-type
         AnyToCompare,
+        Struct,
     }
     class SemanticType
     {
-        private Node type;
+        private Node typeNode;
 
         public bool IsNothing { get; set; } = false;
 
@@ -50,9 +51,9 @@ namespace Peak.AsmGeneration
                 return false;
         }
 
-        public SemanticType()
+        public SemanticType(Type type)
         {
-
+            this.Type = type;
         }
 
         public SemanticType(ConstValueNode node)
@@ -96,6 +97,8 @@ namespace Peak.AsmGeneration
                 }
             }
         }
+
+        public SemanticType() { throw new CompileException("could not called?"); }
 
     }
 
@@ -148,6 +151,7 @@ namespace Peak.AsmGeneration
         {
             this.Type = Type.Method;
         }
+
     }
 
 }

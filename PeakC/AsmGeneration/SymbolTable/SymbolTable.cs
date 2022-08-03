@@ -11,6 +11,21 @@ namespace Peak.AsmGeneration
         public SymbolTable Next { get; set; }
         public SymbolTable Prev { get; set; }
         public virtual GlobalSymbolTable GlobalTable { get { return Prev.GlobalTable; } }
+
+        public bool ExistInMethodContext(TableElement element)
+        {
+            foreach(var e in this.Data)
+            {
+                if (element == e)
+                    return true;
+            }
+
+            if (Prev != null && this is StructureSymbolTable == false && this is MethodSymbolTable == false)
+                return Prev.ExistInMethodContext(element);
+            else
+                return false;
+        }
+
         public virtual AsmModel MainAssembly { get { return Prev.MainAssembly; } }
 
         public List<TableElement> Data = new List<TableElement>();
@@ -30,7 +45,7 @@ namespace Peak.AsmGeneration
                 return false;
         }
 
-        public TableElement GetSymbolFromAllSpaces(Token name)
+        public TableElement GetSymbolFromVisibleSpaces(Token name)
         {
             foreach (TableElement e in this.Data)
             {
@@ -40,8 +55,20 @@ namespace Peak.AsmGeneration
 
             if (Prev != null /*&& this is StructureSymbolTable*/)
             {
-                return Prev.GetSymbolFromAllSpaces(name);
+                return Prev.GetSymbolFromVisibleSpaces(name);
             }
+            else
+                return null;
+        }
+
+        // return static method definition, which can be called
+        public MethodTableElement GetVisibleMethodTableElement(Token id)
+        {
+            foreach (var e in this.Data)
+                if (e is MethodTableElement && id.Content == e.Name)
+                    return e as MethodTableElement;
+            if (this.Prev is null == false && this is StructureSymbolTable == false)
+                return this.Prev.GetVisibleMethodTableElement(id);
             else
                 return null;
         }
@@ -56,16 +83,16 @@ namespace Peak.AsmGeneration
         public void RegisterVariable(VariableTableElement e)
         {
             if (e.Type.Type == Type.Int)
-                e.Id.Size = 4;
+                e.MemoryId.Size = 4;
             else if (e.Type.Type == Type.Double)
-                e.Id.Size = 8;
+                e.MemoryId.Size = 8;
             else if (e.Type.Type == Type.Bool)
-                e.Id.Size = 1;
+                e.MemoryId.Size = 1;
             else
                 throw new CompileException();
 
             //e.Id.Alignment = e.Id.Size;
-            this.MemoryAllocator.AllocateInStack(e.Id, e.Id.Alignment);
+            this.MemoryAllocator.AllocateInStack(e.MemoryId, e.MemoryId.Alignment);
             this.Data.Add(e);
         }
 
@@ -108,11 +135,6 @@ namespace Peak.AsmGeneration
                 return null;
         }
         //public int ID { get; }
-
-        public SymbolTable()
-        {
-
-        }
 
         public virtual MemoryAllocator MemoryAllocator 
         {   

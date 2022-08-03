@@ -38,7 +38,8 @@ namespace Peak.AsmGeneration
                        
                         st.MemoryAllocator.MoveToRegister(rightExprDataId);
 
-                        Assignment.GenerateAssignmentForVariable(node.Name, st, rightExprDataId);
+                        SymbolTableSearching.GenerateSettingData(e, rightExprDataId, st, st);
+                        //Assignment.Generate(node.Name, st, rightExprDataId);
                         //st.MemoryAllocator.MoveRegisterToStack(rightExprDataId, e.Id, st);
                         /*
                         st.MethodCode.Emit(InstructionName.Mov, 
@@ -67,8 +68,8 @@ namespace Peak.AsmGeneration
 
                             st.RegisterVariable(e);
                             st.MemoryAllocator.MoveToRegister(rightExpr.ReturnDataId);
-
-                            Assignment.GenerateAssignmentForVariable(node.Name, st, rightExpr.ReturnDataId);
+                            SymbolTableSearching.GenerateSettingData(e, rightExpr.ReturnDataId, st, st);
+                            //Assignment.GenerateAssignmentForVariable(node.Name, st, rightExpr.ReturnDataId);
                             return new EmptyGenResult();
                         }
                         else

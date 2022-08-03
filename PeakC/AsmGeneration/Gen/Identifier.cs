@@ -16,24 +16,35 @@ namespace Peak.AsmGeneration
 
         public static GenResult Generate(IdentifierNode node, SymbolTable st)
         {
-            var data = st.GetSymbolFromAllSpaces(node.Id);
+            var data = st.GetSymbolFromVisibleSpaces(node.Id);
+            var id = data.Id;
 
             if (data is ConstTableElement)
             {
                 return new ConstantResult()
                 {
-                    ResultType = data.Type, 
+                    ResultType = data.Type,
                     //IntValue = int.(data as ConstTableElement).ConstValue.Value,\
                     ConstValue = (data as ConstTableElement).ConstValue
                 };
             }
             else if (data is VariableTableElement)
             {
-                return getVarData(node, st);
+                return SymbolTableSearching.GenerateGettingData(data, st, st); 
             }
-            else if (data is MethodTableElement)
+            else if (data is MethodTableElement) 
             {
-                Error.ErrMessage("method as variable not upported");
+
+                Error.ErrMessage("method as variable not supported");
+                var methodData = st.GetVisibleMethodTableElement(node.Id);
+                if (methodData is null)
+                    Error.ErrMessage(node.Id, "name does not exist");
+                else
+                    return new ConstantResult()
+                    {
+                        ResultType = new SemanticType(Type.Str),
+                        ConstValue = methodData.NameToken
+                    };
             }
             else if (data is null)
                 Error.ErrMessage(node.MetaInf, "name does not exist");
@@ -42,99 +53,46 @@ namespace Peak.AsmGeneration
             throw new CompileException();
         }
 
-
-        private static GenResult getVarData(IdentifierNode node, SymbolTable st)
+      /*  public static GenResult Generate(IdentifierNode node, SymbolTable st, GenResult specialContext)
         {
-            var v = st.GetFromMethodContext(node.Id) as VariableTableElement;
+            StructSymbolTable structContrext;
+            if (specialContext.ResultType.Type == Type.Struct)
+            
+            var data = specialContext.GetSymbolFromVisibleSpaces(node.Id);
+            var id = data.Id;
 
-            // search in local contexts: in the current-frame and or in other frames
-
-            if (v is null)
+            if (data is ConstTableElement)
             {
-                // search in other method-frames
-                return getVarRecursive(node, st, st, null /* send rbp */);
-            }
-            else
-            {
-                var outputId = st.MemoryAllocator.GetNewIdInRegister();
-                st.Emit(string.Format("mov {0}, [rbp {1}]", outputId.Register.ToString(), v.Id.Rbp_Offset.ToString()));
-                var result = new GenResult()
+                return new ConstantResult()
                 {
-                    ResultType = v.Type,
-                    ReturnDataId = outputId
+                    ResultType = data.Type,
+                    //IntValue = int.(data as ConstTableElement).ConstValue.Value,\
+                    ConstValue = (data as ConstTableElement).ConstValue
                 };
-                    return result;
             }
-        }
-        private static GenResult getVarRecursive(IdentifierNode node, SymbolTable searchContext, SymbolTable st /* for code-gen and for stack/register managment*/, MemoryDataId framePointer)
-        {
-            // 1: take ref (where point on rbp in frame) on the next context
-            // 2: if frame contains -> mov r?x, [ref+var_offset]
-            // no? call GetVarRecursive() with ref.Context (it is the same context for var searching) and with ref (place of register with ref-address)
-
-            var mRef = searchContext.GetMethodContextRef();
-
-            if (mRef is null)
-                Error.ErrMessage(node.Id, "name does not exist");
-            else
+            else if (data is VariableTableElement)
             {
-                if (mRef.Id.ExistInRegisters == false)
-                {
-                    var newRbpReg = st.MemoryAllocator.GetNewIdInRegister(); // this register will be free after finding
-                  
-                    var offset = mRef.Id.Rbp_Offset.ToString();
-
-                    var reg1 = newRbpReg.Register.ToString();
-                    var reg2 = framePointer is null ? "rbp" : framePointer.Register.ToString();
-                    st.Emit(string.Format("mov {0}, [{1} {2}]", reg1, reg2, offset));
-                    framePointer.Free();
-                    /*
-                    st.MethodCode.Emit(
-                        InstructionName.Mov,
-                        outputRegister,
-                        new Operand()
-                        {
-                            IsGettingAddress = true,
-                            RegisterName = framePointer,
-                            Offset = mRef.Id.Rbp_Offset 
-                        });
-                    */
-                    var e = mRef.Context.GetFromMethodContext(node.Id);
-
-                    if (e is null == false && e is VariableTableElement) // if variable found
-                    {
-                        // mov r?x, [output + offset_2]
-                        var outputDataRegisterId = st.MemoryAllocator.GetNewIdInRegister();
-                        var offset_ = mRef.Id.Rbp_Offset;
-                        st.Emit(string.Format("mov {0}, [{1} {2}]", outputDataRegisterId.Register, reg1, offset_));
-                        newRbpReg.Free();
-                        /*
-                        st.MethodCode.Emit(
-                            InstructionName.Mov,
-                            outputRegister, // if it is the error, alloc new free register and then using it
-                            new Operand()
-                            {
-                                IsGettingAddress = true,
-                                RegisterName = outputRegister,
-                                Offset = mRef.Id.Rbp_Offset
-                            });*/
-
-                        st.MemoryAllocator.SetIdToFreeRegister((e as VariableTableElement).Id, outputDataRegisterId.Register);
-                        //var outputRegisterId =  st.MemoryAllocator.ReserveFreeRegister(framePointer, st);
-                        return new GenResult() { ResultType = e.Type, ReturnDataId = (e as VariableTableElement).Id };
-                    }
-                    else
-                    {
-                        if (searchContext is GlobalSymbolTable)
-                            Error.ErrMessage(node.Id, "name does not exist");
-                        else
-                            return getVarRecursive(node, mRef.Context, st, newRbpReg /* output (then to take next frame-pointer inside, need add offset with output-register) */);
-                    }
-                }
-                else
-                    throw new CompileException(); // method-context-reference always place in stack
+                return SymbolTableSearching.GenerateGettingData(data, st, st);
             }
+            else if (data is MethodTableElement)
+            {
+
+                Error.ErrMessage("method as variable not supported");
+                var methodData = st.GetVisibleMethodTableElement(node.Id);
+                if (methodData is null)
+                    Error.ErrMessage(node.Id, "name does not exist");
+                else
+                    return new ConstantResult()
+                    {
+                        ResultType = new SemanticType(Type.Str),
+                        ConstValue = methodData.NameToken
+                    };
+            }
+            else if (data is null)
+                Error.ErrMessage(node.MetaInf, "name does not exist");
+            else
+                throw new CompileException();
             throw new CompileException();
-        }
+        }*/
     }
 }
