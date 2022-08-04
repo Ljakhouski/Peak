@@ -14,7 +14,7 @@ namespace Peak.AsmGeneration
 
         public virtual void PushOnStack(SymbolTable st)
         {
-            st.MemoryAllocator.MoveToRegister(ReturnDataId);
+            st.MemoryAllocator.MoveToAnyRegister(ReturnDataId);
             if (this.ReturnDataId.IsSSE_Element)
             {
                 if (this.ReturnDataId.ExistInSSERegisters)
@@ -26,6 +26,13 @@ namespace Peak.AsmGeneration
             {
                 st.Emit($"push {ReturnDataId.Register}");
             }
+        }
+
+        public virtual bool IsSSE_Data()
+        {
+            if (this.ReturnDataId.IsSSE_Element)
+                return true;
+            return false;
         }
     }
 
@@ -40,6 +47,10 @@ namespace Peak.AsmGeneration
         public double DoubleValue { get; set; }
         public bool BoolValue { get; set; }*/
         public Token ConstValue { get; set; }
+
+        public string IntValue { get { return this.ConstValue.Content; } }
+        public string BoolValue { get { return this.ConstValue.Content == "true"? "1" : "0"; } }
+        public string DoubleValue { get { return this.ConstValue.Content; } }
 
         public override void PushOnStack(SymbolTable st)
         {
@@ -93,6 +104,13 @@ namespace Peak.AsmGeneration
             }
             else
                 throw new CompileException("other types not support now");
+        }
+
+        public override bool IsSSE_Data()
+        {
+            if (this.ResultType.Type == Type.Double /*|| this.ResultType.Type == Type.Float */ )
+                return true;
+            return false;
         }
     }
 }

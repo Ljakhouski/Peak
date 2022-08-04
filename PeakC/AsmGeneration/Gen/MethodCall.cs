@@ -72,7 +72,7 @@ namespace Peak.AsmGeneration
 
             if (N >= 1)
             {
-                if (args[0].ReturnDataId.IsSSE_Element)
+                if (args[0].IsSSE_Data())
                     st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.xmm0);
                 else
                     st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.rcx);
@@ -81,21 +81,21 @@ namespace Peak.AsmGeneration
             }
             if (N >= 2)
             {
-                if (args[1].ReturnDataId.IsSSE_Element)
+                if (args[1].IsSSE_Data())
                     st.MemoryAllocator.MoveToRegister(args[1].ReturnDataId, RegisterName.xmm1);
                 else
                     st.MemoryAllocator.MoveToRegister(args[1].ReturnDataId, RegisterName.rdx);
             }
             if (N >= 3)
             {
-                if (args[2].ReturnDataId.IsSSE_Element)
+                if (args[2].IsSSE_Data())
                     st.MemoryAllocator.MoveToRegister(args[2].ReturnDataId, RegisterName.xmm2);
                 else
                     st.MemoryAllocator.MoveToRegister(args[2].ReturnDataId, RegisterName.r8);
             }
             if (N >= 4)
             {
-                if (args[0].ReturnDataId.IsSSE_Element)
+                if (args[0].IsSSE_Data())
                     st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.xmm3);
                 else
                     st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.r9);
@@ -137,7 +137,7 @@ namespace Peak.AsmGeneration
             else
             {
                 var arg = r.ReturnDataId;
-                st.MemoryAllocator.MoveToRegister(arg);
+                st.MemoryAllocator.MoveToAnyRegister(arg);
 
                 st.Emit($"push {arg.Register}");
             }

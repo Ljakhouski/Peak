@@ -21,6 +21,10 @@ namespace Peak.AsmGeneration
             {
                 return BinaryOperator.Generate(node as BinaryNode, st);
             }
+            else if (node is MethodCallNode)
+            {
+                return MethodCall.Generate((node as MethodCallNode), st, st);
+            }
             else throw new CompileException();
         }
     }

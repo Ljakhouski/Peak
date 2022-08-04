@@ -98,7 +98,10 @@ namespace Peak.AsmGeneration
             }
         }
 
-        public SemanticType() { throw new CompileException("could not called?"); }
+        public SemanticType()
+        {
+            //throw new CompileException("could not called?");
+        }
 
     }
 

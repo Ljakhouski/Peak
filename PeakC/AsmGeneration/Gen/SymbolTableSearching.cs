@@ -111,12 +111,13 @@ namespace Peak.AsmGeneration
 
             if (v)
             {
-                st.MemoryAllocator.MoveToRegister(assignmentData);
+                st.MemoryAllocator.MoveToAnyRegister(assignmentData);
 
                 var offset = getMemId(element).Rbp_Offset;
                 var register = assignmentData.Register.ToString();
 
                 st.Emit($"mov [rbp {offset}], {register}");
+                //st.MemoryAllocator.SetId
                 /*
                 st.MethodCode.Emit(
                     new AsmInstruction()
@@ -137,7 +138,7 @@ namespace Peak.AsmGeneration
                         }
                     });*/
 
-                assignmentData.Free();
+                //assignmentData.Free(); why???
             }
             else
             {
@@ -180,7 +181,7 @@ namespace Peak.AsmGeneration
             
             if (e)
             {
-                st.MemoryAllocator.MoveToRegister(assigmentData);
+                st.MemoryAllocator.MoveToAnyRegister(assigmentData);
                 var offset_ = getMemId(element).Rbp_Offset;
 
                 st.Emit($"mov [{newRbpRegId.Register} {offset}], {assigmentData.Register}");

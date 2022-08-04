@@ -368,6 +368,65 @@ namespace Peak.AsmGeneration
             }
         }*/
 
+
+
+
+
+        // relocate data from register to make free
+        public void FreeRegister(RegisterName register)
+        {
+            foreach (RegisterMapElement e in RegisterMap)
+            {
+                if (e.Register == register)
+                {
+                    if (e.ContainedData is null)
+                        return;
+                    else
+                    {
+                        var reg = this.GetFreeRegister();
+
+                        if (reg == register)
+                        {
+                            this.GetRegisterMapElement(register).Free();
+                            return;
+                        }
+                        else
+                        {
+                            this.NativeSymbolTable.Emit($"mov {reg}, {register}");
+                            this.GetRegisterMapElement(reg).ContainedData = this.GetRegisterMapElement(register).ContainedData;
+                            return;
+                        }
+                        
+                    }
+                }
+            }
+
+            foreach (RegisterMapElement e in SSERegisterMap)
+            {
+                if (e.Register == register)
+                {
+                    if (e.ContainedData is null)
+                        return;
+                    else
+                    {
+                        var reg = this.GetFreeSSERegister();
+
+                        if (reg == register)
+                        {
+                            this.GetRegisterMapElement(register).Free();
+                            return;
+                        }
+                        else
+                        {
+                            this.NativeSymbolTable.Emit($"movsd {reg}, {register}");
+                            this.GetRegisterMapElement(reg).ContainedData = this.GetRegisterMapElement(register).ContainedData;
+                            return;
+                        }
+
+                    }
+                }
+            }
+        }
         public RegisterName GetFreeRegister()
         {
             foreach (RegisterMapElement e in RegisterMap)
@@ -402,6 +461,40 @@ namespace Peak.AsmGeneration
 
             return register.Register;
         }
+        public RegisterName GetFreeSSERegister()
+        {
+            foreach (RegisterMapElement e in SSERegisterMap)
+            {
+                if (e.ContainedData is null)
+                {
+                    return e.Register;
+                }
+            }
+
+            var register = getOldestSSERegister();
+            var freeElement = getFreeStackArea(register.ContainedData.Size, register.ContainedData.Alignment);
+
+            freeElement.ContainedData = register.ContainedData;
+
+
+            // mov [rbp + offset], r?x
+            this.NativeSymbolTable.Emit(string.Format("movsd {0} [{1} {2}], {3}", GetDataSizeName(register.ContainedData.Size), register.Register.ToString(), freeElement.Rbp_Offset, register.Register.ToString()));
+            /*this.NativeSymbolTable.MethodCode.Emit
+                (InstructionName.Mov,
+                new Operand()
+                {
+                    IsGettingAddress = true,
+                    RegisterName = register.Register,
+                    DataSizeExist = true,
+                    Size = GetDataSizeName(register.ContainedData.Size),
+                    Offset = freeElement.Rbp_Offset
+                },
+                register.Register);*/
+
+            register.Free(); // it is free now!
+
+            return register.Register;
+        }
 
         public MemoryDataId GetNewIdInRegister()
         {
@@ -419,6 +512,20 @@ namespace Peak.AsmGeneration
                     minimalUsage = e.UsageNumber;
 
             foreach (RegisterMapElement e in RegisterMap)
+                if (e.UsageNumber == minimalUsage)
+                    return e;
+
+            throw new CompileException();
+        }
+        private RegisterMapElement getOldestSSERegister()
+        {
+            int minimalUsage = 0;
+
+            foreach (RegisterMapElement e in SSERegisterMap)
+                if (e.UsageNumber < minimalUsage)
+                    minimalUsage = e.UsageNumber;
+
+            foreach (RegisterMapElement e in SSERegisterMap)
                 if (e.UsageNumber == minimalUsage)
                     return e;
 
@@ -548,6 +655,20 @@ namespace Peak.AsmGeneration
             return size;
         }
 
+        public MemoryDataId GetMemoryDataId(RegisterName register)
+        {
+            return GetRegisterMapElement(register).ContainedData;
+        }
+        public RegisterMapElement GetRegisterMapElement(RegisterName register)
+        {
+            foreach (var e in this.RegisterMap)
+                if (e.Register == register)
+                    return e;
+            foreach (var e in this.SSERegisterMap)
+                if (e.Register == register)
+                    return e;
+            throw new CompileException();
+        }
         private void defragmentateStackModel()
         {
             // can be free-spaces-cutting consist
@@ -640,14 +761,25 @@ namespace Peak.AsmGeneration
             area.ContainedData = id;
         }
         
-        public void MoveToRegister(MemoryDataId data)   
+        public void MoveToAnyRegister(MemoryDataId data)   
         {
-            if (data.ExistInRegisters)
+            if (data.ExistInRegisters || data.ExistInSSERegisters)
                 return;
 
-            var freeReg = this.GetFreeRegister();
+            else if (data.IsSSE_Element)
+            {
+                var freeReg = this.GetFreeSSERegister();
+                this.NativeSymbolTable.Emit($"movsd {freeReg}, {GetDataSizeName(data.Size)} [rbp {data.Rbp_Offset}]");
+                this.GetRegisterMapElement(freeReg).ContainedData = data;
+            }
+            else
+            {
+                var freeReg = this.GetFreeRegister();
+                this.NativeSymbolTable.Emit(string.Format($"mov {freeReg}, [rbp {data.Rbp_Offset}]"));
+                this.GetRegisterMapElement(freeReg).ContainedData = data;
+            }
+            
 
-            this.NativeSymbolTable.Emit(string.Format("mov {0}, [rbp {1}]", freeReg.ToString(), data.Rbp_Offset.ToString()));
 
            /* this.NativeSymbolTable.MethodCode.Emit(
                 InstructionName.Mov,
@@ -661,14 +793,6 @@ namespace Peak.AsmGeneration
                     Offset = data.StackOffset
                 }
                 );*/
-
-            foreach (var e in StackModel)
-                if (e.ContainedData == data)
-                    e.Free();
-
-            foreach (var e in RegisterMap)
-                if (e.Register == freeReg)
-                    e.ContainedData = data;
         }
 
         public void MoveToSSE_register(MemoryDataId data) { }
@@ -740,15 +864,70 @@ namespace Peak.AsmGeneration
             return i < 0 ? (-1) * input : input;
         }
 
-        internal void MoveToRegister(MemoryDataId returnDataId, RegisterName register)
+        public void MoveToRegister(MemoryDataId id, RegisterName register)
         {
-            if (returnDataId.Register == register)
-                return;
-            if (returnDataId.ExistInStack && returnDataId.ExistInRegisters == false)
+            if (id.ExistInRegisters)
             {
-                
+                if (id.Register == register)
+                    return;
+                else
+                {
+                    var oldReg = id.Register;
+                    this.FreeRegister(register);
+                    this.NativeSymbolTable.Emit($"mov {register}, {oldReg}");
+                    SetIdToFreeRegister(id, register);
+                }
             }
-            //else if ()
+            else if (id.ExistInSSERegisters)
+            {
+                if (id.Register == register)
+                    return;
+                else
+                {
+                    var oldReg = id.Register;
+                    this.FreeRegister(register);
+                    this.NativeSymbolTable.Emit($"mov {register}, {oldReg}");
+                    SetIdToFreeRegister(id, register);
+                }
+            }
+            else // mov from stack
+            {
+                //var 
+                
+                FreeRegister(register);
+                if (id.IsSSE_Element)
+                {
+                    this.NativeSymbolTable.Emit($"movsd {register}, {GetDataSizeName(id.Size)} [rbp {id.StackOffset}]");
+                    SetIdToFreeRegister(id, register);
+                }
+                else
+                {
+                    this.NativeSymbolTable.Emit($"mov {register}, {GetDataSizeName(id.Size)} [rbp {id.StackOffset}]");
+                    SetIdToFreeRegister(id, register);
+                }
+            }
+        }
+        public void MoveToRegister(GenResult res, RegisterName register)
+        {
+            if (res is ConstantResult)
+            {
+                this.FreeRegister(register);
+
+                if ((res as ConstantResult).ResultType.Type == Type.Int)
+                    this.NativeSymbolTable.Emit($"mov {register}, {(res as ConstantResult).IntValue}");
+                else if ((res as ConstantResult).ResultType.Type == Type.Bool)
+                    this.NativeSymbolTable.Emit($"mov {register}, {(res as ConstantResult).BoolValue}");
+                else if ((res as ConstantResult).ResultType.Type == Type.Bool)
+                {
+                    throw new CompileException("double not implemented");
+                }
+
+                SetIdToFreeRegister(res.ReturnDataId, register);
+            }
+            else
+            {
+                MoveToRegister(res.ReturnDataId, register);  
+            }
         }
     }
 }
