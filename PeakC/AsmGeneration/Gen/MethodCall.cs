@@ -25,7 +25,7 @@ namespace Peak.AsmGeneration
 
             };
 
-            var method = getMethod(node, calledSignature, methodSt);
+            var method = getMethodAddress(node, calledSignature, methodSt);
 
             /*if (method is null)
                 Error.ErrMessage(node.MetaInf, "method not exist in current scope");*/
@@ -43,13 +43,11 @@ namespace Peak.AsmGeneration
 
             }*/
 
-            if (method is ConstantResult)
-                call_x86_64(argsResult.ToArray(), st, label: (method as ConstantResult).ConstValue.Content);
-            else
-                call_x86_64(argsResult.ToArray(), st, methodObj: method.ReturnDataId);
+            call_x86_64(argsResult.ToArray(), st, label: method.Label, methodObj: method.DynamicResult.ReturnDataId);
+
             return new GenResult()
             {
-                ResultType = calledSignature,
+                ResultType = (method.fullSignature as MethodSemanticType).RetType,
                 ReturnDataId = MemoryDataId.FuncResult(st)
             };
         }
@@ -60,7 +58,7 @@ namespace Peak.AsmGeneration
         private static void call_x86_64(GenResult[] args, SymbolTable st, string label = "", MemoryDataId methodObj = null)
         {
             int N = args.Length;
-
+            saveRegisters(st);
             alignStackBeforePush(N, st);
             if (N>=5)
             {                
@@ -73,35 +71,43 @@ namespace Peak.AsmGeneration
             if (N >= 1)
             {
                 if (args[0].IsSSE_Data())
-                    st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.xmm0);
+                    st.MemoryAllocator.MoveToRegister(args[0], RegisterName.xmm0);
                 else
-                    st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.rcx);
+                    st.MemoryAllocator.MoveToRegister(args[0], RegisterName.rcx);
 
                 // TODO: make for 128 bit SSE registers
             }
             if (N >= 2)
             {
                 if (args[1].IsSSE_Data())
-                    st.MemoryAllocator.MoveToRegister(args[1].ReturnDataId, RegisterName.xmm1);
+                    st.MemoryAllocator.MoveToRegister(args[1], RegisterName.xmm1);
                 else
-                    st.MemoryAllocator.MoveToRegister(args[1].ReturnDataId, RegisterName.rdx);
+                    st.MemoryAllocator.MoveToRegister(args[1], RegisterName.rdx);
             }
             if (N >= 3)
             {
                 if (args[2].IsSSE_Data())
-                    st.MemoryAllocator.MoveToRegister(args[2].ReturnDataId, RegisterName.xmm2);
+                    st.MemoryAllocator.MoveToRegister(args[2], RegisterName.xmm2);
                 else
-                    st.MemoryAllocator.MoveToRegister(args[2].ReturnDataId, RegisterName.r8);
+                    st.MemoryAllocator.MoveToRegister(args[2], RegisterName.r8);
             }
             if (N >= 4)
             {
                 if (args[0].IsSSE_Data())
-                    st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.xmm3);
+                    st.MemoryAllocator.MoveToRegister(args[0], RegisterName.xmm3);
                 else
-                    st.MemoryAllocator.MoveToRegister(args[0].ReturnDataId, RegisterName.r9);
+                    st.MemoryAllocator.MoveToRegister(args[0], RegisterName.r9);
             }
 
-
+            if (methodObj is null == false)
+            {
+                st.MemoryAllocator.MoveToAnyRegister(methodObj);
+                st.Emit($"call [{methodObj.Register}]");
+            }
+            else
+            {
+                st.Emit($"call [{label}]");
+            }
 
             restoreStackAlign(N, st);
         }
@@ -143,7 +149,25 @@ namespace Peak.AsmGeneration
             }
             
         }
-
+        private static void saveRegisters(SymbolTable table)
+        {
+            foreach(var e in table.MemoryAllocator.RegisterMap)
+            {
+                if (e.ContainedData is null == false)
+                {
+                    table.MemoryAllocator.MoveToStack(e.ContainedData);
+                    e.Free();
+                }
+            }
+            foreach (var e in table.MemoryAllocator.SSERegisterMap)
+            {
+                if (e.ContainedData is null == false)
+                {
+                    table.MemoryAllocator.MoveToStack(e.ContainedData);
+                    e.Free();
+                }
+            }
+        }
         private static List<SemanticType> convertToType(List<GenResult> args)
         {
             if (args.Count == 0)
@@ -191,25 +215,38 @@ namespace Peak.AsmGeneration
                 return getMethod(node, signature, st.Prev);
             return null;
         }*/
-        private static GenResult getMethod(MethodCallNode node, SemanticType signature, SymbolTable st/*, SymbolTable context*/)
+
+        private class MethodSearchResult
+        {
+            public GenResult DynamicResult { get; set; }
+            public string Label { get; set; } = null;
+            public SemanticType fullSignature { get; set; } // with return type
+        }
+        private static MethodSearchResult getMethodAddress(MethodCallNode node, SemanticType signature, SymbolTable st/*, SymbolTable context*/)
         {
             if (node.From is IdentifierNode)
             {
-                var method = st.GetVisibleMethodTableElement((node.From as IdentifierNode).Id);
+                var method = st.GetVisibleMethodTableElement((node.From as IdentifierNode).Id, signature);
                 if (method is null)
                     Error.ErrMessage((node.From as IdentifierNode).Id, "method not exist");
 
-                return new ConstantResult()
+
+                return new MethodSearchResult()
                 {
-                    ConstValue = (node.From as IdentifierNode).Id,
-                    ResultType = new SemanticType(Type.Str)
+                    Label = method.Name,
+                    fullSignature = method.MethodSignature,
+                    DynamicResult = new ConstantResult()
+                    {
+                        ConstValue = (node.From as IdentifierNode).Id, // call label
+                        ResultType = new SemanticType(Type.Str)
+                    }
                 };
             }
             else
             {
                 var id = Expression.Generate(node.From, st);
                 if (id.ResultType == signature)
-                    return id;
+                    return new MethodSearchResult() { DynamicResult = id };
                 else
                     Error.ErrMessage(node.MetaInf, "method not exist");
             }
@@ -218,7 +255,6 @@ namespace Peak.AsmGeneration
 
         private static Node[] getArgsInArray(Node n)
         {
-
             if (n is SequenceNode)
             {
                 var arr = new List<Node>();

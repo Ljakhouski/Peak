@@ -36,15 +36,6 @@ namespace Peak.AsmGeneration
             {
 
                 Error.ErrMessage("method as variable not supported");
-                var methodData = st.GetVisibleMethodTableElement(node.Id);
-                if (methodData is null)
-                    Error.ErrMessage(node.Id, "name does not exist");
-                else
-                    return new ConstantResult()
-                    {
-                        ResultType = new SemanticType(Type.Str),
-                        ConstValue = methodData.NameToken
-                    };
             }
             else if (data is null)
                 Error.ErrMessage(node.MetaInf, "name does not exist");

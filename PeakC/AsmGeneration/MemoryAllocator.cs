@@ -929,5 +929,23 @@ namespace Peak.AsmGeneration
                 MoveToRegister(res.ReturnDataId, register);  
             }
         }
+
+        public void MoveToStack(MemoryDataId id)
+        {
+            if (id.ExistInRegisters == false && id.ExistInSSERegisters == false && id.ExistInStack)
+                return;
+
+            var register = id.Register;
+            bool isSSE = id.IsSSE_Element;
+            this.AllocateInStack(id, id.Alignment);
+
+            if (isSSE)
+            {
+                this.NativeSymbolTable.Emit($"movsd [rbp {id.Rbp_Offset}], {GetDataSizeName(id.Size)} {register}");
+            }
+            else
+                this.NativeSymbolTable.Emit($"mov [rbp {id.Rbp_Offset}], {GetDataSizeName(id.Size)} {register}");
+
+        }
     }
 }

@@ -33,9 +33,7 @@ namespace Peak.AsmGeneration
                         var e = new VariableTableElement(st, node.Name, type.ResultType);
 
                         st.RegisterVariable(e);
-
-                       
-                       
+                                                                   
                         st.MemoryAllocator.MoveToAnyRegister(rightExprDataId);
 
                         SymbolTableSearching.GenerateSettingData(e, rightExprDataId, st, st);

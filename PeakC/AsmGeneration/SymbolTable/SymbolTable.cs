@@ -62,13 +62,13 @@ namespace Peak.AsmGeneration
         }
 
         // return static method definition, which can be called
-        public MethodTableElement GetVisibleMethodTableElement(Token id)
+        public MethodTableElement GetVisibleMethodTableElement(Token id, SemanticType signature)
         {
             foreach (var e in this.Data)
-                if (e is MethodTableElement && id.Content == e.Name)
+                if (e is MethodTableElement && id.Content == e.Name && (e as MethodTableElement).MethodSignature == signature)
                     return e as MethodTableElement;
             if (this.Prev is null == false && this is StructureSymbolTable == false)
-                return this.Prev.GetVisibleMethodTableElement(id);
+                return this.Prev.GetVisibleMethodTableElement(id, signature);
             else
                 return null;
         }
