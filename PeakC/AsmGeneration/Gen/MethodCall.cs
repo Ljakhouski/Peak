@@ -153,7 +153,9 @@ namespace Peak.AsmGeneration
         {
             foreach(var e in table.MemoryAllocator.RegisterMap)
             {
-                if (e.ContainedData is null == false)
+                if (e.Register == RegisterName.rax)
+                    continue;
+                else if (e.ContainedData is null == false)
                 {
                     table.MemoryAllocator.MoveToStack(e.ContainedData);
                     e.Free();

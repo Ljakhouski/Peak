@@ -45,11 +45,25 @@ namespace Peak.AsmGeneration
         public MemoryDataId MemoryId { get; private set; } 
         public VariableTableElement(SymbolTable st, Token name, SemanticType type)
         {
-            this.MemoryId = new MemoryDataId(st);
+            this.MemoryId = new MemoryDataId(st, convertTypeToSize(type));
             this.NameToken = name;
             this.Type = type;
         }
 
+        private static int convertTypeToSize(SemanticType type)
+        {
+            switch (type.Type)
+            {
+                case AsmGeneration.Type.Bool:
+                    return 1;
+                case AsmGeneration.Type.Int:
+                case AsmGeneration.Type.Method:
+                case AsmGeneration.Type.Double:
+                    return 8;
+                default:
+                    throw new CompileException();
+            }
+        }
     }
     class ConstTableElement : TableElement
     {
@@ -80,7 +94,7 @@ namespace Peak.AsmGeneration
         public MethodContextReferenceElement(SymbolTable st)
         {
             Source = st;
-            MemoryId = new MemoryDataId(st);
+            MemoryId = new MemoryDataId(st, size: 8);
         }
     }
 }

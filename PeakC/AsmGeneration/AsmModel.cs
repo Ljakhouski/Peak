@@ -101,7 +101,7 @@ namespace Peak.AsmGeneration
         public string GetFasmListing()
         {
             string output = "format PE64 Console \n entry start  \n";
-
+            output += " include 'win64a.inc'";
             foreach (string heads in Head)
                 output += heads + '\n';
 
@@ -129,13 +129,18 @@ namespace Peak.AsmGeneration
                     output += S;
 
             }
-
+            /*
             if (IData.Count > 0)
             {
                 output += "\nsection '.idata' data readable import \n";
                 foreach (string S in IData)
                     output += S;
             }
+            */
+
+            output += "\n\n section '.idata' data readable import\n";
+            output += getIdataText();
+
 
             return output;
         }
@@ -147,6 +152,7 @@ namespace Peak.AsmGeneration
                 if (e.DllPath == dllPath)
                 {
                     e.Symbols.Add(name);
+                    return;
                 }
             }
 
@@ -156,7 +162,57 @@ namespace Peak.AsmGeneration
                 Symbols = new List<string>() { name }
             });
         }
+        private string getIdataText()
+        {
+            string libOutput = "library ";
+            string importStr = "";
+            foreach(var e in dllImportSymbols)
+            {
+                string dllLabel = remove(e.DllPath, '.');
 
+                libOutput += dllLabel;
+                libOutput += @$", '{e.DllPath}',\";
+
+                importStr += $"import {dllLabel}";
+                foreach(var i in e.Symbols)
+                {
+                    importStr += $", {i}, \'{i}\'";
+                }
+            }
+
+            libOutput = trimEnd(libOutput, ",\\");
+
+            return libOutput + "\n" + importStr;
+        }
+
+        private string trimEnd(string s, string trimS)
+        {
+            char[] charArray = trimS.ToCharArray();
+            Array.Reverse(charArray);
+            trimS = new string(charArray);
+
+            foreach (char ch in trimS)
+            {
+                if (s[s.Length - 1] == ch)
+                    s = s.Remove(s.Length - 1);
+                else
+                    break;
+            }
+
+            return s;
+        }
+
+        private string remove(string s, char ch)
+        {
+            for (int i = 0; i < s.Length; i++)
+                if (s[i] == ch)
+                {
+                    s = s.Remove(i, 1);
+                    i--;
+                }
+
+            return s;
+        }
         private string getInstructionListing(AsmInstruction instruction)
         {
             string output = "    ";

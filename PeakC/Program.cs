@@ -92,7 +92,7 @@ namespace Peak.PeakC
                 var assembly = AsmGeneration.CodeGeneration.GetAsmAssembly(n);
                 var listing = assembly.GetFasmListing();
                 if (printAsmtListing)
-                    Console.Write("\n\n        *** FASM listing: ***\n\n\n" + listing);
+                    Console.Write("\n\n        *** FASM listing: ***\n\n\n" + listing + "\n ______________________________\n");
 
                 string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 

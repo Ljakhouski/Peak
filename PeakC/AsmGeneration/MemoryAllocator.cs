@@ -66,9 +66,8 @@ namespace Peak.AsmGeneration
                 {
                     if (e.Register == RegisterName.xmm0)
                     {
-                        e.ContainedData = new MemoryDataId(st)
+                        e.ContainedData = new MemoryDataId(st, 8)
                         {
-                            Size = 8,
                             IsSSE_Element = true
                         };
 
@@ -81,11 +80,7 @@ namespace Peak.AsmGeneration
             {
                 if (e.Register == RegisterName.rax)
                 {
-                    e.ContainedData = new MemoryDataId(st)
-                    {
-                        Size = 8
-                    };
-
+                    e.ContainedData = new MemoryDataId(st, size: 8);
                     return e.ContainedData;
                 }
             }
@@ -176,17 +171,28 @@ namespace Peak.AsmGeneration
             }
         }
     
-        public MemoryDataId(SymbolTable st)
+        public MemoryDataId(SymbolTable st, int size)
         {
             this.Id = IdGenerator.GenerateMemoryId();
             this.allocator = st.MemoryAllocator;
+            this.Size = size;
         }
+        /*public MemoryDataId(SymbolTable st, int size, int alignment)
+        {
+            this.Id = IdGenerator.GenerateMemoryId();
+            this.allocator = st.MemoryAllocator;
+            this.Size = size;
+           // this.Alignment = alignment;
+        }*/
 
         private MemoryAllocator allocator;
 
         public static bool operator ==(MemoryDataId id1, MemoryDataId id2)
         {
-            return id1.Equals(id2);
+            if (id1 is null == false)
+                return id1.Equals(id2);
+            else
+                return id2.Equals(id1);
         }
 
         public static bool operator !=(MemoryDataId id1, MemoryDataId id2)
@@ -496,10 +502,10 @@ namespace Peak.AsmGeneration
             return register.Register;
         }
 
-        public MemoryDataId GetNewIdInRegister()
+        public MemoryDataId GetNewIdInRegister(int size)
         {
             var reg = GetFreeRegister();
-            var id = new MemoryDataId(this.NativeSymbolTable);
+            var id = new MemoryDataId(this.NativeSymbolTable, size);
             SetIdToFreeRegister(id, reg);
             return id;
         }
@@ -761,11 +767,36 @@ namespace Peak.AsmGeneration
             area.ContainedData = id;
         }
         
+        public MemoryDataId MoveToAnyRegister(GenResult result)
+        {
+            if (result is ConstantResult)
+            {
+                return (result as ConstantResult).MoveToRegister(this.NativeSymbolTable).ReturnDataId;
+                /*if ((result as ConstantResult).ResultType.Type == Type.Int)
+                {
+                    var id = GetNewIdInRegister(8);
+                    this.NativeSymbolTable.Emit($"mov {id.Register}, {(result as ConstantResult).IntValue}");
+                    return id;
+                }
+                else if ((result as ConstantResult).ResultType.Type == Type.Bool)
+                {
+                    var id = GetNewIdInRegister(1);
+                    this.NativeSymbolTable.Emit($"mov {id.Register}, {(result as ConstantResult).BoolValue}");
+                    return id;
+                }
+                else
+                    throw new CompileException();*/
+            }
+            else
+                MoveToAnyRegister(result.ReturnDataId);
+                return result.ReturnDataId;
+        }
         public void MoveToAnyRegister(MemoryDataId data)   
         {
             if (data.ExistInRegisters || data.ExistInSSERegisters)
                 return;
 
+            // move from stack
             else if (data.IsSSE_Element)
             {
                 var freeReg = this.GetFreeSSERegister();

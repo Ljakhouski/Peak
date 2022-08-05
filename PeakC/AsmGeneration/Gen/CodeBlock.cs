@@ -34,6 +34,10 @@ namespace Peak.AsmGeneration
                 {
                     MethodDeclaration.Generate(n as MethodNode, st);
                 }
+                else if (n is MethodCallNode)
+                {
+                    MethodCall.Generate(n as MethodCallNode, st, st);
+                }
                 else
                     throw new CompileException();
 

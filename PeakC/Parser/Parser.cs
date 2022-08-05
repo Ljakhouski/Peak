@@ -159,8 +159,8 @@ namespace Peak.PeakC.Parser
                     return parseSequence();
                 case NonterminalType.Args:
                     return parseArgs();
-                case NonterminalType.WordOperator:
-                    return parseWordOperator();
+                //case NonterminalType.WordOperator:
+                 //   return parseWordOperator();
                 case NonterminalType.MethodCall:
                     return parseMethodCallByName();
                 case NonterminalType.Data:

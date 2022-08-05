@@ -45,7 +45,7 @@ namespace Peak.AsmGeneration
                         }
                     );*/
 
-                var id = new MemoryDataId(st) { Size = size };
+                var id = new MemoryDataId(st, size);
                 st.MemoryAllocator.SetIdToFreeRegister(id, reg);
 
                 return new GenResult() { ResultType = result, ReturnDataId = id };

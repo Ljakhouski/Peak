@@ -21,7 +21,7 @@ namespace Peak.AsmGeneration
             }
             else
             {
-                var outputId = st.MemoryAllocator.GetNewIdInRegister();
+                var outputId = st.MemoryAllocator.GetNewIdInRegister(size: 8);
                 st.Emit($"mov {outputId.Register}, [rbp {getMemId(element).Rbp_Offset}]");
                 var result = new GenResult()
                 {
@@ -47,7 +47,7 @@ namespace Peak.AsmGeneration
             {
                 if (mRef.MemoryId.ExistInRegisters == false)
                 {
-                    var newRbpReg = st.MemoryAllocator.GetNewIdInRegister(); // this register will be free after finding
+                    var newRbpReg = st.MemoryAllocator.GetNewIdInRegister(size: 8); // this register will be free after finding
 
                     var offset = mRef.MemoryId.Rbp_Offset.ToString();
 
@@ -71,7 +71,7 @@ namespace Peak.AsmGeneration
                     if (e) // if variable found in current new context
                     {
                         // mov r?x, [output + offset_2]
-                        var outputDataRegisterId = st.MemoryAllocator.GetNewIdInRegister();
+                        var outputDataRegisterId = st.MemoryAllocator.GetNewIdInRegister(getMemId(element).Size);
                         var offset_ = mRef.MemoryId.Rbp_Offset;
                         st.Emit($"mov {outputDataRegisterId.Register}, [{reg1} {offset_}]");
                         newRbpReg.Free();
@@ -150,7 +150,7 @@ namespace Peak.AsmGeneration
         private static void setVarRecursive(TableElement element, SymbolTable context, SymbolTable st, MemoryDataId assigmentData, MemoryDataId framePointer)
         {
             var contextRef = context.GetMethodContextRef();
-            var newRbpRegId = st.MemoryAllocator.GetNewIdInRegister();
+            var newRbpRegId = st.MemoryAllocator.GetNewIdInRegister(size: 8);
             //st.MemoryAllocator.MoveToRegister(contextRef.Id);
 
 
