@@ -767,6 +767,7 @@ namespace Peak.AsmGeneration
             area.ContainedData = id;
         }
         
+        // move to any r-registers or SSE registers depend of the data type
         public MemoryDataId MoveToAnyRegister(GenResult result)
         {
             if (result is ConstantResult)
@@ -791,6 +792,8 @@ namespace Peak.AsmGeneration
                 MoveToAnyRegister(result.ReturnDataId);
                 return result.ReturnDataId;
         }
+
+        // move to any r-registers or SSE registers depend of the data type
         public void MoveToAnyRegister(MemoryDataId data)   
         {
             if (data.ExistInRegisters || data.ExistInSSERegisters)

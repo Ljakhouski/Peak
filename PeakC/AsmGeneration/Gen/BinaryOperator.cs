@@ -17,6 +17,13 @@ namespace Peak.AsmGeneration
                 Assignment.Generate(right, left, st);
                 return new EmptyGenResult();
             }
+            else if (node.Operator.Content == "+" ||
+                node.Operator.Content == "-" ||
+                node.Operator.Content == "*" ||
+                node.Operator.Content == "/")
+            {
+                return MathOperation.Generate(node, st);
+            }
             else throw new CompileException("non implemented operator ");
             /*var rightResult = Expression.Generate(right, st);
             
