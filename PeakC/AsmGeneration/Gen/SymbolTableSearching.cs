@@ -33,7 +33,7 @@ namespace Peak.AsmGeneration
         }
 
 
-        private static GenResult getVarRecursive(TableElement element, SymbolTable context, SymbolTable st /* for code-gen and for stack/register managment*/, MemoryDataId framePointer)
+        private static GenResult getVarRecursive(TableElement element, SymbolTable context, SymbolTable st /* for code-gen and for stack/register managment*/, MemoryIdTracker framePointer)
         {
             // 1: take ref (where point on rbp in frame) on the next context
             // 2: if frame contains -> mov r?x, [ref+var_offset]
@@ -105,7 +105,7 @@ namespace Peak.AsmGeneration
         }
 
         /* set */
-        public static void GenerateSettingData(TableElement element, MemoryDataId assignmentData, SymbolTable context, SymbolTable st)
+        public static void GenerateSettingData(TableElement element, MemoryIdTracker assignmentData, SymbolTable context, SymbolTable st)
         {
             var v = context.ExistInMethodContext(element);
 
@@ -147,7 +147,7 @@ namespace Peak.AsmGeneration
 
         }
 
-        private static void setVarRecursive(TableElement element, SymbolTable context, SymbolTable st, MemoryDataId assigmentData, MemoryDataId framePointer)
+        private static void setVarRecursive(TableElement element, SymbolTable context, SymbolTable st, MemoryIdTracker assigmentData, MemoryIdTracker framePointer)
         {
             var contextRef = context.GetMethodContextRef();
             var newRbpRegId = st.MemoryAllocator.GetNewIdInRegister(size: 8);
@@ -215,7 +215,7 @@ namespace Peak.AsmGeneration
                     setVarRecursive(element, contextRef.Context, st, assigmentData, framePointer);
             }            
         }
-        private static MemoryDataId getMemId(TableElement e)
+        private static MemoryIdTracker getMemId(TableElement e)
         {
             if (e is VariableTableElement)
                 return (e as VariableTableElement).MemoryId;

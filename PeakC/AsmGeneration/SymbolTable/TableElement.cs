@@ -42,10 +42,10 @@ namespace Peak.AsmGeneration
 
     class VariableTableElement : TableElement
     {
-        public MemoryDataId MemoryId { get; private set; } 
+        public MemoryIdTracker MemoryId { get; private set; } 
         public VariableTableElement(SymbolTable st, Token name, SemanticType type)
         {
-            this.MemoryId = new MemoryDataId(st, convertTypeToSize(type));
+            this.MemoryId = new MemoryIdTracker(st, convertTypeToSize(type));
             this.NameToken = name;
             this.Type = type;
         }
@@ -89,12 +89,12 @@ namespace Peak.AsmGeneration
     class MethodContextReferenceElement : TableElement
     {
         public SymbolTable Context { get; set; }
-        public MemoryDataId MemoryId { get; private set; }
+        public MemoryIdTracker MemoryId { get; private set; }
 
         public MethodContextReferenceElement(SymbolTable st)
         {
             Source = st;
-            MemoryId = new MemoryDataId(st, size: 8);
+            MemoryId = new MemoryIdTracker(st, size: 8);
         }
     }
 }

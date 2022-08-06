@@ -10,7 +10,7 @@ namespace Peak.AsmGeneration
         //public Operand Operand { get; set; }
 
         public SemanticType ResultType { get; set; }
-        public MemoryDataId ReturnDataId { get; set; }
+        public MemoryIdTracker ReturnDataId { get; set; }
 
         public virtual void PushOnStack(SymbolTable st)
         {
@@ -42,10 +42,6 @@ namespace Peak.AsmGeneration
     }
     class ConstantResult : GenResult
     {
-        /*
-        public int IntValue { get; set; }
-        public double DoubleValue { get; set; }
-        public bool BoolValue { get; set; }*/
         public Token ConstValue { get; set; }
 
         public string IntValue { get { return this.ConstValue.Content; } }
@@ -97,7 +93,7 @@ namespace Peak.AsmGeneration
                         }
                     );*/
 
-                var id = new MemoryDataId(st, size);
+                var id = new MemoryIdTracker(st, size);
                 st.MemoryAllocator.SetIdToFreeRegister(id, reg);
                 
                 return new GenResult() { ResultType = result, ReturnDataId = id };

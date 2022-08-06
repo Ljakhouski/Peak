@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Peak.AsmGeneration
 {
-    
+
     /*    
           
                                          Prefixs in methods: 
@@ -14,210 +14,28 @@ namespace Peak.AsmGeneration
 
           Allocate-prefix --- is the placing new data to <?>, witch not consist in the stack or in registers 
 
-               Set-prefix --- is the manual writing MemoryDataId to the register map ot stack
+               Set-prefix --- is the manual writing MemoryIdTracker to the register map ot stack
      */
-
-    class MemoryDataId // object with info about memory-field in stack or in registers (or in heap-memory)
-    {
-        public int Id { get; private set; } // only for handle searching in register map or in stack-model
-        public int Size { get; set; } // in bytes, size of data-type (without alligment)
-        public int Alignment { get { return this.Size; } }
-        public bool IsSSE_Element { get; set; } = false; // for double/float type
-        /*** optional ***/
-        //public MemoryPositonInfo Position { get; set; } // only for sync between code-generator and MemoryAllocator
-
-
-        /***  about registers  ***/
-        public bool ExistInRegisters
-        {
-            get
-            {
-                var regMap = this.allocator.RegisterMap;
-
-                foreach (RegisterMapElement e in regMap)
-                {
-                    if (this == e.ContainedData)
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        public bool ExistInSSERegisters
-        {
-            get
-            {
-                var regMap = this.allocator.SSERegisterMap;
-
-                foreach (RegisterMapElement e in regMap)
-                {
-                    if (e.ContainedData == this)
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        public static MemoryDataId FuncResult(SymbolTable st, bool isSSE = false)
-        {
-            if (isSSE)
-            {
-                foreach (var e in st.MemoryAllocator.SSERegisterMap)
-                {
-                    if (e.Register == RegisterName.xmm0)
-                    {
-                        e.ContainedData = new MemoryDataId(st, 8)
-                        {
-                            IsSSE_Element = true
-                        };
-
-                        return e.ContainedData;
-                    }
-                }
-            }
-
-            foreach(var e in st.MemoryAllocator.RegisterMap)
-            {
-                if (e.Register == RegisterName.rax)
-                {
-                    e.ContainedData = new MemoryDataId(st, size: 8);
-                    return e.ContainedData;
-                }
-            }
-
-            throw new CompileException();
-        }
-
-        public RegisterName Register
-        {
-            get
-            {
-                
-                if (this.ExistInRegisters)
-                {
-                    var regMap = this.allocator.RegisterMap;
-
-                    foreach (RegisterMapElement e in regMap)
-                    {
-                        if (this == e.ContainedData)
-                            return e.Register;
-                    }
-                }
-
-                throw new CompileException();
-            }
-        }
-
-
-        /***  about stack  ***/
-        public bool ExistInStack
-        {
-            get
-            {
-                var stack = this.allocator.StackModel;
-
-                foreach (MemoryAreaElement area in stack)
-                {
-                    if (this == area.ContainedData)
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        public void Free()
-        {
-            FreeFromRegister();
-            FreeFromStack();
-        }
-        
-        public void FreeFromRegister()
-        {
-            foreach (var e in this.allocator.RegisterMap)
-                if (this == e.ContainedData)
-                    e.Free();
-        }
-
-        public void FreeFromStack()
-        {
-            foreach (var e in this.allocator.StackModel)
-                if (this == e.ContainedData)
-                    e.Free();
-        }
-
-        public int Rbp_Offset
-        {
-            get
-            {
-                foreach (var e in this.allocator.StackModel)
-                    if ( this == e.ContainedData)
-                        return e.Rbp_Offset;
-
-                throw new CompileException();
-
-                //return this.StackOffset - this.allocator.RBP_dataId.StackOffset;
-            }
-        }
-
-        public int StackOffset
-        {
-            get
-            {
-                foreach(var e in this.allocator.StackModel)
-                    if (e.ContainedData == this)
-                        return e.StackOffset;
-
-                throw new CompileException();
-            }
-        }
-    
-        public MemoryDataId(SymbolTable st, int size)
-        {
-            this.Id = IdGenerator.GenerateMemoryId();
-            this.allocator = st.MemoryAllocator;
-            this.Size = size;
-        }
-        /*public MemoryDataId(SymbolTable st, int size, int alignment)
-        {
-            this.Id = IdGenerator.GenerateMemoryId();
-            this.allocator = st.MemoryAllocator;
-            this.Size = size;
-           // this.Alignment = alignment;
-        }*/
-
-        private MemoryAllocator allocator;
-
-        public static bool operator ==(MemoryDataId id1, MemoryDataId id2)
-        {
-            if (id1 is null == false)
-                return id1.Equals(id2);
-            else
-                return id2.Equals(id1);
-        }
-
-        public static bool operator !=(MemoryDataId id1, MemoryDataId id2)
-        {
-            return !id1.Equals(id2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is MemoryDataId)
-            {
-                if (this.Id == (obj as MemoryDataId).Id)
-                    return true;
-            }
-            return false;
-        }
-    }
-
 
     class RegisterMapElement
     {
         public RegisterName Register { get; private set; }
+        public bool IsBlocked { get; set; } = false;
 
-        private MemoryDataId dataId = null;
-        public MemoryDataId ContainedData { get { UsageNumber++; return dataId; } set { this.dataId = value; UsageNumber++; } }
+        private MemoryIdTracker dataId = null;
+        public MemoryIdTracker ContainedData
+        {
+            get
+            {
+                UsageNumber++; return dataId;
+            }
+            set
+            {
+                this.dataId = value;
+                UsageNumber++;
+            }
+        }
+
 
         public int UsageNumber { get; private set; }
         //public int CounterOfUsing { get; set; } = 0; // for optimising
@@ -235,44 +53,15 @@ namespace Peak.AsmGeneration
 
     class MemoryAreaElement
     {
-        public MemoryDataId ContainedData { get; set; }
+        public MemoryIdTracker ContainedData { get; set; }
         public int Size { get; set; } // actual size in memory (data-size + alligment)
-
-        /*public int RbpOffset
-        {
-            get
-            {
-                
-            }
-        }*/
-
-        //3
-        /* 
-        public int Offset rbp +- Offset 
-        {
-            get
-            {
-                int offset = 0;
-                for (int i = 0; i < Allocator.StackModel.Count; i++)
-                {
-                    if (Allocator.StackModel[i].ContainedData == this.ContainedData)
-                    {
-                        return offset;
-                    }
-                    else
-                        offset += Allocator.StackModel[i].Size;
-                }
-
-                throw new CompileException();
-            }
-        }*/
 
         public int Rbp_Offset
         {
-             get
-             {
-                 return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
-             }
+            get
+            {
+                return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
+            }
         }
 
         public int StackOffset
@@ -313,7 +102,7 @@ namespace Peak.AsmGeneration
     class MemoryAllocator
     {
         public SymbolTable NativeSymbolTable { get; set; }
-        public MemoryDataId RBP_dataId { get; set; }
+        public MemoryIdTracker RBP_dataId { get; set; }
 
         public List<MemoryAreaElement> StackModel = new List<MemoryAreaElement>();
 
@@ -325,7 +114,7 @@ namespace Peak.AsmGeneration
             new RegisterMapElement(RegisterName.rdx),
             new RegisterMapElement(RegisterName.rsi),
             new RegisterMapElement(RegisterName.rdi),
-                                  
+
             new RegisterMapElement(RegisterName.r8 ),
             new RegisterMapElement(RegisterName.r9 ),
             new RegisterMapElement(RegisterName.r10),
@@ -354,30 +143,6 @@ namespace Peak.AsmGeneration
             this.NativeSymbolTable = table;
         }
 
-        /*public void PlaceInRegister(MemoryDataId memory, AsmMethod method)
-        {
-            foreach (RegisterMapElement e in RegisterMap)
-            {
-                if (e.DataId is null)
-                {
-                    //memory. = true, Register = e.Register };
-                    e.DataId = memory;
-                }
-            }
-
-            // if all registers is busy:
-
-            foreach(MemoryDataId i in StackModel)
-            {
-                //if
-                throw new NotImplementedException();
-            }
-        }*/
-
-
-
-
-
         // relocate data from register to make free
         public void FreeRegister(RegisterName register)
         {
@@ -400,9 +165,10 @@ namespace Peak.AsmGeneration
                         {
                             this.NativeSymbolTable.Emit($"mov {reg}, {register}");
                             this.GetRegisterMapElement(reg).ContainedData = this.GetRegisterMapElement(register).ContainedData;
+                            e.Free();
                             return;
                         }
-                        
+
                     }
                 }
             }
@@ -433,11 +199,29 @@ namespace Peak.AsmGeneration
                 }
             }
         }
+
+        public void SetRegisterFree(RegisterName r)
+        {
+            foreach (var e in RegisterMap)
+                if (e.Register == r)
+                {
+                    e.Free();
+                    return;
+                }
+                    
+            foreach (var e in SSERegisterMap)
+                if (e.Register == r)
+                {
+                    e.Free();
+                    return;
+                }
+        }
+
         public RegisterName GetFreeRegister()
         {
             foreach (RegisterMapElement e in RegisterMap)
             {
-                if (e.ContainedData is null)
+                if (e.ContainedData is null && e.IsBlocked == false)
                 {
                     return e.Register;
                 }
@@ -451,17 +235,6 @@ namespace Peak.AsmGeneration
 
             // mov [rbp + offset], r?x
             this.NativeSymbolTable.Emit(string.Format("mov {0} [{1} {2}], {3}", GetDataSizeName(register.ContainedData.Size), register.Register.ToString(), freeElement.Rbp_Offset, register.Register.ToString()));
-            /*this.NativeSymbolTable.MethodCode.Emit
-                (InstructionName.Mov,
-                new Operand()
-                {
-                    IsGettingAddress = true,
-                    RegisterName = register.Register,
-                    DataSizeExist = true,
-                    Size = GetDataSizeName(register.ContainedData.Size),
-                    Offset = freeElement.Rbp_Offset
-                },
-                register.Register);*/
 
             register.Free(); // it is free now!
 
@@ -471,7 +244,7 @@ namespace Peak.AsmGeneration
         {
             foreach (RegisterMapElement e in SSERegisterMap)
             {
-                if (e.ContainedData is null)
+                if (e.ContainedData is null && e.IsBlocked == false)
                 {
                     return e.Register;
                 }
@@ -502,37 +275,52 @@ namespace Peak.AsmGeneration
             return register.Register;
         }
 
-        public MemoryDataId GetNewIdInRegister(int size)
+        public MemoryIdTracker GetNewIdInRegister(int size)
         {
             var reg = GetFreeRegister();
-            var id = new MemoryDataId(this.NativeSymbolTable, size);
+            var id = new MemoryIdTracker(this.NativeSymbolTable, size);
             SetIdToFreeRegister(id, reg);
             return id;
         }
+
+        public void SetRegisterFree(GenResult res)
+        {
+            if (res is ConstantResult)
+                return;
+
+            SetRegisterFree(res.ReturnDataId);
+        }
+
+        public void SetRegisterFree(MemoryIdTracker id)
+        {
+            if (id.ExistInRegisters || id.ExistInSSERegisters)
+                SetRegisterFree(id.Register);
+        }
+
         private RegisterMapElement getOldestRegister()
         {
-            int minimalUsage = 0;
+            int minimalUsage = Int32.MaxValue;
 
-            foreach(RegisterMapElement e in RegisterMap)
-                if (e.UsageNumber < minimalUsage)
+            foreach (RegisterMapElement e in RegisterMap)
+                if (e.UsageNumber < minimalUsage && e.IsBlocked == false)
                     minimalUsage = e.UsageNumber;
 
             foreach (RegisterMapElement e in RegisterMap)
-                if (e.UsageNumber == minimalUsage)
+                if (e.UsageNumber == minimalUsage && e.IsBlocked == false)
                     return e;
 
             throw new CompileException();
         }
         private RegisterMapElement getOldestSSERegister()
         {
-            int minimalUsage = 0;
+            int minimalUsage = Int32.MaxValue;
 
             foreach (RegisterMapElement e in SSERegisterMap)
-                if (e.UsageNumber < minimalUsage)
+                if (e.UsageNumber < minimalUsage && e.IsBlocked == false)
                     minimalUsage = e.UsageNumber;
 
             foreach (RegisterMapElement e in SSERegisterMap)
-                if (e.UsageNumber == minimalUsage)
+                if (e.UsageNumber == minimalUsage && e.IsBlocked == false)
                     return e;
 
             throw new CompileException();
@@ -560,7 +348,7 @@ namespace Peak.AsmGeneration
                 }
 
             return expandStackModel();
-               
+
 
             void sortFreeSpaces()
             {
@@ -604,25 +392,25 @@ namespace Peak.AsmGeneration
 
         private MemoryAreaElement selectFreeMemoryAreaInStack(int offset, int size)
         {
-            for (int i = 0; i<StackModel.Count; i++)
+            for (int i = 0; i < StackModel.Count; i++)
             {
-                if (StackModel[i].StackOffset >= offset && StackModel[i].StackOffset <= offset+size)
+                if (StackModel[i].StackOffset >= offset && StackModel[i].StackOffset <= offset + size)
                 {
                     int firstSize = StackModel[i].StackOffset - offset;
                     int secondSize = size;
-                    int thirdSize = (StackModel[i].StackOffset + StackModel[i].Size) - (offset+size);
+                    int thirdSize = (StackModel[i].StackOffset + StackModel[i].Size) - (offset + size);
 
                     int firstOffset = StackModel[i].StackOffset;
                     int secondOffset = offset;
-                    int thirdOffset = secondOffset+secondSize;
+                    int thirdOffset = secondOffset + secondSize;
 
-                    
+
                     StackModel.RemoveAt(i);
                     int insertIndex = i;
 
                     if (firstSize != 0)
                     {
-                        var firstArea = new MemoryAreaElement(this) { Size = firstSize};
+                        var firstArea = new MemoryAreaElement(this) { Size = firstSize };
                         StackModel.Insert(insertIndex, firstArea);
                         insertIndex++;
                     }
@@ -634,7 +422,7 @@ namespace Peak.AsmGeneration
 
                     if (thirdSize != 0)
                     {
-                        var thirdArea = new MemoryAreaElement(this) { Size = thirdSize};
+                        var thirdArea = new MemoryAreaElement(this) { Size = thirdSize };
                         StackModel[insertIndex] = thirdArea;
                     }
 
@@ -644,16 +432,8 @@ namespace Peak.AsmGeneration
 
             throw new CompileException("stack-erasing error");
         }
-       /* private MemoryAreaElement devideFreeMemAreaIntoTwo(int element, int size)
-        {
-            int oldSize = StackModel[element].Size;
 
-            int newElementSize = oldSize - size;
-            StackModel.Insert(element + 1, new MemoryAreaElement() { Size = newElementSize });
-
-            return StackModel[element]; // return old element but with new size
-        }*/
-       public int GetFrameSize()
+        public int GetFrameSize()
         {
             int size = 0;
             foreach (var e in StackModel)
@@ -661,7 +441,7 @@ namespace Peak.AsmGeneration
             return size;
         }
 
-        public MemoryDataId GetMemoryDataId(RegisterName register)
+        public MemoryIdTracker GetMemoryIdTracker(RegisterName register)
         {
             return GetRegisterMapElement(register).ContainedData;
         }
@@ -695,42 +475,23 @@ namespace Peak.AsmGeneration
             }
         }
 
-        
-        /*
-        public int NO_CalculateLocalOffset(TableElement id)
-        {
-            var bpOffset = this.NativeSymbolTable.MemoryAllocator.BasePointsAddress;
-
-            if (id is MethodContextReferenceElement)
-            {
-                if ((id as MethodContextReferenceElement).Id.ExistInRegisters)
-                    throw new CompileException();
-                else
-                {
-                    var offset = (id as MethodContextReferenceElement).Id.StackOffset;
-
-                    return offset - bpOffset;
-                }
-
-            }
-            else if (id is VariableTableElement)
-            {
-                if ((id as VariableTableElement).Id.ExistInRegisters)
-                    throw new CompileException();
-                else
-                {
-                    var offset = (id as VariableTableElement).Id.StackOffset;
-
-                    return offset - bpOffset;
-                }
-            }
-            else
-                throw new CompileException();
-        }*/
-
-        public void SetIdToFreeRegister(MemoryDataId id, RegisterName outputRegister)
+        public void SetIdToFreeRegister(MemoryIdTracker id, RegisterName outputRegister)
         {
             foreach (RegisterMapElement e in RegisterMap)
+            {
+                if (e.Register == outputRegister)
+                {
+                    if (e.ContainedData is null)
+                    {
+                        e.ContainedData = id;
+                        return;
+                    }
+                    else
+                        throw new CompileException();
+                }
+            }
+
+            foreach (RegisterMapElement e in SSERegisterMap)
             {
                 if (e.Register == outputRegister)
                 {
@@ -746,55 +507,27 @@ namespace Peak.AsmGeneration
             throw new CompileException();
         }
 
-        public void AllocateInStack(MemoryDataId id, int alligment = 8)
+        public void AllocateInStack(MemoryIdTracker id, int alligment = 8)
         {
             var area = getFreeStackArea(id.Size, alligment);
 
-            /*this.NativeSymbolTable.MethodCode.Emit(
-                InstructionName.Mov,
-                new Operand()
-                {
-                    RegisterName = RegisterName.RBP,
-                    DataSizeExist = true,
-                    Size = GetDataSizeName(idInRegister.Size),
-                    IsGettingAddress = true,
-                    Offset = area.Rbp_Offset 
-                }
-                ,
-                idInRegister.Register
-            );*/
-
             area.ContainedData = id;
         }
-        
+
         // move to any r-registers or SSE registers depend of the data type
-        public MemoryDataId MoveToAnyRegister(GenResult result)
+        public MemoryIdTracker MoveToAnyRegister(GenResult result)
         {
             if (result is ConstantResult)
             {
                 return (result as ConstantResult).MoveToRegister(this.NativeSymbolTable).ReturnDataId;
-                /*if ((result as ConstantResult).ResultType.Type == Type.Int)
-                {
-                    var id = GetNewIdInRegister(8);
-                    this.NativeSymbolTable.Emit($"mov {id.Register}, {(result as ConstantResult).IntValue}");
-                    return id;
-                }
-                else if ((result as ConstantResult).ResultType.Type == Type.Bool)
-                {
-                    var id = GetNewIdInRegister(1);
-                    this.NativeSymbolTable.Emit($"mov {id.Register}, {(result as ConstantResult).BoolValue}");
-                    return id;
-                }
-                else
-                    throw new CompileException();*/
             }
             else
                 MoveToAnyRegister(result.ReturnDataId);
-                return result.ReturnDataId;
+            return result.ReturnDataId;
         }
 
         // move to any r-registers or SSE registers depend of the data type
-        public void MoveToAnyRegister(MemoryDataId data)   
+        public void MoveToAnyRegister(MemoryIdTracker data)
         {
             if (data.ExistInRegisters || data.ExistInSSERegisters)
                 return;
@@ -812,64 +545,9 @@ namespace Peak.AsmGeneration
                 this.NativeSymbolTable.Emit(string.Format($"mov {freeReg}, [rbp {data.Rbp_Offset}]"));
                 this.GetRegisterMapElement(freeReg).ContainedData = data;
             }
-            
-
-
-           /* this.NativeSymbolTable.MethodCode.Emit(
-                InstructionName.Mov,
-                freeReg,
-                new Operand()
-                {
-                    DataSizeExist = true,
-                    IsGettingAddress = true,
-                    RegisterName = RegisterName.RBP,
-                    Size = GetDataSizeName(data.Size),
-                    Offset = data.StackOffset
-                }
-                );*/
         }
 
-        public void MoveToSSE_register(MemoryDataId data) { }
-
-       /* public void MoveRegisterToStack(MemoryDataId data, MemoryDataId stackPlace, SymbolTable st)
-        {
-            if (data.ExistInSSERegisters)
-            {
-                // movs qword [rbp-8], rax
-                st.MethodCode.Emit(InstructionName.Movss,
-                    new Operand()
-                    {
-                        DataSizeExist = true,
-                        IsGettingAddress = true,
-                        Size = DataSize.QWord,
-                        Offset = CalculateLocalOffset(stackPlace.StackOffset, st)
-                    },
-
-                    data.Register
-                );
-
-            }
-            else
-            {
-                st.MethodCode.Emit(InstructionName.Mov,
-                    new Operand()
-                    {
-                        DataSizeExist = true,
-                        IsGettingAddress = true,
-                        Size = GetDataSizeName(data.Size),
-                        Offset = CalculateLocalOffset(stackPlace.StackOffset, st)
-                    },
-                    data.Register
-                );
-
-              
-            }
-        }*/
-
-        /*public void MoveSSEDataToStack(MemoryDataId stackPlace, MemoryDataId data, SymbolTable st)
-        {
-
-        }*/
+        public void MoveToSSE_register(MemoryIdTracker data) { }
 
         public DataSize GetDataSizeName(int bytes)
         {
@@ -891,14 +569,14 @@ namespace Peak.AsmGeneration
         public static int AlignUpAbsolute(int i, int alignment)
         {
             int input = Math.Abs(i);
-            
+
             while (input % alignment != 0)
                 input++;
 
             return i < 0 ? (-1) * input : input;
         }
 
-        public void MoveToRegister(MemoryDataId id, RegisterName register)
+        public void MoveToRegister(MemoryIdTracker id, RegisterName register)
         {
             if (id.ExistInRegisters)
             {
@@ -927,7 +605,7 @@ namespace Peak.AsmGeneration
             else // mov from stack
             {
                 //var 
-                
+
                 FreeRegister(register);
                 if (id.IsSSE_Element)
                 {
@@ -960,11 +638,11 @@ namespace Peak.AsmGeneration
             }
             else
             {
-                MoveToRegister(res.ReturnDataId, register);  
+                MoveToRegister(res.ReturnDataId, register);
             }
         }
 
-        public void MoveToStack(MemoryDataId id)
+        public void MoveToStack(MemoryIdTracker id)
         {
             if (id.ExistInRegisters == false && id.ExistInSSERegisters == false && id.ExistInStack)
                 return;
@@ -980,6 +658,54 @@ namespace Peak.AsmGeneration
             else
                 this.NativeSymbolTable.Emit($"mov [rbp {id.Rbp_Offset}], {GetDataSizeName(id.Size)} {register}");
 
+        }
+
+        public void Block(RegisterName register)
+        {
+            foreach (var e in this.RegisterMap)
+                if (e.Register == register)
+                {
+                    e.IsBlocked = true;
+                    return;
+                }
+
+            foreach (var e in this.SSERegisterMap)
+                if (e.Register == register)
+                {
+                    e.IsBlocked = true;
+                    return;
+                }
+        }
+        public void Unblock(RegisterName register)
+        {
+            foreach (var e in this.RegisterMap)
+                if (e.Register == register)
+                {
+                    e.IsBlocked = false;
+                    return;
+                }
+
+            foreach (var e in this.SSERegisterMap)
+                if (e.Register == register)
+                {
+                    e.IsBlocked = false;
+                    return;
+                }
+        }
+
+        public void Block(MemoryIdTracker id)
+        {
+            if (id.ExistInRegisters || id.ExistInRegisters)
+                this.Block(id.Register);
+            else
+                throw new CompileException();
+        }
+        public void Unblock(MemoryIdTracker id)
+        {
+            if (id.ExistInRegisters || id.ExistInRegisters)
+                this.Block(id.Register);
+            else
+                throw new CompileException();
         }
     }
 }

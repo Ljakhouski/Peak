@@ -21,7 +21,7 @@ namespace Peak.AsmGeneration
                     var type = Expression.Generate(node.RightExpression, st);
 
                     if (type is ConstantResult)
-                        (type as ConstantResult).MoveToRegister(st);
+                        type = (type as ConstantResult).MoveToRegister(st);
                     
 
                     var rightExprDataId = type.ReturnDataId;

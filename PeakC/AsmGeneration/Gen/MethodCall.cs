@@ -48,14 +48,14 @@ namespace Peak.AsmGeneration
             return new GenResult()
             {
                 ResultType = (method.fullSignature as MethodSemanticType).RetType,
-                ReturnDataId = MemoryDataId.FuncResult(st)
+                ReturnDataId = MemoryIdTracker.FuncResult(st)
             };
         }
         public static GenResult Generate(GenResult methodObject, MethodCallNode node, SymbolTable st)
         {
             throw new CompileException("method-object not implemented");
         }
-        private static void call_x86_64(GenResult[] args, SymbolTable st, string label = "", MemoryDataId methodObj = null)
+        private static void call_x86_64(GenResult[] args, SymbolTable st, string label = "", MemoryIdTracker methodObj = null)
         {
             int N = args.Length;
             saveRegisters(st);
@@ -75,6 +75,7 @@ namespace Peak.AsmGeneration
                 else
                     st.MemoryAllocator.MoveToRegister(args[0], RegisterName.rcx);
 
+                block(RegisterName.xmm0, RegisterName.rcx);
                 // TODO: make for 128 bit SSE registers
             }
             if (N >= 2)
@@ -83,6 +84,8 @@ namespace Peak.AsmGeneration
                     st.MemoryAllocator.MoveToRegister(args[1], RegisterName.xmm1);
                 else
                     st.MemoryAllocator.MoveToRegister(args[1], RegisterName.rdx);
+
+                block(RegisterName.xmm1, RegisterName.rdx);
             }
             if (N >= 3)
             {
@@ -90,6 +93,8 @@ namespace Peak.AsmGeneration
                     st.MemoryAllocator.MoveToRegister(args[2], RegisterName.xmm2);
                 else
                     st.MemoryAllocator.MoveToRegister(args[2], RegisterName.r8);
+
+                block(RegisterName.xmm2, RegisterName.r8);
             }
             if (N >= 4)
             {
@@ -97,6 +102,8 @@ namespace Peak.AsmGeneration
                     st.MemoryAllocator.MoveToRegister(args[0], RegisterName.xmm3);
                 else
                     st.MemoryAllocator.MoveToRegister(args[0], RegisterName.r9);
+
+                block(RegisterName.xmm3, RegisterName.r9);
             }
 
             if (methodObj is null == false)
@@ -109,7 +116,24 @@ namespace Peak.AsmGeneration
                 st.Emit($"call [{label}]");
             }
 
+            unblock(RegisterName.xmm0, RegisterName.rcx);
+            unblock(RegisterName.xmm1, RegisterName.rdx);
+            unblock(RegisterName.xmm2, RegisterName.r8);
+            unblock(RegisterName.xmm3, RegisterName.r9);
+
             restoreStackAlign(N, st);
+
+            void block(RegisterName r1, RegisterName r2)
+            {
+                st.MemoryAllocator.Block(r1);
+                st.MemoryAllocator.Block(r2);
+            }
+
+            void unblock(RegisterName r1, RegisterName r2)
+            {
+                st.MemoryAllocator.Unblock(r1);
+                st.MemoryAllocator.Unblock(r2);
+            }
         }
 
         private static void alignStackBeforePush(int n, SymbolTable st)
@@ -155,7 +179,7 @@ namespace Peak.AsmGeneration
             {
                 if (e.Register == RegisterName.rax)
                     continue;
-                else if (e.ContainedData is null == false)
+                else if (e.ContainedData is null == false && e.ContainedData.ExistInStack == false)
                 {
                     table.MemoryAllocator.MoveToStack(e.ContainedData);
                     e.Free();
@@ -163,7 +187,7 @@ namespace Peak.AsmGeneration
             }
             foreach (var e in table.MemoryAllocator.SSERegisterMap)
             {
-                if (e.ContainedData is null == false)
+                if (e.ContainedData is null == false && e.ContainedData.ExistInStack == false)
                 {
                     table.MemoryAllocator.MoveToStack(e.ContainedData);
                     e.Free();

@@ -48,7 +48,7 @@ namespace Peak.AsmGeneration
 
             var frameSizeOperand = st.MethodCode.Code[st.MethodCode.Code.Count - 1];
 
-            var rbp = new MemoryDataId(st, size: 8);
+            var rbp = new MemoryIdTracker(st, size: 8);
             var rbpInStack = new MemoryAreaElement(st.MemoryAllocator) { Size = 8, ContainedData = rbp};
             st.MemoryAllocator.StackModel.Add(rbpInStack);
             st.MemoryAllocator.RBP_dataId = rbp;
