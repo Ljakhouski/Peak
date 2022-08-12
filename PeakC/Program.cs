@@ -3,8 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-using Peak.AsmGeneration;
-using Peak.CodeGeneration;
+using Peak.PeakC.Generation.InterpreterCodeGeneration;
+using Peak.PeakC.Generation.X86_64;
 using Peak.PeakC.Parser;
 using RuntimeEnvironment.RuntimeModule;
 
@@ -89,7 +89,7 @@ namespace Peak.PeakC
             var n = pars.GetNode(inputPath);
             try
             {
-                var assembly = AsmGeneration.CodeGeneration.GetAsmAssembly(n);
+                var assembly = CodeGeneration.GetAsmAssembly(n);
                 var listing = assembly.GetFasmListing();
                 if (printAsmtListing)
                     Console.Write("\n\n        *** FASM listing: ***\n\n\n" + listing + "\n ______________________________\n");

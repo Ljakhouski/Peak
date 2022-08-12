@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RuntimeEnvironment", "Runti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IDE", "IDE\IDE.csproj", "{13FDD481-8990-4B5F-B73C-7946CF6AF8AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDE", "PDE\PDE.csproj", "{E6B21505-83C0-4E83-99C9-7585EBA44401}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDE", "PDE\PDE.csproj", "{E6B21505-83C0-4E83-99C9-7585EBA44401}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

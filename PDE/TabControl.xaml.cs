@@ -29,5 +29,7 @@ namespace PDE
         {
             this.tabStack.Children.Add(new TabHeader());
         }
+
+        public void Click() { }
     }
 }

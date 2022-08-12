@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PDE"
              mc:Ignorable="d" 
-             d:DesignHeight="25" MinWidth="150" Margin="0,0,2,0">
+             d:DesignHeight="25" MinWidth="150" MaxHeight="25" Margin="0,0,2,0">
     <Grid>
         <Rectangle Fill="#FF3D454A" RadiusX="7" RadiusY="7"></Rectangle>
         <Rectangle Fill="#FF3D454A" Margin="0,10,0,0"></Rectangle>
@@ -14,8 +14,8 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="40"/>
             </Grid.ColumnDefinitions>
-            <Label Content="new_name.p" Grid.Row="0" VerticalAlignment="Center" Margin="10,0,0,0" Background="{x:Null}" Foreground="White" />
-            <Button Content="X" Grid.Column="1" Margin="5,1,5,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" FontFamily="Myanmar Text" FontSize="15" FontWeight="Bold" FontStyle="Normal" />
+            <Label Content="new_name.p" Grid.Row="0" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0" FontSize="12" Background="{x:Null}" Foreground="White" />
+            <Button Content="X" Grid.Column="1" Margin="5,2,5,0" Padding="0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" FontFamily="Myanmar Text" FontSize="15" FontWeight="Bold" FontStyle="Normal" />
         </Grid>
 
         <Rectangle Fill="{DynamicResource tabSelectedLineFill}" Margin="0,28,0,0"/>
