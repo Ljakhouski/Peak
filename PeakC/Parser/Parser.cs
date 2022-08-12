@@ -640,6 +640,12 @@ namespace Peak.PeakC.Parser
             else if (t.Type == type.StrValue) return new ConstValueNode(t);
             else if (t.Type == type.BoolValue) return new ConstValueNode(t);
             else if (t.Type == type.Identifier) return new IdentifierNode(t);
+            else if (t.Content == "(")
+            {
+                var n = parse(NonterminalType.AndOr);
+                expect(")");
+                return n;
+            }
             /*{
                 if (getNext() == "(")
                 {

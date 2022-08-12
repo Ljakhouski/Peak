@@ -147,8 +147,7 @@ namespace Peak.PeakC.Generation.X86_64
                 ReturnDataId = new MemoryIdTracker(st, 8)
             };
 
-            st.MemoryAllocator.SetRegisterFree(op1);
-            st.MemoryAllocator.SetIdToFreeRegister(result.ReturnDataId, op1);
+            st.MemoryAllocator.SetRegister(result.ReturnDataId, op1);
 
             return result;
         }
