@@ -16,6 +16,7 @@ namespace Peak.PeakC.Generation
         IdType, // struct ot other data-type
         AnyToCompare,
         Struct,
+        ContextRef,
     }
     class SemanticType
     {
@@ -111,6 +112,8 @@ namespace Peak.PeakC.Generation
         public List<SemanticType> Args { get; set; } = new List<SemanticType>();
         public SemanticType RetType { get; set; }
 
+        public MethodContextReferenceType MethodContext { get; set; } = null;
+
         public static bool operator == (MethodSemanticType first, SemanticType second)
         {
             if (first is MethodSemanticType && second is MethodSemanticType
@@ -155,6 +158,24 @@ namespace Peak.PeakC.Generation
             this.Type = Type.Method;
         }
 
+    }
+    class MethodContextReferenceType : SemanticType
+    {
+        public MethodSymbolTable Context { get; set; }
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+                return false;
+            else
+            {
+                if (obj is MethodContextReferenceType)
+                {
+                    return (obj as MethodContextReferenceType).Context == this.Context;
+                }
+                else
+                    return false;
+            }
+        }
     }
 
 }

@@ -7,7 +7,9 @@ namespace Peak.PeakC.Generation
     static class IdGenerator
     {
         private static int memIdCounter = -1;
-        private static int idCounter = 90000;
+        private static int idCounter = 900000;
+        private static int stIdCounter = 700000;
+        private static int methodCounter = 500000;
         public static int GenerateMemoryId()
         {
             memIdCounter++;
@@ -18,6 +20,18 @@ namespace Peak.PeakC.Generation
         {
             idCounter++;
             return idCounter;
+        }
+
+        public static int GenerateSymbolTableId()
+        {
+            stIdCounter++;
+            return stIdCounter;
+        }
+
+        public static int GenerateMethodId()
+        {
+            methodCounter++;
+            return methodCounter;
         }
     }
 }

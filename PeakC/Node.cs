@@ -10,6 +10,16 @@ namespace Peak.PeakC
         public Token MetaInf { get; set; } // (OLD) if Node is empty, because it's need for error message filePosition, linePosition and position
         public List<Token> Modifiers { get; set; } = new List<Token>();
         public Node() { }
+
+        public static List<Node> ToSequence(Node node)
+        {
+            var sequence = new List<Node>();
+            if (node is SequenceNode)
+                sequence.AddRange((node as SequenceNode).Sequence);
+            else
+                sequence.Add(node);
+            return sequence;
+        }
     }
 
     class EmptyNode : Node

@@ -504,7 +504,7 @@ namespace Peak.PeakC.Generation
             SetIdToFreeRegister(id, register);
         }
 
-        public MemoryAreaElement AllocateInStack(MemoryIdTracker id, int alligment = 8)
+        public MemoryAreaElement AllocateAreaInStack(MemoryIdTracker id, int alligment = 8)
         {
             return getFreeStackArea(id.Size, alligment);
         }
@@ -598,9 +598,8 @@ namespace Peak.PeakC.Generation
                 return;
 
             var register = id.Register;
-            this.AllocateInStack(id, id.Alignment);
-
-            
+            var area = this.AllocateAreaInStack(id, id.Alignment);
+            EmitMovRegisterToMemory(register, RegisterName.rbp, area.StackOffset, area.Size, NativeSymbolTable);            
         }
 
         public void Block(RegisterName register)

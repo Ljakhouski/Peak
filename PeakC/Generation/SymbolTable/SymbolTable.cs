@@ -12,7 +12,7 @@ namespace Peak.PeakC.Generation
         public SymbolTable Next { get; set; }
         public SymbolTable Prev { get; set; }
         public virtual GlobalSymbolTable GlobalTable { get { return Prev.GlobalTable; } }
-
+        public virtual MethodSymbolTable MethodTable { get { return Prev.MethodTable; } }
         public bool ExistInMethodContext(TableElement element)
         {
             foreach(var e in this.Data)
@@ -94,7 +94,7 @@ namespace Peak.PeakC.Generation
 
             //var id = new VariableIdTracker(this, e.MemoryId.Size);
             var memId = e.IdTracker;
-            var stackArea = this.MemoryAllocator.AllocateInStack(memId, memId.Alignment);
+            var stackArea = this.MemoryAllocator.AllocateAreaInStack(memId, memId.Alignment);
             stackArea.ContainedData = memId;
             this.Data.Add(e);
         }
@@ -231,11 +231,11 @@ namespace Peak.PeakC.Generation
         //public string Name { get; set; }
         //public Token TokenName { get; set; }
         //public MethodNode MethodNode { get; set; }
-
+        public int Id { get; private set; } = IdGenerator.GenerateSymbolTableId();
 
         public override MemoryAllocator MemoryAllocator { get; set; }
         public override AsmMethod MethodCode { get; set; }
-
+        public override MethodSymbolTable MethodTable { get { return this; } }
         public MethodSymbolTable()
         {
             this.MemoryAllocator = new MemoryAllocator(this);
@@ -245,6 +245,14 @@ namespace Peak.PeakC.Generation
         public void Emit(string instruction)
         {
             this.MethodCode.Emit(instruction);
+        }
+
+        public void RegisterContextRef(MethodContextReferenceElement mRefElement)
+        {
+            var id = new MemoryIdTracker(this, size: 8);
+            var e = this.MemoryAllocator.AllocateAreaInStack(id);
+            e.ContainedData = id;
+            this.Data.Add(mRefElement);
         }
     }
 }

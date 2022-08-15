@@ -32,6 +32,10 @@ namespace Peak.PeakC.Generation
                     if (this == e.ContainedData)
                         return true;
                 }
+
+                if (IsRbp)
+                    return true;
+
                 return false;
             }
         }
@@ -88,6 +92,9 @@ namespace Peak.PeakC.Generation
 
                 if (this.ExistInRegisters)
                 {
+                    if (IsRbp)
+                        return RegisterName.rbp;
+
                     var regMap = this.allocator.RegisterMap;
 
                     foreach (RegisterMapElement e in regMap)
@@ -162,7 +169,8 @@ namespace Peak.PeakC.Generation
             }
         }
 
-        
+        public bool IsRbp { get; set; } 
+
         public MemoryIdTracker(SymbolTable st, int size)
         {
             this.Id = IdGenerator.GenerateMemoryId();

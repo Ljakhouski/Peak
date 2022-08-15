@@ -27,22 +27,14 @@ namespace Peak.PeakC.Generation.X86_64
 
             var method = getMethodAddress(node, calledSignature, methodSt);
 
-            /*if (method is null)
-                Error.ErrMessage(node.MetaInf, "method not exist in current scope");*/
-
-            /* if (method is VariableTableElement)
-             {
-                 Identifier.Generate(method.Id, st);
-             }*/
-
-
-
-            // TODO: get context reference
-            /*if (method.ExternContextRef is null == false)
+            var fullSignature = method.fullSignature as MethodSemanticType;
+            if (fullSignature.MethodContext is null == false)
             {
+                argsResult.Insert(0, getContextRef(st, fullSignature.MethodContext));
+            }
 
-            }*/
-
+            if (method.IsDllMethod)
+                method.Label = $"[{method.Label}]";
             call_x86_64(argsResult.ToArray(), st, label: method.Label, methodObj: method.DynamicResult.ReturnDataId);
 
             return new GenResult()
@@ -51,6 +43,64 @@ namespace Peak.PeakC.Generation.X86_64
                 ReturnDataId = MemoryIdTracker.FuncResult(st)
             };
         }
+
+        private static GenResult getContextRef(SymbolTable st, MethodContextReferenceType needContext)
+        {
+            if (st.MethodTable.Id == needContext.Context.Id)
+            {/*  TODO: make this variant
+                return new GenResult()
+                {
+                    ResultType = needContext,
+                    ReturnDataId = new MemoryIdTracker(st, 8) {IsRbp = true }
+                };*/
+                var reg = st.MemoryAllocator.GetFreeRegister();
+                st.Emit($"mov {reg}, rbp");
+                return new GenResult()
+                {
+                    ResultType = needContext,
+                    ReturnDataId = st.MemoryAllocator.GetMemoryIdTracker(reg)
+                };
+            }
+            else
+            {
+                var mref = st.GetMethodContextRef();
+                MemoryIdTracker mRefTracker = null;
+                if (mref.Id == needContext.Context.Id)
+                {
+                    mRefTracker = mref.MemoryId;
+                }
+                else
+                {
+                    while (mref.Context.MethodTable is null == false)
+                    {
+                        var nMfref = mref.Context.GetMethodContextRef();
+                        if (nMfref is null)
+                            break;
+                        else
+                        {
+                            if (nMfref.Context.GetMethodContextRef().Id == needContext.Context.Id)
+                                mRefTracker = nMfref.MemoryId;
+                            else
+                                continue;
+                        }
+                    }
+
+                    if (mRefTracker is null)
+                        Error.ErrMessage("reference on this method not found");
+
+                    //st.MemoryAllocator.MoveToAnyRegister(mRefTracker);
+
+                }
+
+                return new GenResult()
+                {
+                    ResultType = needContext,
+                    ReturnDataId = mRefTracker
+                };
+
+            }
+        }
+
         public static GenResult Generate(GenResult methodObject, MethodCallNode node, SymbolTable st)
         {
             throw new CompileException("method-object not implemented");
@@ -113,7 +163,7 @@ namespace Peak.PeakC.Generation.X86_64
             }
             else
             {
-                st.Emit($"call [{label}]");
+                st.Emit($"call {label}");
             }
 
             unblock(RegisterName.xmm0, RegisterName.rcx);
@@ -122,6 +172,8 @@ namespace Peak.PeakC.Generation.X86_64
             unblock(RegisterName.xmm3, RegisterName.r9);
 
             restoreStackAlign(N, st);
+
+            return;
 
             void block(RegisterName r1, RegisterName r2)
             {
@@ -232,6 +284,7 @@ namespace Peak.PeakC.Generation.X86_64
         {
             public GenResult DynamicResult { get; set; }
             public string Label { get; set; } = null;
+            public bool IsDllMethod = false;
             public SemanticType fullSignature { get; set; } // with return type
         }
         private static MethodSearchResult getMethodAddress(MethodCallNode node, SemanticType signature, SymbolTable st/*, SymbolTable context*/)
@@ -245,13 +298,14 @@ namespace Peak.PeakC.Generation.X86_64
 
                 return new MethodSearchResult()
                 {
-                    Label = method.Name,
+                    Label = method.Label,
                     fullSignature = method.MethodSignature,
                     DynamicResult = new ConstantResult()
                     {
                         ConstValue = (node.From as IdentifierNode).Id, // call label
                         ResultType = new SemanticType(Type.Str)
-                    }
+                    },
+                    IsDllMethod = method.IsDllImportMethod
                 };
             }
             else

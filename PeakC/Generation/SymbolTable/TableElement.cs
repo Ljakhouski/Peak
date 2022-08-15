@@ -81,7 +81,7 @@ namespace Peak.PeakC.Generation
         public bool IsDllImportMethod { get; set; } = false;
         public CallConvention Convention { get; set; } = CallConvention.x64_win;
         public SemanticType MethodSignature { get; set; }
-
+        public string Label { get; set; }
         public MethodContextReferenceElement ExternContextRef { get; set; }
         //public Struct
     }
