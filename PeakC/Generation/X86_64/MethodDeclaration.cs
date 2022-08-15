@@ -43,7 +43,8 @@ namespace Peak.PeakC.Generation.X86_64
             {
                 var mst = new MethodSymbolTable()
                 {
-                    Prev = st
+                    Prev = st,
+                    Signature = type
                 };
 
                 var address = new MemoryIdTracker(mst, 8);
@@ -87,18 +88,19 @@ namespace Peak.PeakC.Generation.X86_64
                     mst.RegisterVariable(new VariableTableElement(mst, args[i].Name, type.Args[i]));
                 }
 
-                makePrologue(mst, tableElement);
-                CodeBlock.Generate(node.Code, mst);
-                makeEpilogue(mst);
-
                 st.RegisterMethod(tableElement);
+
+                emitPrologue(mst, tableElement);
+                CodeBlock.Generate(node.Code, mst);
+                EmitEpilogue(mst);
+
                 st.MainAssembly.Code.Add(mst.MethodCode);
                 return new EmptyGenResult();
             }
             
         }
 
-        private static void makePrologue(SymbolTable st, MethodTableElement e)
+        private static void emitPrologue(SymbolTable st, MethodTableElement e)
         {
 
            // st.Emit($"{e.Label}:");
@@ -106,7 +108,7 @@ namespace Peak.PeakC.Generation.X86_64
             st.Emit("mov rbp, rsp");
             st.Emit("sub rsp, ...?");
         }
-        private static void makeEpilogue(SymbolTable st)
+        public static void EmitEpilogue(SymbolTable st)
         {
             int size = st.MemoryAllocator.GetFrameSize();
             size = MemoryAllocator.AlignUpAbsolute(size, 16);

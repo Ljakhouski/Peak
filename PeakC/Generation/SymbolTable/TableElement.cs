@@ -20,7 +20,7 @@ namespace Peak.PeakC.Generation
         public SemanticType Type { get; set; }
 
         public Token NameToken { get; set; }
-        public string Name { get { return NameToken.Content; } }
+        public string Name { get { return NameToken?.Content; } }
 
         public override bool Equals(object obj)
         {

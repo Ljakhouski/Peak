@@ -26,7 +26,6 @@ namespace Peak.PeakC.Parser
             }
         }
 
-        private List<string> loadetFileNames = new List<string>();
         public ProgramNode GetNode(string path)
         {
             this.lexer = new Lexer(path);
@@ -664,11 +663,9 @@ namespace Peak.PeakC.Parser
 
         private Node parseWordOperator()
         {
-            next();
-
+            expect(type.WordOperator);
             var node = new WordOperatorNode(t);
             node.MetaInf = t;
-
             node.Expression = parse(NonterminalType.AndOr);
             expect(";");
             return node;

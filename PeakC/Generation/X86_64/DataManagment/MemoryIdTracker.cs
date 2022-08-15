@@ -2,6 +2,7 @@
 using Peak.PeakC.Generation.X86_64;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Peak.PeakC.Generation
@@ -55,6 +56,7 @@ namespace Peak.PeakC.Generation
             }
         }
 
+        
         public static MemoryIdTracker FuncResult(SymbolTable st, bool isSSE = false)
         {
             if (isSSE)
@@ -72,6 +74,11 @@ namespace Peak.PeakC.Generation
                     }
                 }
             }
+
+
+            var e_ = (from el in st.MemoryAllocator.RegisterMap
+                      where el != null && el.Register == RegisterName.rax
+                      select el).ToArray()[0];
 
             foreach (var e in st.MemoryAllocator.RegisterMap)
             {

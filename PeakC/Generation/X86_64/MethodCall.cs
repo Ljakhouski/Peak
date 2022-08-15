@@ -27,8 +27,9 @@ namespace Peak.PeakC.Generation.X86_64
 
             var method = getMethodAddress(node, calledSignature, methodSt);
 
+            //insert ref on frame as first argument
             var fullSignature = method.fullSignature as MethodSemanticType;
-            if (fullSignature.MethodContext is null == false)
+            if (fullSignature.MethodContext is null == false) 
             {
                 argsResult.Insert(0, getContextRef(st, fullSignature.MethodContext));
             }
@@ -37,11 +38,14 @@ namespace Peak.PeakC.Generation.X86_64
                 method.Label = $"[{method.Label}]";
             call_x86_64(argsResult.ToArray(), st, label: method.Label, methodObj: method.DynamicResult.ReturnDataId);
 
-            return new GenResult()
-            {
-                ResultType = (method.fullSignature as MethodSemanticType).RetType,
-                ReturnDataId = MemoryIdTracker.FuncResult(st)
-            };
+            if (fullSignature.RetType == null)
+                return new EmptyGenResult();
+            else
+                return new GenResult()
+                {
+                    ResultType = (method.fullSignature as MethodSemanticType).RetType,
+                    ReturnDataId = MemoryIdTracker.FuncResult(st)
+                };
         }
 
         private static GenResult getContextRef(SymbolTable st, MethodContextReferenceType needContext)
@@ -55,10 +59,12 @@ namespace Peak.PeakC.Generation.X86_64
                 };*/
                 var reg = st.MemoryAllocator.GetFreeRegister();
                 st.Emit($"mov {reg}, rbp");
+                var id = new MemoryIdTracker(st, size: 8);
+                st.MemoryAllocator.SetRegister(id, reg);
                 return new GenResult()
                 {
                     ResultType = needContext,
-                    ReturnDataId = st.MemoryAllocator.GetMemoryIdTracker(reg)
+                    ReturnDataId = id
                 };
             }
             else

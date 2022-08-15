@@ -50,7 +50,7 @@ namespace Peak.PeakC.Generation
         {
             foreach (TableElement e in this.Data)
             {
-                if (e.Name == name.Content)
+                if (e?.Name == name.Content)
                     return e;
             }
 
@@ -232,7 +232,7 @@ namespace Peak.PeakC.Generation
         //public Token TokenName { get; set; }
         //public MethodNode MethodNode { get; set; }
         public int Id { get; private set; } = IdGenerator.GenerateSymbolTableId();
-
+        public MethodSemanticType Signature { get; set; }
         public override MemoryAllocator MemoryAllocator { get; set; }
         public override AsmMethod MethodCode { get; set; }
         public override MethodSymbolTable MethodTable { get { return this; } }

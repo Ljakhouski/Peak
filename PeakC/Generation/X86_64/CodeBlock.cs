@@ -38,6 +38,17 @@ namespace Peak.PeakC.Generation.X86_64
                 {
                     MethodCall.Generate(n as MethodCallNode, st, st);
                 }
+                else if (n is WordOperatorNode)
+                {
+                    switch ((n as WordOperatorNode).Operator)
+                    {
+                        case "return":
+                            ControlStatement.GenerateReturn(n as WordOperatorNode, st);
+                            break;
+                        default:
+                            throw new CompileException();
+                    }
+                }
                 else
                     throw new CompileException();
 
