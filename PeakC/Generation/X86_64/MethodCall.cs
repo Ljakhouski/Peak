@@ -77,7 +77,7 @@ namespace Peak.PeakC.Generation.X86_64
                 MemoryIdTracker mRefTracker = null;
                 if (mref.Id == needContext.CompareContext.Id)
                 {
-                    mRefTracker = mref.MemoryId;
+                    mRefTracker = mref.IdTracker;
                 }
                 else
                 {
@@ -89,7 +89,7 @@ namespace Peak.PeakC.Generation.X86_64
                         else
                         {
                             if (nMfref.Context.GetMethodContextRef().Id == needContext.CompareContext.Id)
-                                mRefTracker = nMfref.MemoryId;
+                                mRefTracker = nMfref.IdTracker;
                             else
                                 continue;
                         }

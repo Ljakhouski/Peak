@@ -71,7 +71,7 @@ namespace Peak.PeakC.Generation.X86_64
 
                     mst.RegisterContextRef(mRefElement);                    
                     actualyArgs.Add(mRefElement);
-                    actualyArgsTrackers.Add(mRefElement.MemoryId);
+                    actualyArgsTrackers.Add(mRefElement.IdTracker);
                 }
 
                 

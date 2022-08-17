@@ -95,12 +95,12 @@ namespace Peak.PeakC.Generation
     class MethodContextReferenceElement : TableElement
     {
         public SymbolTable Context { get; set; }
-        public MemoryIdTracker MemoryId { get; private set; }
+        public MemoryIdTracker IdTracker { get; private set; }
 
         public MethodContextReferenceElement(SymbolTable st)
         {
             Source = st;
-            MemoryId = new MemoryIdTracker(st, size: 8);
+            IdTracker = new MemoryIdTracker(st, size: 8);
         }
     }
 }

@@ -93,7 +93,7 @@ namespace Peak.PeakC.Generation
             void genResursive(SymbolTable context, MemoryIdTracker basePointer)
             {
                 RegisterName basePointerRegister;
-                if (basePointer != null)
+                if (basePointer is null == false)
                 {
                     allocator.MoveToAnyRegister(basePointer);
                     basePointerRegister = basePointer.Register;
@@ -108,22 +108,25 @@ namespace Peak.PeakC.Generation
                     throw new CompileException("func-contet-ref not working");
 
                 // switch base pointer to point on the new frame (context)
-                var newBasePointer = context.MemoryAllocator.RBP_dataId;
-                var newBasePointerReigster = allocator.GetFreeRegister();
-                EmitMovFromMemoryToRegister(basePointerRegister, newBasePointer.Rbp_Offset, newBasePointerReigster, 8, st);
+                var newBP_Register = allocator.GetFreeRegister();
+                var newBP_Tracker = new MemoryIdTracker(st, size: 8);
+                EmitMovFromMemoryToRegister(basePointerRegister, mRef.IdTracker.Rbp_Offset, newBP_Register, 8, st);
+                allocator.SetRegister(newBP_Tracker, newBP_Register);
 
                 basePointer?.Free();
 
-                if (existHere(contextAlloc))
+                var newContext = mRef.Context;
+
+                if (existHere(newContext.MemoryAllocator))
                 {
-                    EmitMovFromMemoryToRegister(newBasePointer.Register, id.Rbp_Offset, outputRegister, id.Size, st);
+                    EmitMovFromMemoryToRegister(newBP_Register, id.Rbp_Offset, outputRegister, id.Size, st);
                     allocator.SetRegister(id, outputRegister);
                     allocator.Unblock(outputRegister);
-                    newBasePointer.Free();
+                    newBP_Tracker.Free();
                     return;
                 }
                 else
-                    genResursive(mRef.Context, newBasePointer);
+                    genResursive(mRef.Context, newBP_Tracker);
             }
 
             bool existHere(MemoryAllocator alloc_)
@@ -173,21 +176,24 @@ namespace Peak.PeakC.Generation
                     throw new CompileException("func-contet-ref not working");
 
                 // switch base pointer to point on the new frame (context)
-                var newBasePointer = context.MemoryAllocator.RBP_dataId;
-                var newBasePointerReigster = allocator.GetFreeRegister();
-                EmitMovFromMemoryToRegister(basePointerRegister, newBasePointer.Rbp_Offset, newBasePointerReigster, 8, st);
+                var newBP_Register = allocator.GetFreeRegister();
+                var newBP_Tracker = new MemoryIdTracker(st, size: 8);
+                EmitMovFromMemoryToRegister(basePointerRegister, mRef.IdTracker.Rbp_Offset, newBP_Register, 8, st);
+                allocator.SetRegister(newBP_Tracker, newBP_Register);
 
                 basePointer?.Free();
 
-                if (existHere(contextAlloc))
+                var newContext = mRef.Context;
+
+                if (existHere(newContext.MemoryAllocator))
                 {
-                    EmitMovRegisterToMemory(data, newBasePointerReigster, place.Rbp_Offset, place.Size, st);
+                    EmitMovRegisterToMemory(data, newBP_Register, place.Rbp_Offset, place.Size, st);
                     allocator.Unblock(data);
-                    newBasePointer.Free();
+                    newBP_Tracker.Free();
                     return;
                 }
                 // if not found
-                genResursive(mRef.Context, newBasePointer);
+                genResursive(mRef.Context, newBP_Tracker);
             }
 
             bool existHere(MemoryAllocator alloc_)
@@ -197,6 +203,7 @@ namespace Peak.PeakC.Generation
                         return true;
                 return false;
             }
+
         }
     }
 }
