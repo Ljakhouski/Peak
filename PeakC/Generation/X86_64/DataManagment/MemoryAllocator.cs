@@ -504,9 +504,9 @@ namespace Peak.PeakC.Generation
             SetIdToFreeRegister(id, register);
         }
 
-        public MemoryAreaElement AllocateAreaInStack(MemoryIdTracker id, int alligment = 8)
+        public MemoryAreaElement AllocateAreaInStack(MemoryIdTracker id, int alignment = 8)
         {
-            return getFreeStackArea(id.Size, alligment);
+            return getFreeStackArea(id.Size, alignment);
         }
 
         // move to any r-registers or SSE registers depend of the data type

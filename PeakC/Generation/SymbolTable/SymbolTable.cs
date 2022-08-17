@@ -63,7 +63,7 @@ namespace Peak.PeakC.Generation
         }
 
         // return static method definition, which can be called
-        public MethodTableElement GetVisibleMethodTableElement(Token id, SemanticType signature)
+        public MethodTableElement GetVisibleMethodTableElement(Token id, MethodSemanticType signature)
         {
             foreach (var e in this.Data)
                 if (e is MethodTableElement && id.Content == e.Name && (e as MethodTableElement).MethodSignature == signature)
@@ -249,9 +249,9 @@ namespace Peak.PeakC.Generation
 
         public void RegisterContextRef(MethodContextReferenceElement mRefElement)
         {
-            var id = new MemoryIdTracker(this, size: 8);
-            var e = this.MemoryAllocator.AllocateAreaInStack(id);
-            e.ContainedData = id;
+            //var id = new MemoryIdTracker(this, size: 8);
+            //var e = this.MemoryAllocator.AllocateAreaInStack(id);
+            //e.ContainedData = id;
             this.Data.Add(mRefElement);
         }
     }

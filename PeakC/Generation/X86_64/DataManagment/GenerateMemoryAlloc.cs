@@ -158,7 +158,7 @@ namespace Peak.PeakC.Generation
             void genResursive(SymbolTable context, MemoryIdTracker basePointer)
             {
                 RegisterName basePointerRegister;
-                if (basePointer != null)
+                if (basePointer is null == false)
                 {
                     allocator.MoveToAnyRegister(basePointer);
                     basePointerRegister = basePointer.Register;

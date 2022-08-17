@@ -10,20 +10,24 @@ namespace Peak.PeakC.Generation.X86_64
         /* https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170 */
         public static GenResult Generate(MethodCallNode node, SymbolTable st, SymbolTable methodSt)
         {
-            var args = getArgsInArray(node.Args);
-            var argsResult = new List<GenResult>();
-
-            foreach (var arg in args)
-                argsResult.Add(Expression.Generate(arg, st));
-
             var calledSignature = new MethodSemanticType()
             {
                 IsNothing = false,
                 Type = Type.Method,
                 RetType = new SemanticType() { Type = Type.AnyToCompare },
-                Args =  convertToType(argsResult)
+                Args = null
 
             };
+            var argsResult = new List<GenResult>();
+            if (node.Args is null == false)
+            {
+                var args = getArgsInArray(node.Args);
+                foreach (var arg in args)
+                    argsResult.Add(Expression.Generate(arg, st));
+                calledSignature.Args = convertToType(argsResult);
+            }
+
+            
 
             var method = getMethodAddress(node, calledSignature, methodSt);
 
@@ -50,7 +54,7 @@ namespace Peak.PeakC.Generation.X86_64
 
         private static GenResult getContextRef(SymbolTable st, MethodContextReferenceType needContext)
         {
-            if (st.MethodTable.Id == needContext.Context.Id)
+            if (st.MethodTable.Id == needContext.CompareContext.Id)
             {/*  TODO: make this variant
                 return new GenResult()
                 {
@@ -71,7 +75,7 @@ namespace Peak.PeakC.Generation.X86_64
             {
                 var mref = st.GetMethodContextRef();
                 MemoryIdTracker mRefTracker = null;
-                if (mref.Id == needContext.Context.Id)
+                if (mref.Id == needContext.CompareContext.Id)
                 {
                     mRefTracker = mref.MemoryId;
                 }
@@ -84,7 +88,7 @@ namespace Peak.PeakC.Generation.X86_64
                             break;
                         else
                         {
-                            if (nMfref.Context.GetMethodContextRef().Id == needContext.Context.Id)
+                            if (nMfref.Context.GetMethodContextRef().Id == needContext.CompareContext.Id)
                                 mRefTracker = nMfref.MemoryId;
                             else
                                 continue;
@@ -114,6 +118,7 @@ namespace Peak.PeakC.Generation.X86_64
         private static void call_x86_64(GenResult[] args, SymbolTable st, string label = "", MemoryIdTracker methodObj = null)
         {
             int N = args.Length;
+            int stackN = 0;
             saveRegisters(st, expect: args);
             alignStackBeforePush(N, st);
             if (N>=5)
@@ -121,6 +126,7 @@ namespace Peak.PeakC.Generation.X86_64
                 for (int i = args.Length; i>4; i--)
                 {
                     args[i].PushOnStack(st);
+                    stackN++;
                 }
             }
 
@@ -177,10 +183,11 @@ namespace Peak.PeakC.Generation.X86_64
             unblock(RegisterName.xmm2, RegisterName.r8);
             unblock(RegisterName.xmm3, RegisterName.r9);
 
-            restoreStackAlign(N, st);
+            restoreStack(stackN, st);
 
             return;
-
+            /////////////////////////////////////////////////////
+            
             void block(RegisterName r1, RegisterName r2)
             {
                 st.MemoryAllocator.Block(r1);
@@ -203,14 +210,19 @@ namespace Peak.PeakC.Generation.X86_64
                 st.Emit("sub rsp, 8");
             }
         }
-        private static void restoreStackAlign(int n, SymbolTable st)
+        private static void restoreStack(int n, SymbolTable st)
         {
-            if (n <= 4)
+            if (n == 0)
                 return;
-            if ((n - 4) % 2 != 0)
+
+            int bytes = n * 8;
+
+            if (n % 2 != 0)
             {
-                st.Emit("add rsp, 8");
+                bytes += 1;
             }
+
+            st.Emit($"add rsp, {bytes}");
         }
         private static void pushArg(GenResult r, SymbolTable st)  // ?
         {
@@ -293,7 +305,7 @@ namespace Peak.PeakC.Generation.X86_64
             public bool IsDllMethod = false;
             public SemanticType fullSignature { get; set; } // with return type
         }
-        private static MethodSearchResult getMethodAddress(MethodCallNode node, SemanticType signature, SymbolTable st/*, SymbolTable context*/)
+        private static MethodSearchResult getMethodAddress(MethodCallNode node, MethodSemanticType signature, SymbolTable st/*, SymbolTable context*/)
         {
             if (node.From is IdentifierNode)
             {

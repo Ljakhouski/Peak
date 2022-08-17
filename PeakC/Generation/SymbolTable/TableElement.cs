@@ -50,6 +50,12 @@ namespace Peak.PeakC.Generation
             this.Type = type;
         }
 
+        public VariableTableElement(VariableIdTracker tracker, Token name, SemanticType type) 
+        {
+            this.NameToken = name;
+            this.Type = type;
+            this.IdTracker = tracker;
+        }
         private static int convertTypeToSize(SemanticType type)
         {
             switch (type.Type)
@@ -80,7 +86,7 @@ namespace Peak.PeakC.Generation
     {
         public bool IsDllImportMethod { get; set; } = false;
         public CallConvention Convention { get; set; } = CallConvention.x64_win;
-        public SemanticType MethodSignature { get; set; }
+        public MethodSemanticType MethodSignature { get; set; }
         public string Label { get; set; }
         public MethodContextReferenceElement ExternContextRef { get; set; }
         //public Struct

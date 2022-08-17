@@ -47,46 +47,63 @@ namespace Peak.PeakC.Generation.X86_64
                     Signature = type
                 };
 
-                var address = new MemoryIdTracker(mst, 8);
-                var addressArea = mst.MemoryAllocator.AllocateAreaInStack(address, alligment: 8);
+
+                
+
+                var actualyArgs = new List<TableElement>();
+                var actualyArgsTrackers = new List<MemoryIdTracker>();
+
+                if (isNestedMethod(mst))
+                {
+                    var mMefType = new MethodContextReferenceType()
+                    {
+                        CompareContext = st.MethodTable,
+                        Type = Type.ContextRef,
+                    };
+
+                    type.MethodContext = mMefType;
+                    // st.MemoryAllocator.SetRegister(memId, RegisterName.rcx);
+                    var mRefElement = new MethodContextReferenceElement(mst)
+                    {
+                        Context = st,
+                        Type = mMefType
+                    };
+
+                    mst.RegisterContextRef(mRefElement);                    
+                    actualyArgs.Add(mRefElement);
+                    actualyArgsTrackers.Add(mRefElement.MemoryId);
+                }
+
+                
+                var args = getArgs(node);
+
+                for(int i = 0; i< args.Count; i++) 
+                {
+                    var t = new VariableIdTracker(mst, size: 8);
+                    var v = new VariableTableElement(t, args[i].Name, new SemanticType(args[i].Type));
+                    
+                    mst.RegisterVariable(v);
+                    
+                    actualyArgsTrackers.Add(t);
+                    actualyArgs.Add(v);
+                }
+
+               
+                placeId_x86_64(mst.MemoryAllocator, actualyArgs, actualyArgsTrackers);
+                
+
+
+                var address = new MemoryIdTracker(mst, size: 8);
+                var addressArea = mst.MemoryAllocator.AllocateAreaInStack(address, alignment: 8);
                 addressArea.ContainedData = address;
 
-                var rbp = new MemoryIdTracker(mst, 8);
-                var rbpArea = mst.MemoryAllocator.AllocateAreaInStack(rbp, alligment: 8);
+                var rbp = new MemoryIdTracker(mst, size: 8);
+                var rbpArea = mst.MemoryAllocator.AllocateAreaInStack(rbp, alignment: 8);
                 rbpArea.ContainedData = rbp;
 
                 mst.MemoryAllocator.RBP_dataId = rbp;
 
                 mst.MethodCode.MethodName = tableElement.Label;
-                if (isNestedMethod(st))
-                {
-                    var mMefType = new MethodContextReferenceType()
-                    {
-                        Context = st.MethodTable,
-                        Type = Type.ContextRef,
-                    };
-
-                    type.MethodContext = mMefType;
-
-                    var mRefElement = new MethodContextReferenceElement(st)
-                    {
-                        Context = st,
-                        Type = mMefType,
-                    };
-
-                    mst.RegisterContextRef(mRefElement);
-                }
-
-                
-                if (type.MethodContext is null == false)
-                    mst.Data.Add(new MethodContextReferenceElement(st));
-
-                var args = getArgs(node);
-
-                for(int i = 0; i< type.Args.Count; i++) 
-                {
-                    mst.RegisterVariable(new VariableTableElement(mst, args[i].Name, type.Args[i]));
-                }
 
                 st.RegisterMethod(tableElement);
 
@@ -96,8 +113,42 @@ namespace Peak.PeakC.Generation.X86_64
 
                 st.MainAssembly.Code.Add(mst.MethodCode);
                 return new EmptyGenResult();
+            }            
+        }
+
+        private static void placeId_x86_64(MemoryAllocator alloc, List<TableElement> actualyArgs, List<MemoryIdTracker> actualyArgsTrackers)
+        {
+            for (int i = 0; i < actualyArgs.Count; i++)
+            {
+                var t = actualyArgsTrackers[i];
+
+                bool isSSE = t.IsSSE_Element;
+                switch (i)
+                {
+                    case 0:
+                        alloc.SetRegister(t, isSSE ? RegisterName.xmm0 : RegisterName.rcx);
+                        break;
+                    case 1:
+                        alloc.SetRegister(t, isSSE ? RegisterName.xmm1 : RegisterName.rdx);
+                        break;
+                    case 2:
+                        alloc.SetRegister(t, isSSE ? RegisterName.xmm2 : RegisterName.r8);
+                        break;
+                    case 3:
+                        alloc.SetRegister(t, isSSE ? RegisterName.xmm3 : RegisterName.r9);
+                        break;
+                    default:
+                        goto allocInStack;
+                }
             }
-            
+
+            allocInStack:
+
+            for (int i = actualyArgs.Count - 1; i>=0; i--)
+            {
+                var area = alloc.AllocateAreaInStack(actualyArgsTrackers[i], alignment: 8);
+                area.ContainedData = actualyArgsTrackers[i];
+            }
         }
 
         private static void emitPrologue(SymbolTable st, MethodTableElement e)

@@ -119,14 +119,29 @@ namespace Peak.PeakC.Generation
             if (first is MethodSemanticType && second is MethodSemanticType
                 && (first as MethodSemanticType).RetType == (second as MethodSemanticType).RetType
                 )
-                if (((first as MethodSemanticType)).Args.Count == ((second as MethodSemanticType).Args.Count))
-                
-                    for (int i = 0; i< (first as MethodSemanticType).Args.Count; i++)
-                    
+            {
+                int args1 = 0;
+                int args2 = 0;
+
+                if (first.Args is null == false)
+                    args1 = first.Args.Count;
+                if ((second as MethodSemanticType).Args is null == false)
+                    args2 = (second as MethodSemanticType).Args.Count;
+
+                if (args1 != args2)
+                    return false;
+
+                if (args1 > 0)
+                {
+                    for (int i = 0; i < (first as MethodSemanticType).Args.Count; i++)
                         if ((first as MethodSemanticType).Args[i] != (second as MethodSemanticType).Args[i])
                             return false;
-                    
-                    return true;            
+                }
+
+                return true;
+            }
+            else
+                return false;
         }
 
         public static bool operator !=(MethodSemanticType first, SemanticType second)
@@ -161,7 +176,7 @@ namespace Peak.PeakC.Generation
     }
     class MethodContextReferenceType : SemanticType
     {
-        public MethodSymbolTable Context { get; set; }
+        public MethodSymbolTable CompareContext { get; set; }
         public override bool Equals(object obj)
         {
             if (obj is null)
@@ -170,7 +185,7 @@ namespace Peak.PeakC.Generation
             {
                 if (obj is MethodContextReferenceType)
                 {
-                    return (obj as MethodContextReferenceType).Context == this.Context;
+                    return (obj as MethodContextReferenceType).CompareContext == this.CompareContext;
                 }
                 else
                     return false;

@@ -619,14 +619,16 @@ namespace Peak.PeakC.Parser
 
         private Node parseData()
         {
-            next();
+            //next();
 
-            if (t.Type == type.IntValue)
+            if (getNext().Type == type.IntValue)
             {
+                expect(type.IntValue);
+
                 if (getNext() == ".")
                 {
-                    var doubleBeginToken = t;
                     next();
+                    var doubleBeginToken = t;
                     if (nextToken().Type == type.IntValue)
                         return new ConstValueNode(new Token(type.DoubleValue, doubleBeginToken.Content + "." + t.Content, doubleBeginToken));
 
@@ -636,14 +638,18 @@ namespace Peak.PeakC.Parser
                 else
                     return new ConstValueNode(t);
             }
-            else if (t.Type == type.StrValue) return new ConstValueNode(t);
-            else if (t.Type == type.BoolValue) return new ConstValueNode(t);
-            else if (t.Type == type.Identifier) return new IdentifierNode(t);
-            else if (t.Content == "(")
+            else if (getNext().Type == type.StrValue) return new ConstValueNode(nextToken());
+            else if (getNext().Type == type.BoolValue) return new ConstValueNode(nextToken());
+            else if (getNext().Type == type.Identifier) return new IdentifierNode(nextToken());
+            else if (getNext().Content == "(")
             {
                 var n = parse(NonterminalType.AndOr);
                 expect(")");
                 return n;
+            }
+            else if (getNext().Content == ")" || getNext().Content == "]")
+            {
+                return null;
             }
             /*{
                 if (getNext() == "(")
