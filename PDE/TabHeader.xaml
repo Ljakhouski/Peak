@@ -1,23 +1,24 @@
 ﻿<UserControl x:Class="PDE.TabHeader"
+             x:Name="header"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PDE"
              mc:Ignorable="d" 
-             d:DesignHeight="25" MinWidth="150" MaxHeight="25" Margin="0,0,2,0">
+             d:DesignHeight="25" MinWidth="150" MaxHeight="25" Margin="0,0,2,0" MouseDown="onClick">
     <Grid>
-        <Rectangle Fill="#FF3D454A" RadiusX="7" RadiusY="7"></Rectangle>
+        <Rectangle MouseDown="onClick" Fill="#FF3D454A" RadiusX="7" RadiusY="7"></Rectangle>
         <Rectangle Fill="#FF3D454A" Margin="0,10,0,0"></Rectangle>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="40"/>
             </Grid.ColumnDefinitions>
-            <Label Content="new_name.p" Grid.Row="0" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0" FontSize="12" Background="{x:Null}" Foreground="White" />
-            <Button Content="X" Grid.Column="1" Margin="5,2,5,0" Padding="0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" FontFamily="Myanmar Text" FontSize="15" FontWeight="Bold" FontStyle="Normal" />
+            <Label x:Name="tabLabel" Content="unknow.p" Grid.Row="0" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0" FontSize="12" Background="{x:Null}" Foreground="White" />
+            <Button Content="X" Grid.Column="1" Margin="5,2,5,0" Padding="0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" FontFamily="Myanmar Text" FontSize="15" FontWeight="Bold" FontStyle="Normal" Click="CloseTab" />
         </Grid>
 
-        <Rectangle Fill="{DynamicResource tabSelectedLineFill}" Margin="0,28,0,0"/>
+        <Rectangle x:FieldModifier="public" x:Name="selectedIndicator" Visibility="Hidden" Fill="{DynamicResource tabSelectedLineFill}" Margin="0,23,0,0"/>
     </Grid>
 </UserControl>

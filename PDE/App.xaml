@@ -7,9 +7,12 @@
         <Color x:Key="tscColor">#FF3D454A</Color>
         <Color x:Key="tucColor">#3a4252</Color>
         <Color x:Key="tslcColor">#145eb8</Color>
-
-        <SolidColorBrush x:Key="tabSelectedFill" Color="{DynamicResource tscColor}"></SolidColorBrush>
+        <Color x:Key="dark">#FF202323</Color>
+        <Color x:Key="upperDark">#FF333438 </Color>
+            <SolidColorBrush x:Key="tabSelectedFill" Color="{DynamicResource tscColor}"></SolidColorBrush>
         <SolidColorBrush x:Key="tabUnselectedFill" Color="{DynamicResource tucColor}"></SolidColorBrush>
         <SolidColorBrush x:Key="tabSelectedLineFill" Color="{DynamicResource tslcColor}"></SolidColorBrush>
+        <SolidColorBrush x:Key="backgroundFill" Color="{DynamicResource dark}"></SolidColorBrush>
+        <SolidColorBrush x:Key="darkElementFill" Color="{DynamicResource upperDark}"></SolidColorBrush>
     </Application.Resources>
 </Application>

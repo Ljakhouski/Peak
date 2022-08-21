@@ -6,12 +6,13 @@
              xmlns:local="clr-namespace:PDE"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="mainGrid">
+    <Grid x:Name="mainGrid" x:FieldModifier="public">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0" x:Name="tabStack"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" x:Name="tabStack" x:FieldModifier="public"/>
+        <Grid x:FieldModifier="public" x:Name="TextGrid"  Grid.Row="1"></Grid>
     </Grid>
 </UserControl>
