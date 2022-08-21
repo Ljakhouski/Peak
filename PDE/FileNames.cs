@@ -19,6 +19,20 @@ namespace PDE
             return S;
         }
 
+        public static string GetExeName(string pFileName)
+        {
+            for (int i = pFileName.Length - 1; i> 0; i--)
+            {
+                if (pFileName[i] != '.')
+                    pFileName = pFileName.Remove(i);
+                else
+                {
+                    pFileName += "exe";
+                    return pFileName;
+                }
+            }
+            return pFileName;
+        }
         public static string GetFilePath(string fileName)
         {
             string S = "";

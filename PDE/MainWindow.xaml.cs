@@ -30,7 +30,7 @@ namespace PDE
             InitializeComponent();
             this.mainTabControl.PDE_Window = this;
             this.mainTabControl.AddTabWithSimpleText();
-            this.ConsoleTextBox.AppendText($"IDE started {DateTime.Now}");
+            this.ConsoleTextBox.AppendText($"IDE started {DateTime.Now}\n");
         }
 
         public void New_Button_Click(object sender, RoutedEventArgs e)
@@ -52,17 +52,30 @@ namespace PDE
 
         public void CompileButton_Click(object sender, RoutedEventArgs e)
         {
-
+            mainTabControl.GetSelectedTab().Compile();
         }
 
         public void Run(object sender, RoutedEventArgs e)
         {
-
+            mainTabControl.GetSelectedTab().Run();
         }
 
         public void ViewDisasm(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                Disasm dis = new Disasm();
 
+                dis.asm.AppendText("*** DISASM ***\n\n");
+                string text = System.IO.File.ReadAllText("Compiler/fasm/output.ASM");
+
+                dis.asm.AppendText(text);
+                dis.Show();
+            }
+            catch(Exception e_)
+            {
+                MessageBox.Show(e_.Message);
+            }
         }
 
        

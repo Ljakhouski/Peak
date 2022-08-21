@@ -23,7 +23,7 @@
             <Button Background="{StaticResource darkElementFill}" Content="   open   "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Open_Button_Click"/>
             <Button Background="{StaticResource darkElementFill}" Content="   save   "  Margin="5,0,5,0" BorderBrush="{x:Null}" Foreground="White" Click="Save_Button_Click"/>
             <Label Content="   }{  " Foreground="White" Padding="2"/>
-            <Button Background="DarkOrange" Content="  [ compile ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="CompileButton_Click"/>
+            <Button Background="DarkOrange" Content=" [ compile~f5] "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="CompileButton_Click"/>
             <Button Background="#FF11E680" Content="  [ run ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="Run"/>
             <Button Background="#FFB6E611" Content="  [ disasm ]  "  Margin="5,0,5,0" BorderBrush="{x:Null}" Click="ViewDisasm"/>
         </StackPanel>

@@ -3,7 +3,9 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -46,12 +48,91 @@ namespace PDE
                 this.Container.PDE_Window.Open_Button_Click(null, null);
             else if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control)
                 this.Container.PDE_Window.New_Button_Click(null, null);
+            else if (e.Key == Key.F5)
+                Compile();
             else
             {
                 this.IsSaved = false;
                 UpdateTabLabel();
             }
         }
+
+        internal void Run()
+        {
+            try
+            {
+                var exePath = FileNames.GetExeName(FilePath);
+
+                Process proc = new Process();
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.WorkingDirectory = FileNames.GetFilePath(exePath);
+                info.FileName = exePath;
+                proc.StartInfo = info;
+                proc.Start();
+            }
+            catch(Exception e)
+            {
+                Container.PDE_Window.ConsoleTextBox.AppendText($"\n{e.Message}\n");
+            }
+        }
+
+        public void Compile()
+        {
+            this.Save();
+
+            ProcessStartInfo compilerProcess = new ProcessStartInfo();
+            compilerProcess.CreateNoWindow = true;
+            compilerProcess.WindowStyle = ProcessWindowStyle.Hidden;
+            compilerProcess.UseShellExecute = false;
+            compilerProcess.WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\Compiler";
+            compilerProcess.FileName = "Compiler/PeakC.exe";
+            compilerProcess.Arguments = FilePath;
+            compilerProcess.RedirectStandardOutput = true;
+            compilerProcess.RedirectStandardError = true;
+
+            if (Directory.Exists("Output") == false)
+                Directory.CreateDirectory("Output");
+
+            //compilerProcess.
+            //Process.Start(compilerProcess);
+            var proc = new Process();
+            proc.StartInfo = compilerProcess;
+
+            proc.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
+            proc.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
+            try
+            {
+                proc.Start();
+            }
+            catch (Exception e_)
+            {
+                MessageBox.Show(e_.Message);
+                IsCompiled = false;
+                return;
+            }
+
+
+            string output = proc.StandardOutput.ReadToEnd();
+            //proc.WaitForExit();
+
+            Container.PDE_Window.ConsoleTextBox.AppendText(output);
+
+            if (IsCompiled)
+            {
+                Container.PDE_Window.ConsoleTextBox.AppendText($"\n.exe file placed in {FilePath}");
+            }
+        }
+        public void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            //Compiled = true;
+            Container.PDE_Window.ConsoleTextBox.AppendText(outLine.Data);
+            if (outLine.Data.Contains("Error") == false &&
+                outLine.Data.Contains("error") == false)
+            {
+                IsCompiled = true;
+            }
+        }
+
         public void UpdateTabLabel()
         {
             this.tabLabel.Content = this.TabLabel;
@@ -70,10 +151,14 @@ namespace PDE
                     return FileNames.GetFileName(FilePath)+ch;
             } }
         public bool IsSaved { get; set; }
+        public bool IsCompiled { get; set; } = false;
 
         public bool IsSelect { get{
                 return this.selectedIndicator.Visibility == Visibility.Visible;
             } }
+
+        public DataReceivedEventHandler PrintLineToConsole { get; private set; }
+
         public void Select()
         {
             foreach (var e in Container.tabStack.Children)

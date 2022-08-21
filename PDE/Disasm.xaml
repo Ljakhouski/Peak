@@ -1,0 +1,12 @@
+﻿<Window x:Class="PDE.Disasm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PDE"
+        mc:Ignorable="d"
+        Title="Disasm" Height="597" Width="636">
+    <Grid>
+        <RichTextBox  x:FieldModifier="public" IsReadOnly="True" Block.LineHeight="1" x:Name="asm" FontFamily="consolas" FontSize="20" Background="#FF12171D" SelectionBrush="#FF9A2D2D" Foreground="#FF9DBBC5" SelectionTextBrush="#FF1EA6FD"/>
+    </Grid>
+</Window>
