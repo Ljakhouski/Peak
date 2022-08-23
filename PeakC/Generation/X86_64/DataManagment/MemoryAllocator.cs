@@ -63,7 +63,7 @@ namespace Peak.PeakC.Generation
         {
             get
             {
-                return this.StackOffset - this.Allocator.RBP_dataId.StackOffset;
+                return this.StackOffset -  this.Allocator.GetStackOffset(this.Allocator.RBP_dataId);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Peak.PeakC.Generation
         {
             foreach (RegisterMapElement e in RegisterMap)
             {
-                if (X86_64_Model.Equals(e.Register, register)) 
+                if (X86_64_Model.Equals(e.Register, register))
                 {
                     if (e.ContainedData is null)
                         return;
@@ -215,7 +215,7 @@ namespace Peak.PeakC.Generation
                     e.Free();
                     return;
                 }
-                    
+
             foreach (var e in SSERegisterMap)
                 if (e.Register == r)
                 {
@@ -241,7 +241,8 @@ namespace Peak.PeakC.Generation
             var freeStackElement = getFreeStackArea(registerSize, registerAlignment);
 
             EmitMovRegisterToMemory(register, RegisterName.rbp, freeStackElement.Rbp_Offset, 8, this.NativeSymbolTable);
-            registerId.Free(); // it is free now!
+
+            SetRegisterFree(register); // it is free now!
             freeStackElement.ContainedData = registerId;
             return register;
         }
@@ -262,7 +263,8 @@ namespace Peak.PeakC.Generation
             var freeStackElement = getFreeStackArea(registerSize, registerAlignment);
 
             EmitMovRegisterToMemory(register, RegisterName.rbp, freeStackElement.Rbp_Offset, 8, this.NativeSymbolTable);
-            registerId.Free(); // it is free now!
+            
+            SetRegisterFree(register); // it is free now!
             freeStackElement.ContainedData = registerId;
             return register;
         }
@@ -283,10 +285,10 @@ namespace Peak.PeakC.Generation
             SetRegisterFree(res.ReturnDataId);
         }
 
-        public void SetRegisterFree(MemoryIdTracker id)
+        public void SetRegisterFree(MemoryIdTracker t)
         {
-            if (id.ExistInRegisters || id.ExistInSSERegisters)
-                SetRegisterFree(id.Register);
+            if (ExistInRegisters(t)|| ExistInSSERegisters(t))
+                SetRegisterFree(GetRegister(t));
         }
 
         private RegisterName getOldestRegister()
@@ -524,12 +526,12 @@ namespace Peak.PeakC.Generation
         // move to any r-registers or SSE registers depend of the data type
         public void MoveToAnyRegister(MemoryIdTracker data)
         {
-            if (data.ExistInRegisters || data.ExistInSSERegisters)
+            if (ExistInRegisters(data) || ExistInSSERegisters(data))
                 return;
             else
             {
                 RegisterName anyFreeRegister;
-                
+
                 if (data.IsSSE_Element)
                     anyFreeRegister = GetFreeSSERegister();
                 else
@@ -556,11 +558,11 @@ namespace Peak.PeakC.Generation
         {
             FreeRegister(register);
 
-            if (data.ExistInRegisters || data.ExistInSSERegisters)
+            if (ExistInRegisters(data) || ExistInSSERegisters(data))
             {
-                EmitMovRegisterToRegister(data.Register, register, data.Size, this.NativeSymbolTable);
+                EmitMovRegisterToRegister(GetRegister(data), register, data.Size, this.NativeSymbolTable);
             }
-            else 
+            else
             {
                 generateMovToRegisterFromAllContexts(data, this.NativeSymbolTable, register);
             }
@@ -590,16 +592,16 @@ namespace Peak.PeakC.Generation
             }
         }
 
-        public void MoveToStack(MemoryIdTracker id)
+        public void MoveToStack(MemoryIdTracker t)
         {
-            if (id.ExistInRegisters == false    &&
-                id.ExistInSSERegisters == false && 
-                id.ExistInStack == true)
+            if (ExistInRegisters(t) == false &&
+                ExistInSSERegisters(t) == false &&
+                ExistInStack(t) == true)
                 return;
 
-            var register = id.Register;
-            var area = this.AllocateAreaInStack(id, id.Alignment);
-            EmitMovRegisterToMemory(register, RegisterName.rbp, area.StackOffset, area.Size, NativeSymbolTable);            
+            var register = GetRegister(t);
+            var area = this.AllocateAreaInStack(t, t.Alignment);
+            EmitMovRegisterToMemory(register, RegisterName.rbp, area.StackOffset, area.Size, NativeSymbolTable);
         }
 
         public void Block(RegisterName register)
@@ -635,17 +637,17 @@ namespace Peak.PeakC.Generation
                 }
         }
 
-        public void Block(MemoryIdTracker id)
+        public void Block(MemoryIdTracker t)
         {
-            if (id.ExistInRegisters || id.ExistInRegisters)
-                this.Block(id.Register);
+            if (ExistInRegisters(t) || ExistInSSERegisters(t))
+                Block(GetRegister(t));
             else
                 throw new CompileException();
         }
-        public void Unblock(MemoryIdTracker id)
+        public void Unblock(MemoryIdTracker t)
         {
-            if (id.ExistInRegisters || id.ExistInRegisters)
-                this.Unblock(id.Register);
+            if (ExistInRegisters(t) || ExistInSSERegisters(t))
+                this.Unblock(GetRegister(t));
             else
                 throw new CompileException();
         }
@@ -653,11 +655,10 @@ namespace Peak.PeakC.Generation
         public void MoveToStack(MemoryIdTracker data, VariableIdTracker place)
         {
             MoveToAnyRegister(data);
-            var register = data.Register;
+            var register = GetRegister(data);
 
-            generateMovRegisterToAnyContext(place, data.Register, this.NativeSymbolTable);
+            generateMovRegisterToAnyContext(place, register, this.NativeSymbolTable);
             SetStackArea(data, place);
-            
         }
 
         public void SetStackArea(MemoryIdTracker data, MemoryIdTracker place)
@@ -685,6 +686,98 @@ namespace Peak.PeakC.Generation
                 return null;
             else
                 return mRef.Context.MemoryAllocator.GetStackArea(tracker);
+        }
+        /***   memory-tracker methods   ***/
+
+        public RegisterName GetRegister(MemoryIdTracker t)
+        {
+            if (ExistInRegisters(t))
+            {
+                if (t.IsRbp)
+                    return RegisterName.rbp;
+
+
+                foreach (RegisterMapElement e in RegisterMap)
+                {
+                    if (t == e.ContainedData)
+                        return e.Register;
+                }
+            }
+
+            throw new CompileException();
+        }
+        public bool ExistInRegisters(MemoryIdTracker t)
+        {
+            var regMap = this.RegisterMap;
+
+            foreach (RegisterMapElement e in regMap)
+            {
+                if (t == e.ContainedData)
+                    return true;
+            }
+
+            if (t.IsRbp)
+                return true;
+
+            return false;
+        }
+
+        public bool ExistInSSERegisters(MemoryIdTracker t)
+        {
+            foreach (RegisterMapElement e in this.SSERegisterMap)
+            {
+                if (e.ContainedData == t)
+                    return true;
+            }
+            return false;
+        }
+        public bool ExistInStack(MemoryIdTracker t)
+        {
+            foreach (MemoryAreaElement area in StackModel)
+            {
+                if (t == area.ContainedData)
+                    return true;
+            }
+            return false;
+        }
+
+        public void Free(MemoryIdTracker t)
+        {
+            FreeFromRegister(t);
+            FreeFromStack(t);
+        }
+
+        public void FreeFromRegister(MemoryIdTracker t)
+        {
+            SetRegisterFree(t);
+        }
+
+        public void FreeFromStack(MemoryIdTracker t)
+        {
+            if (t is VariableIdTracker)
+                return;
+
+            foreach (var e in this.StackModel)
+                if (t == e.ContainedData)
+                    e.Free();
+        }
+
+        public int GetRbp_Offset(MemoryIdTracker t)
+        {
+            foreach (var e in this.StackModel)
+                if (t == e.ContainedData)
+                    return e.Rbp_Offset;
+
+            throw new CompileException();
+        }
+
+        public int GetStackOffset(MemoryIdTracker t)
+        {
+            foreach (var e in this.StackModel)
+                if (e.ContainedData == t)
+                    return e.StackOffset;
+
+            throw new CompileException();
         }
     }
 }

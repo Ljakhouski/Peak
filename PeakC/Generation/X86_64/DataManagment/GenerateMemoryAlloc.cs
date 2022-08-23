@@ -71,14 +71,14 @@ namespace Peak.PeakC.Generation
 
             allocator.Block(outputRegister);
 
-            if (id.ExistInStack == false)
-                throw new CompileException();
+            //if (allocator.ExistInStack(id) == false)
+                //throw new CompileException();
 
             // if (id is in GlobalScope)
 
             if (existHere(allocator))
             {
-                EmitMovFromMemoryToRegister(RegisterName.rbp, id.Rbp_Offset, outputRegister, id.Size, st);
+                EmitMovFromMemoryToRegister(RegisterName.rbp, allocator.GetRbp_Offset(id), outputRegister, id.Size, st);
                                 //allocator.SetRegister(id, outputRegister); // the variable-id-tracker can be in register, but can not be places in the stack again (as storage register)
                 allocator.Unblock(outputRegister);
                 return;
@@ -96,7 +96,7 @@ namespace Peak.PeakC.Generation
                 if (basePointer is null == false)
                 {
                     allocator.MoveToAnyRegister(basePointer);
-                    basePointerRegister = basePointer.Register;
+                    basePointerRegister = allocator.GetRegister(basePointer);
                 }
                 else
                     basePointerRegister = RegisterName.rbp;
@@ -110,19 +110,22 @@ namespace Peak.PeakC.Generation
                 // switch base pointer to point on the new frame (context)
                 var newBP_Register = allocator.GetFreeRegister();
                 var newBP_Tracker = new MemoryIdTracker(st, size: 8);
-                EmitMovFromMemoryToRegister(basePointerRegister, mRef.IdTracker.Rbp_Offset, newBP_Register, 8, st);
+                EmitMovFromMemoryToRegister(basePointerRegister, allocator.GetRbp_Offset(mRef.IdTracker), newBP_Register, 8, st);
                 allocator.SetRegister(newBP_Tracker, newBP_Register);
 
-                basePointer?.Free();
+                if (basePointer is null == false)
+                    allocator.Free(basePointer);
+                
 
                 var newContext = mRef.Context;
+                var newContextAlloc = newContext.MemoryAllocator;
 
-                if (existHere(newContext.MemoryAllocator))
+                if (existHere(newContextAlloc))
                 {
-                    EmitMovFromMemoryToRegister(newBP_Register, id.Rbp_Offset, outputRegister, id.Size, st);
+                    EmitMovFromMemoryToRegister(newBP_Register, newContextAlloc.GetRbp_Offset(id), outputRegister, id.Size, st);
                     allocator.SetRegister(id, outputRegister);
                     allocator.Unblock(outputRegister);
-                    newBP_Tracker.Free();
+                    allocator.Free(newBP_Tracker);
                     return;
                 }
                 else
@@ -148,7 +151,7 @@ namespace Peak.PeakC.Generation
 
             if (existHere(allocator))
             {
-                EmitMovRegisterToMemory(data, RegisterName.rbp, place.Rbp_Offset, place.Size, st);
+                EmitMovRegisterToMemory(data, RegisterName.rbp, allocator.GetRbp_Offset(place), place.Size, st);
                 allocator.Unblock(data);
                 return;
             }
@@ -164,7 +167,7 @@ namespace Peak.PeakC.Generation
                 if (basePointer is null == false)
                 {
                     allocator.MoveToAnyRegister(basePointer);
-                    basePointerRegister = basePointer.Register;
+                    basePointerRegister = allocator.GetRegister(basePointer);
                 }
                 else
                     basePointerRegister = RegisterName.rbp;
@@ -178,18 +181,20 @@ namespace Peak.PeakC.Generation
                 // switch base pointer to point on the new frame (context)
                 var newBP_Register = allocator.GetFreeRegister();
                 var newBP_Tracker = new MemoryIdTracker(st, size: 8);
-                EmitMovFromMemoryToRegister(basePointerRegister, mRef.IdTracker.Rbp_Offset, newBP_Register, 8, st);
+                EmitMovFromMemoryToRegister(basePointerRegister, allocator.GetRbp_Offset(mRef.IdTracker), newBP_Register, 8, st);
                 allocator.SetRegister(newBP_Tracker, newBP_Register);
 
-                basePointer?.Free();
+                if (basePointer is null == false)
+                    allocator.Free(basePointer);
 
                 var newContext = mRef.Context;
+                var newContextAlloc = newContext.MemoryAllocator;
 
                 if (existHere(newContext.MemoryAllocator))
                 {
-                    EmitMovRegisterToMemory(data, newBP_Register, place.Rbp_Offset, place.Size, st);
-                    allocator.Unblock(data);
-                    newBP_Tracker.Free();
+                    EmitMovRegisterToMemory(data, newBP_Register, newContextAlloc.GetRbp_Offset(place), place.Size, st);
+                    allocator.Unblock(data);                    
+                    allocator.Free(newBP_Tracker);
                     return;
                 }
                 // if not found

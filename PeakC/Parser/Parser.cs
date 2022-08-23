@@ -643,6 +643,7 @@ namespace Peak.PeakC.Parser
             else if (getNext().Type == type.Identifier) return new IdentifierNode(nextToken());
             else if (getNext().Content == "(")
             {
+                expect("(");
                 var n = parse(NonterminalType.AndOr);
                 expect(")");
                 return n;

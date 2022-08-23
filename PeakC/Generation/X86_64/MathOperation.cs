@@ -125,14 +125,14 @@ namespace Peak.PeakC.Generation.X86_64
             var left = st.MemoryAllocator.MoveToAnyRegister(leftRes);
             st.MemoryAllocator.Block(left);
 
-            var op1 = left.Register;
+            var op1 = st.MemoryAllocator.GetRegister(left);
             var op2 = "";
 
             // second operand can be as constant
             if (rightRes is ConstantResult)
                 op2 = toConstOperand(rightRes);
             else
-                op2 = st.MemoryAllocator.MoveToAnyRegister(rightRes).Register.ToString();
+                op2 = st.MemoryAllocator.GetRegister(st.MemoryAllocator.MoveToAnyRegister(rightRes)).ToString();
 
 
             if      (op.Content == "+") st.Emit($"add {op1}, {op2}");
@@ -157,14 +157,14 @@ namespace Peak.PeakC.Generation.X86_64
             var left = st.MemoryAllocator.MoveToAnyRegister(leftRes);
             st.MemoryAllocator.Block(left);
 
-            var op1 = left.Register;
+            var op1 = st.MemoryAllocator.GetRegister(left);
             var op2 = "";
 
             // second operand can be as constant
             if (rightRes is ConstantResult)
                 op2 = toConstOperand(rightRes);
             else
-                op2 = st.MemoryAllocator.MoveToAnyRegister(rightRes).Register.ToString();
+                op2 = st.MemoryAllocator.GetRegister(st.MemoryAllocator.MoveToAnyRegister(rightRes)).ToString();
 
             st.Emit($"imul {op1}, {op2}");
 
@@ -205,7 +205,7 @@ namespace Peak.PeakC.Generation.X86_64
             st.MemoryAllocator.Block(RegisterName.rdx);
             st.Emit("xor rdx, rdx");
 
-            st.Emit($"idiv {rightId.Register}");
+            st.Emit($"idiv {st.MemoryAllocator.GetRegister(rightId)}");
 
             var result = new GenResult()
             {

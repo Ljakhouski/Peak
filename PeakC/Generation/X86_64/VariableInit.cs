@@ -33,7 +33,7 @@ namespace Peak.PeakC.Generation.X86_64
 
                         st.RegisterVariable(e);                                       
                         st.MemoryAllocator.MoveToStack(rightExprDataId, e.IdTracker);
-                        rightExprDataId.FreeFromRegister();
+                        st.MemoryAllocator.FreeFromRegister(rightExprDataId);
                         //Assignment.Generate(node.Name, st, rightExprDataId);
                         //st.MemoryAllocator.MoveRegisterToStack(rightExprDataId, e.Id, st);
                         /*
@@ -64,7 +64,7 @@ namespace Peak.PeakC.Generation.X86_64
                             st.RegisterVariable(e);
                             var assigmentData = st.MemoryAllocator.MoveToAnyRegister(rightExpr);
                             st.MemoryAllocator.MoveToStack(assigmentData, e.IdTracker);
-                            assigmentData.FreeFromRegister();
+                            st.MemoryAllocator.FreeFromRegister(assigmentData);
                             return new EmptyGenResult();
                         }
                         else

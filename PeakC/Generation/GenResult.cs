@@ -17,14 +17,14 @@ namespace Peak.PeakC.Generation
             st.MemoryAllocator.MoveToAnyRegister(ReturnDataId);
             if (this.ReturnDataId.IsSSE_Element)
             {
-                if (this.ReturnDataId.ExistInSSERegisters)
+                if (st.MemoryAllocator.ExistInSSERegisters(ReturnDataId))
                     st.Emit($"movsd qword [rbp +-...], ");
                 else
-                    st.Emit($"push {ReturnDataId.Register}");
+                    st.Emit($"push {st.MemoryAllocator.GetRegister(ReturnDataId)}");
             }
             else
             {
-                st.Emit($"push {ReturnDataId.Register}");
+                st.Emit($"push {st.MemoryAllocator.GetRegister(ReturnDataId)}");
             }
         }
 

@@ -171,7 +171,7 @@ namespace Peak.PeakC.Generation.X86_64
             if (methodObj is null == false)
             {
                 st.MemoryAllocator.MoveToAnyRegister(methodObj);
-                st.Emit($"call [{methodObj.Register}]");
+                st.Emit($"call [{st.MemoryAllocator.GetRegister(methodObj)}]");
             }
             else
             {
@@ -239,12 +239,13 @@ namespace Peak.PeakC.Generation.X86_64
                 var arg = r.ReturnDataId;
                 st.MemoryAllocator.MoveToAnyRegister(arg);
 
-                st.Emit($"push {arg.Register}");
+                st.Emit($"push {st.MemoryAllocator.GetRegister(arg)}");
             }
             
         }
         private static void saveRegisters(SymbolTable table, GenResult[] expect)
         {
+            var alloc = table.MemoryAllocator;
             var blockRegisters = new List<RegisterName>();
             foreach (var e in expect)
             {
@@ -252,30 +253,30 @@ namespace Peak.PeakC.Generation.X86_64
                     continue;
                 else
                 {
-                    if (e.ReturnDataId.ExistInRegisters || e.ReturnDataId.ExistInSSERegisters)
-                        blockRegisters.Add(e.ReturnDataId.Register);
+                    if (alloc.ExistInRegisters(e.ReturnDataId) || alloc.ExistInSSERegisters(e.ReturnDataId))
+                        blockRegisters.Add(alloc.GetRegister(e.ReturnDataId));
                 }
             }
 
 
-            foreach(var e in table.MemoryAllocator.RegisterMap)
+            foreach(var e in alloc.RegisterMap)
             {
                 //if (e.Register == RegisterName.rax)
                 //    continue;
                 /*else*/
                 if (e.ContainedData is null == false &&
-                    e.ContainedData.ExistInStack == false &&
-                    blockRegisters.Contains(e.ContainedData.Register) == false)
+                    alloc.ExistInStack(e.ContainedData) == false &&
+                    blockRegisters.Contains(alloc.GetRegister(e.ContainedData)) == false)
                 {
                     table.MemoryAllocator.MoveToStack(e.ContainedData);
                     e.Free();
                 }
             }
-            foreach (var e in table.MemoryAllocator.SSERegisterMap)
+            foreach (var e in alloc.SSERegisterMap)
             {
                 if (e.ContainedData is null == false &&
-                    e.ContainedData.ExistInStack == false &&
-                    blockRegisters.Contains(e.ContainedData.Register) == false)
+                    alloc.ExistInStack(e.ContainedData) == false &&
+                    blockRegisters.Contains(alloc.GetRegister(e.ContainedData)) == false)
                 {
                     table.MemoryAllocator.MoveToStack(e.ContainedData);
                     e.Free();

@@ -22,7 +22,7 @@ namespace Peak.PeakC.Generation
         protected MemoryAllocator allocator;
 
         /***  about registers  ***/
-        public bool ExistInRegisters
+       /* public bool ExistInRegisters
         {
             get
             {
@@ -55,7 +55,7 @@ namespace Peak.PeakC.Generation
                 return false;
             }
         }
-
+       */
         
         public static MemoryIdTracker FuncResult(SymbolTable st, bool isSSE = false)
         {
@@ -91,13 +91,13 @@ namespace Peak.PeakC.Generation
 
             throw new CompileException();
         }
-
+        /*
         public RegisterName Register
         {
             get
             {
 
-                if (this.ExistInRegisters)
+                if (this.allocator.ExistInRegisters(this) /*this.ExistInRegisters)
                 {
                     if (IsRbp)
                         return RegisterName.rbp;
@@ -113,11 +113,11 @@ namespace Peak.PeakC.Generation
 
                 throw new CompileException();
             }
-        }
+        }*/
 
 
         /***  about stack  ***/
-        public bool ExistInStack
+        /*public bool ExistInStack
         {
             get
             {
@@ -130,8 +130,8 @@ namespace Peak.PeakC.Generation
                 }
                 return false;
             }
-        }
-
+        }*/
+        /*
         public void Free()
         {
             FreeFromRegister();
@@ -148,8 +148,8 @@ namespace Peak.PeakC.Generation
             foreach (var e in this.allocator.StackModel)
                 if (this == e.ContainedData)
                     e.Free();
-        }
-
+        }*/
+        /*
         public int Rbp_Offset
         {
             get
@@ -175,7 +175,7 @@ namespace Peak.PeakC.Generation
                 throw new CompileException();
             }
         }
-
+        */
         public bool IsRbp { get; set; } 
 
         public MemoryIdTracker(SymbolTable st, int size)
@@ -216,11 +216,6 @@ namespace Peak.PeakC.Generation
         public VariableIdTracker(SymbolTable st, int size) : base(st, size)
         {
             // i'm hope it is normal
-        }
-
-        public override void FreeFromStack()
-        {
-            return;
         }
     }
 }

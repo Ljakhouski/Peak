@@ -29,8 +29,24 @@ namespace Peak.PeakC.Generation
 
         public static bool operator == (SemanticType first, SemanticType second)
         {
-            if (first as Object is null || second as Object is null)
-                return false;
+            if (first is null)
+            {
+                if (second is null)
+                    return true;
+                else if (second.Type == Type.AnyToCompare)
+                    return true;
+                else
+                    return false;
+            }
+            else if (second is null)
+            {
+                if (first is null)
+                    return true;
+                else if (first.Type == Type.AnyToCompare)
+                    return true;
+                else
+                    return false;
+            }
             else if (first.Type == second.Type)
                 return true;
             else if (first.Type == Type.AnyToCompare || second.Type == Type.AnyToCompare)
