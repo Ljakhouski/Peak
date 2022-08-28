@@ -216,6 +216,8 @@ namespace Peak.PeakC.Generation.X86_64
             }
             else if (node.Args is VariableInitNode)
                 l.Add((VariableInitNode)node.Args);
+            else if (node.Args is null || node.Args is EmptyNode)
+                return l;
             else
                 Error.ErrMessage(node.Args.MetaInf, "variable inizialization expected");
 

@@ -15,17 +15,27 @@ namespace Peak.PeakC.Generation.X86_64
             // TODO: make asm builder
             var table = new GlobalSymbolTable();
             table.MemoryAllocator = new MemoryAllocator(table);
-            generateForProgramNode(node, table);
+            //generateForProgramNode(node, table);
+            generateProgram(node, table);
             table.MainAssembly.Code.Add(table.MethodCode);
             return table.MainAssembly;
         }
-
-      
-
-        private static void generateForProgramNode(ProgramNode node, GlobalSymbolTable st)
+        private static void generateProgram(ProgramNode node, GlobalSymbolTable st)
         {
             st.MethodCode.MethodName = "start";
             var rbpSizeOperand = GenMethodPrologueAndGet_rbp(st);
+
+            generateForProgramNode(node, st);
+
+            int frameSize = MemoryAllocator.AlignUpAbsolute(st.MemoryAllocator.GetFrameSize(), 16);
+            rbpSizeOperand.content = "sub rsp, " + frameSize.ToString();
+        }
+
+
+        private static void generateForProgramNode(ProgramNode node, GlobalSymbolTable st)
+        {
+            //st.MethodCode.MethodName = "start";
+            //var rbpSizeOperand = GenMethodPrologueAndGet_rbp(st);
 
             foreach (Node n in node.Node)
             {
@@ -36,8 +46,8 @@ namespace Peak.PeakC.Generation.X86_64
                 else
                     CodeBlock.Generate((CodeBlockNode)n, st);
             }
-            int frameSize = MemoryAllocator.AlignUpAbsolute(st.MemoryAllocator.GetFrameSize(), 16);
-            rbpSizeOperand.content = "sub rsp, " + frameSize.ToString();
+            //int frameSize = MemoryAllocator.AlignUpAbsolute(st.MemoryAllocator.GetFrameSize(), 16);
+            //rbpSizeOperand.content = "sub rsp, " + frameSize.ToString();
         }
 
         public static AsmInstruction GenMethodPrologueAndGet_rbp(GlobalSymbolTable st)
@@ -49,7 +59,7 @@ namespace Peak.PeakC.Generation.X86_64
             var frameSizeOperand = st.MethodCode.Code[st.MethodCode.Code.Count - 1];
 
             var rbp = new MemoryIdTracker(st, size: 8);
-            var rbpInStack = new MemoryAreaElement(st.MemoryAllocator) { Size = 8, ContainedData = rbp};
+            var rbpInStack = new MemoryAreaElement(st.MemoryAllocator) { Size = 8, ContainedData = rbp };
             st.MemoryAllocator.StackModel.Add(rbpInStack);
             st.MemoryAllocator.RBP_dataId = rbp;
             return frameSizeOperand;
@@ -98,8 +108,8 @@ namespace Peak.PeakC.Generation.X86_64
             Error.FileNotFoundErrMessage(node.LoadFileName);
 
         }
-        
 
-        
+
+
     }
 }

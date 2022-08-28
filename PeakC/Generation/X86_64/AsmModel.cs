@@ -408,7 +408,10 @@ namespace Peak.PeakC.Generation.X86_64
             {
                 if (e.DllPath == dllPath)
                 {
-                    e.Symbols.Add(name);
+                    if (e.Symbols.Contains(name))
+                        return;
+                    else
+                        e.Symbols.Add(name);
                     return;
                 }
             }
@@ -489,6 +492,7 @@ namespace Peak.PeakC.Generation.X86_64
 
             for (int i = 0; i < input.Length - 1; i++)
             {
+                char ch = input[i];
                 if (input[i] == '[')
                     isInSqureParents = true;
                 if (input[i] == ']')
@@ -498,7 +502,11 @@ namespace Peak.PeakC.Generation.X86_64
                     return;
 
                 if (isInSqureParents && IsNumber(input[i]))
-                    input.Insert(i, "-");
+                {
+                    input = input.Insert(i, "-");
+                    return;
+                }
+                    
             }
             return;
 
@@ -506,8 +514,8 @@ namespace Peak.PeakC.Generation.X86_64
             {
                 var numbers = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-                foreach (char ch2 in numbers)
-                    if (ch2 == ch)
+                foreach (int i_ch in numbers)
+                    if (i_ch.ToString()[0] == ch)
                         return true;
                 return false;
             }

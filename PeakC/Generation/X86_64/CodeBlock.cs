@@ -49,6 +49,14 @@ namespace Peak.PeakC.Generation.X86_64
                             throw new CompileException();
                     }
                 }
+                else if (n is IfNode)
+                {
+                    ControlStatement.GenerateIfElse(n as IfNode, st);
+                }
+                else if (n is WhileNode)
+                {
+                    ControlStatement.GenerateWhile(n as WhileNode, st);
+                }
                 else
                     throw new CompileException();
 

@@ -373,6 +373,7 @@ namespace Peak.PeakC.Parser
                     expect("else");
                     if (getNext() == "if")
                     {
+                        expect("if");
                         var elifCondition = parse(NonterminalType.AndOr);
                         expect("[");
                         var elifCode = parse(NonterminalType.CodeBlock) as CodeBlockNode;
@@ -399,6 +400,7 @@ namespace Peak.PeakC.Parser
 
             if (getNext() == "else")
             {
+                expect("else");
                 parseElse();
                 return node;
             }
@@ -406,7 +408,7 @@ namespace Peak.PeakC.Parser
 
             void parseElse()
             {
-                next();
+                //next();
                 if (getNext() == "[")
                 {
                     expect("[");
@@ -620,6 +622,7 @@ namespace Peak.PeakC.Parser
         private Node parseData()
         {
             //next();
+            var dbt = getNext();
 
             if (getNext().Type == type.IntValue)
             {

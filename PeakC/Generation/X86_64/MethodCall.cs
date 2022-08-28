@@ -27,29 +27,45 @@ namespace Peak.PeakC.Generation.X86_64
                 calledSignature.Args = convertToType(argsResult);
             }
 
-            
+
 
             var method = getMethodAddress(node, calledSignature, methodSt);
 
             //insert ref on frame as first argument
             var fullSignature = method.fullSignature as MethodSemanticType;
-            if (fullSignature.MethodContext is null == false) 
+            if (fullSignature.MethodContext is null == false)
             {
                 argsResult.Insert(0, getContextRef(st, fullSignature.MethodContext));
             }
 
             if (method.IsDllMethod)
                 method.Label = $"[{method.Label}]";
-            call_x86_64(argsResult.ToArray(), st, label: method.Label, methodObj: method.DynamicResult.ReturnDataId);
+            call_x86_64(fullSignature, argsResult.ToArray(), st, label: method.Label, methodObj: method.DynamicResult.ReturnDataId);
 
+
+
+            
             if (fullSignature.RetType == null)
                 return new EmptyGenResult();
             else
-                return new GenResult()
+            {
+                var res = new GenResult()
                 {
                     ResultType = (method.fullSignature as MethodSemanticType).RetType,
                     ReturnDataId = MemoryIdTracker.FuncResult(st)
                 };
+
+                var t = new MemoryIdTracker(st, 8);
+
+                if (fullSignature.RetType.Type == Type.Double)
+                    st.MemoryAllocator.SetRegister(t, RegisterName.xmm0);
+                else
+                    st.MemoryAllocator.SetRegister(t, RegisterName.rax);
+                res.ReturnDataId = t;
+                
+                return res;
+            }
+                
         }
 
         private static GenResult getContextRef(SymbolTable st, MethodContextReferenceType needContext)
@@ -75,7 +91,7 @@ namespace Peak.PeakC.Generation.X86_64
             {
                 var mref = st.GetMethodContextRef();
                 MemoryIdTracker mRefTracker = null;
-                if (mref.Id == needContext.CompareContext.Id)
+                if ((mref.Type as MethodContextReferenceType).CompareContext.Id == needContext.CompareContext.Id)
                 {
                     mRefTracker = mref.IdTracker;
                 }
@@ -115,15 +131,15 @@ namespace Peak.PeakC.Generation.X86_64
         {
             throw new CompileException("method-object not implemented");
         }
-        private static void call_x86_64(GenResult[] args, SymbolTable st, string label = "", MemoryIdTracker methodObj = null)
+        private static void call_x86_64(MethodSemanticType signature, GenResult[] args, SymbolTable st, string label = "", MemoryIdTracker methodObj = null)
         {
             int N = args.Length;
             int stackN = 0;
             saveRegisters(st, expect: args);
             alignStackBeforePush(N, st);
-            if (N>=5)
-            {                
-                for (int i = args.Length; i>4; i--)
+            if (N >= 5)
+            {
+                for (int i = args.Length; i > 4; i--)
                 {
                     args[i].PushOnStack(st);
                     stackN++;
@@ -183,11 +199,13 @@ namespace Peak.PeakC.Generation.X86_64
             unblock(RegisterName.xmm2, RegisterName.r8);
             unblock(RegisterName.xmm3, RegisterName.r9);
 
+            freeRegs(st);
             restoreStack(stackN, st);
+
 
             return;
             /////////////////////////////////////////////////////
-            
+
             void block(RegisterName r1, RegisterName r2)
             {
                 st.MemoryAllocator.Block(r1);
@@ -201,11 +219,19 @@ namespace Peak.PeakC.Generation.X86_64
             }
         }
 
+        private static void freeRegs(SymbolTable st)
+        {
+            foreach (var e in st.MemoryAllocator.RegisterMap)
+                e.Free();
+            foreach (var e in st.MemoryAllocator.SSERegisterMap)
+                e.Free();
+        }
+
         private static void alignStackBeforePush(int n, SymbolTable st)
         {
             if (n <= 4)
                 return;
-            if ((n-4)%2 != 0)
+            if ((n - 4) % 2 != 0)
             {
                 st.Emit("sub rsp, 8");
             }
@@ -241,7 +267,7 @@ namespace Peak.PeakC.Generation.X86_64
 
                 st.Emit($"push {st.MemoryAllocator.GetRegister(arg)}");
             }
-            
+
         }
         private static void saveRegisters(SymbolTable table, GenResult[] expect)
         {
@@ -259,7 +285,7 @@ namespace Peak.PeakC.Generation.X86_64
             }
 
 
-            foreach(var e in alloc.RegisterMap)
+            foreach (var e in alloc.RegisterMap)
             {
                 //if (e.Register == RegisterName.rax)
                 //    continue;
@@ -295,7 +321,7 @@ namespace Peak.PeakC.Generation.X86_64
                     l.Add(arg.ResultType);
                 }
                 return l;
-            }               
+            }
 
         }
 

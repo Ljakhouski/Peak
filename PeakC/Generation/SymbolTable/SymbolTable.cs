@@ -143,13 +143,21 @@ namespace Peak.PeakC.Generation
         {   
             get         // TODO: make exception for struct-symbol table
             {
+                var st = this;
+                while (st.Prev != null)
+                {
+                    st = st.Prev;
+                    if (st is MethodSymbolTable)
+                        return (st as MethodSymbolTable).MemoryAllocator;
+                }
+                /*
                 do
                 {
                     var st = this.Prev;
 
                     if (st is MethodSymbolTable)
-                        return /*(st as MethodSymbolTable)*/st.MemoryAllocator;
-                }while (Prev != null);
+                        return /*(st as MethodSymbolTable)st.MemoryAllocator;
+                }while (Prev != null);*/
 
                 throw new CompileException();
             }
@@ -169,13 +177,20 @@ namespace Peak.PeakC.Generation
         {
             get
             {
-                do
+                var st = this;
+                while (st.Prev != null)
+                {
+                    st = st.Prev;
+                    if (st is MethodSymbolTable)
+                        return (st as MethodSymbolTable).MethodCode;
+                }
+                /*do
                 {
                     var st = this.Prev;
 
                     if (st is MethodSymbolTable)
-                        return /*(st as MethodSymbolTable)*/st.MethodCode;
-                } while (Prev != null);
+                        return /*(st as MethodSymbolTable)st.MethodCode;
+                } while (Prev != null);*/
 
                 throw new CompileException();
             }
@@ -225,6 +240,11 @@ namespace Peak.PeakC.Generation
 
     }
 
+    class WhileSymbolTable : SymbolTable
+    {
+        public string WhileBeginLabel { get; set; }
+        public string WhileEndLabel { get; set; }
+    }
 
     class MethodSymbolTable : SymbolTable
     {

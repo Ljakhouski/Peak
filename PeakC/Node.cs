@@ -317,6 +317,7 @@ namespace Peak.PeakC
                     new IfNode()
                     {
                         Condition = this.ElseIfNodes[currentElifNode].Condition,
+                        IfTrueCode = this.ElseIfNodes[currentElifNode].IfTrueCode,
                         ElseCode = recursiveDivOnIfAndElse(currentElifNode + 1)
                     }
                 }

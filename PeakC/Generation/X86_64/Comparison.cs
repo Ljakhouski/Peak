@@ -64,27 +64,28 @@ namespace Peak.PeakC.Generation.X86_64
             alloc.Unblock(left_r);
             alloc.Unblock(right_r);
 
+            alloc.FreeFromRegister(left_t);
+            alloc.FreeFromRegister(right_t);
+
             return new EmptyGenResult();
 
             void checkTypes()
             {
-                if (left.ResultType.Type != Peak.PeakC.Generation.Type.Int
-                    ||
-                    left.ResultType.Type != Peak.PeakC.Generation.Type.Double)
+                if (left.ResultType.Type == Peak.PeakC.Generation.Type.Int ||
+                    left.ResultType.Type == Peak.PeakC.Generation.Type.Double)
+                {
+                    if (right.ResultType.Type == Peak.PeakC.Generation.Type.Int ||
+                        right.ResultType.Type == Peak.PeakC.Generation.Type.Double)
+                    {
+                        if (left.ResultType != right.ResultType)
+                            Error.ErrMessage(node.Right.MetaInf, "types do not match");
+                    }
+                    else
+                        Error.ErrMessage(node.Right.MetaInf, "wrong expression type");
+                }
+                else
                     Error.ErrMessage(node.Left.MetaInf, "wrong expression type");
-
-                if (right.ResultType.Type != Peak.PeakC.Generation.Type.Int
-                    ||
-                    right.ResultType.Type != Peak.PeakC.Generation.Type.Double)
-                    Error.ErrMessage(node.Right.MetaInf, "wrong expression type");
-
-                if (left.ResultType != right.ResultType)
-                    Error.ErrMessage(node.Right.MetaInf, "types do not match");
             }
-
         }
-
-        
-
     }
 }

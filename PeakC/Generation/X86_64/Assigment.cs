@@ -9,27 +9,26 @@ namespace Peak.PeakC.Generation.X86_64
     {
         public static GenResult Generate(Node from, Node to, SymbolTable st)
         {
-            var rightExpr = Expression.Generate(from, st);
+            var data = Expression.Generate(from, st);
 
-            if (rightExpr is ConstantResult)
-                (rightExpr as ConstantResult).MoveToRegister(st);
+            if (data is ConstantResult)
+                (data as ConstantResult).MoveToRegister(st);
 
             //var leftExpr = Expression.Generate(node.Left, st);
 
             if (to is IdentifierNode)
             {
-                return generateForVarInCodeBlock(from, to as IdentifierNode, st);
+                return generateForVarInCodeBlock(data, to as IdentifierNode, st);
             }
             throw new CompileException("can only be assigment to variable");
             
         }
 
-        private static GenResult generateForVarInCodeBlock(Node from, IdentifierNode to, SymbolTable st)
+        private static GenResult generateForVarInCodeBlock(GenResult data, IdentifierNode to, SymbolTable st)
         {
             var id = (to as IdentifierNode).Id;
             var identifier = st.GetSymbolFromVisibleSpaces(id);
 
-            var data = Expression.Generate(from, st);
 
             if (identifier == null)
                 Error.ErrMessage(identifier.NameToken, "name does not exist");

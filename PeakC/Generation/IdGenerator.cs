@@ -10,6 +10,7 @@ namespace Peak.PeakC.Generation
         private static int idCounter = 900000;
         private static int stIdCounter = 700000;
         private static int methodCounter = 500000;
+        private static int labelCounter = 40000;
         public static int GenerateMemoryId()
         {
             memIdCounter++;
@@ -26,6 +27,12 @@ namespace Peak.PeakC.Generation
         {
             stIdCounter++;
             return stIdCounter;
+        }
+
+        public static string GenerateLabel()
+        {
+            labelCounter++;
+            return $"L_GEN{labelCounter}";
         }
 
         public static int GenerateMethodId()

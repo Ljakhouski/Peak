@@ -172,6 +172,8 @@ namespace Peak.PeakC.Generation
             if (node.Args is SequenceNode)
                 foreach (var e in (node.Args as SequenceNode).Sequence)
                     this.Args.Add(new SemanticType(e));
+            else if (node.Args is EmptyNode || node.Args is null)
+                this.Args = null;
             else
                 this.Args.Add(new SemanticType(node.Args));
 
