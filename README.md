@@ -8,7 +8,8 @@ only for x86_64 architecture (intel & AMD)
 
 build project and run IDE.exe to open sample-projects and try 
 
-
+<img src="https://github.com/Ljakhouski/Peak/blob/master/screenshots/screen.PNG"  height="700">
+<img src="https://github.com/Ljakhouski/Peak/blob/master/screenshots/watch.PNG"  height="700">
 ##  SYNTAX  
 
 
